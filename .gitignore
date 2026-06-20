@@ -1,0 +1,40 @@
+# Workspace metadata
+.agents/
+.codex/
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.db
+.Python
+.venv/
+venv/
+env/
+ENV/
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+.env
+.env.*
+!.env.example
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+flutter_*.log
+
+# JavaScript
+node_modules/
+
+# IDEs and OS files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

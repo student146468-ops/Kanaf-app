@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid" style="direction: rtl; text-align: right; padding: 20px;">
+    <h2 style="color: #4338ca; margin-bottom: 25px; border-right: 5px solid #4338ca; padding-right: 15px;">📊 لوحة التحكم - منظومة الأمل</h2>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        <div class="card-3d" style="background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <h4 style="color: #6366f1;">عدد الأيتام</h4>
+            <p style="font-size: 2rem; font-weight: bold; margin: 0;">120</p>
+        </div>
+        <div class="card-3d" style="background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <h4 style="color: #10b981;">الكفلاء</h4>
+            <p style="font-size: 2rem; font-weight: bold; margin: 0;">45</p>
+        </div>
+        <div class="card-3d" style="background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <h4 style="color: #f59e0b;">التبرعات</h4>
+            <p style="font-size: 2rem; font-weight: bold; margin: 0;">3,500 د.ل</p>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: center; align-items: center;">
+        <div class="card-3d" style="background: white; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+            <h3 style="text-align: center; color: #1e1b4b; font-size: 1.1rem; margin-bottom: 15px;">🔍 توزيع الاحتياجات الحالية</h3>
+            <div style="position: relative; height: 300px;">
+                <canvas id="needsChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('needsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['دواء', 'غذاء', 'ملابس', 'تعليم'],
+                datasets: [{
+                    data: [40, 30, 20, 10],
+                    backgroundColor: [
+                        '#ef4444', // أحمر للدواء
+                        '#f59e0b', // برتقالي للغذاء
+                        '#3b82f6', // أزرق للملابس
+                        '#10b981'  // أخضر للتعليم
+                    ],
+                    hoverOffset: 15,
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            font: { size: 12, family: 'Arial' },
+                            boxWidth: 15
+                        }
+                    },
+                    tooltip: {
+                        rtl: true,
+                        bodyFont: { family: 'Arial' }
+                    }
+                },
+                cutout: '65%' // تجعل الدائرة أنحف وأرقى
+            }
+        });
+    });
+</script>
+
+<style>
+    .card-3d {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card-3d:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="direction: rtl; padding: 20px; font-family: 'Tajawal', sans-serif;">
+    
+    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px;">
+        <h3 style="color: #f59e0b; margin-top: 0;">🤝 إضافة متطوع جديد</h3>
+        <form method="POST" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+            {% csrf_token %}
+            <div style="flex: 2; min-width: 200px;">
+                <label style="display: block; margin-bottom: 8px; color: #64748b;">اسم المتطوع:</label>
+                <input type="text" name="v_name" required placeholder="الاسم الكامل" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; outline: none;">
+            </div>
+            <div style="flex: 2; min-width: 200px;">
+                <label style="display: block; margin-bottom: 8px; color: #64748b;">التخصص/المهارة:</label>
+                <input type="text" name="v_specialty" required placeholder="مثال: تنظيم، تدريس، تمريض" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; outline: none;">
+            </div>
+            <button type="submit" style="background: #f59e0b; color: white; padding: 12px 30px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s;">
+                إضافة متطوع
+            </button>
+        </form>
+    </div>
+
+    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        <h3 style="margin-top: 0; color: #1e293b;">🏆 قائمة المتطوعين النشطين</h3>
+        <table style="width: 100%; border-collapse: collapse; text-align: right;">
+            <thead>
+                <tr style="border-bottom: 2px solid #f1f5f9; color: #64748b;">
+                    <th style="padding: 15px;">الاسم</th>
+                    <th style="padding: 15px;">التخصص</th>
+                    <th style="padding: 15px;">النقاط</th>
+                    <th style="padding: 15px; text-align: center;">إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in volunteers %}
+                <tr style="border-bottom: 1px solid #f1f5f9; transition: 0.2s;">
+                    <td style="padding: 15px; color: #1e293b; font-weight: bold;">{{ v.name }}</td>
+                    <td style="padding: 15px; color: #64748b;">{{ v.specialty }}</td>
+                    <td style="padding: 15px;">
+                        <span style="background: #fffbeb; color: #d97706; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">
+                            ⭐ {{ v.points }} نقطة
+                        </span>
+                    </td>
+                    <td style="padding: 15px; text-align: center;">
+                        <a href="{% url 'delete_volunteer' v.id %}" 
+                           onclick="return confirm('هل أنتِ متأكدة من حذف هذا المتطوع؟')" 
+                           style="color: #ef4444; text-decoration: none; font-weight: bold; padding: 8px 15px; border: 1px solid #fee2e2; border-radius: 8px; background: #fef2f2;">
+                           ❌ حذف
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="padding: 30px; text-align: center; color: #94a3b8;">لا يوجد متطوعون مسجلون حالياً.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

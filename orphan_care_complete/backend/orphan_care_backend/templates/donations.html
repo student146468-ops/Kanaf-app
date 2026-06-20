@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="direction: rtl; padding: 20px; font-family: 'Tajawal', sans-serif;">
+    
+    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px;">
+        <h3 style="color: #10b981; margin-top: 0;">🎁 إضافة تبرع جديد</h3>
+        <form method="POST" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+            {% csrf_token %}
+            <div style="flex: 2; min-width: 200px;">
+                <label style="display: block; margin-bottom: 8px; color: #64748b;">اسم المتبرع:</label>
+                <input type="text" name="d_name" required placeholder="مثال: فاعل خير" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; outline: none;">
+            </div>
+            <div style="flex: 2; min-width: 200px;">
+                <label style="display: block; margin-bottom: 8px; color: #64748b;">نوع التبرع (عيني/نقدي):</label>
+                <input type="text" name="d_item" required placeholder="مثال: مواد غذائية" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; outline: none;">
+            </div>
+            <button type="submit" style="background: #10b981; color: white; padding: 12px 30px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s;">
+                إضافة التبرع
+            </button>
+        </form>
+    </div>
+
+    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        <h3 style="margin-top: 0; color: #1e293b;">📋 سجل التبرعات الواردة</h3>
+        <table style="width: 100%; border-collapse: collapse; text-align: right;">
+            <thead>
+                <tr style="border-bottom: 2px solid #f1f5f9; color: #64748b;">
+                    <th style="padding: 15px;">المتبرع</th>
+                    <th style="padding: 15px;">النوع</th>
+                    <th style="padding: 15px;">الحالة</th>
+                    <th style="padding: 15px; text-align: center;">إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in donations %}
+                <tr style="border-bottom: 1px solid #f1f5f9; transition: 0.2s;">
+                    <td style="padding: 15px; color: #1e293b;">{{ d.donor_name }}</td>
+                    <td style="padding: 15px; color: #64748b;">{{ d.item_type }}</td>
+                    <td style="padding: 15px;">
+                        <span style="background: #ecfdf5; color: #10b981; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem;">
+                            {{ d.status|default:"تم الاستلام" }}
+                        </span>
+                    </td>
+                    <td style="padding: 15px; text-align: center;">
+                        <a href="{% url 'delete_donation' d.id %}" 
+                           onclick="return confirm('هل أنتِ متأكدة من حذف هذا التبرع؟')" 
+                           style="color: #ef4444; text-decoration: none; font-weight: bold; padding: 8px 15px; border: 1px solid #fee2e2; border-radius: 8px; background: #fef2f2;">
+                           ❌ حذف
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="padding: 30px; text-align: center; color: #94a3b8;">لا توجد تبرعات مسجلة حالياً.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

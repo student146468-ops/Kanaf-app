@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}منظومة الأمل الذكية{% endblock %}</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-body: #f0f2f5;
+            --sidebar-color: #1a1c2e;
+            --accent-color: #6366f1;
+            --text-light: #a5b4fc;
+        }
+
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            background: var(--bg-body); 
+            margin: 0; 
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* السايد بار الاحترافي - ممتد بالكامل */
+        .sidebar { 
+            width: 270px; 
+            background: var(--sidebar-color); 
+            color: white;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: sticky;
+            top: 0;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+            padding: 20px 15px;
+            z-index: 1000;
+        }
+
+        .sidebar-header h3 {
+            text-align: center;
+            font-size: 22px;
+            margin-bottom: 35px;
+            color: white;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .sidebar a { 
+            padding: 14px 20px; 
+            text-decoration: none; 
+            color: var(--text-light); 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 8px;
+            border-radius: 15px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-weight: 500;
+        }
+
+        /* تأثير الـ 3D والحركة عند الاختيار */
+        .sidebar a:hover, .sidebar a.active { 
+            background: var(--accent-color); 
+            color: white !important; 
+            transform: scale(1.05) translateX(-5px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .sidebar i { 
+            margin-left: 12px; 
+            font-size: 18px; 
+            width: 25px; 
+            text-align: center; 
+        }
+
+        .content { 
+            flex: 1; 
+            padding: 40px; 
+            overflow-y: auto;
+        }
+
+        /* كلاس الكروت 3D */
+        .card-3d { 
+            background: white; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+        
+        .card-3d:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar animate__animated animate__fadeInRight">
+        <div class="sidebar-header">
+            <h3 class="animate__animated animate__pulse animate__infinite">✨ منظومة الأمل</h3>
+        </div>
+        
+        <nav>
+            <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-th-large"></i> الرئيسية
+            </a>
+
+            <a href="{% url 'orphans_list' %}" class="{% if request.resolver_match.url_name == 'orphans_list' %}active{% endif %}">
+                <i class="fas fa-user-friends"></i> الأيتام
+            </a>
+
+            <a href="{% url 'inventory_view' %}" class="{% if request.resolver_match.url_name == 'inventory_view' %}active{% endif %}">
+                <i class="fas fa-archive"></i> إدارة المخزن
+            </a>
+
+         <a href="{% url 'volunteers_list' %}" class="{% if request.resolver_match.url_name == 'volunteers_list' %}active{% endif %}">
+    <i class="fas fa-hands-helping"></i> المتطوعون
+</a>
+
+            <a href="{% url 'sponsors_list' %}" class="{% if request.resolver_match.url_name == 'sponsors_list' %}active{% endif %}">
+                <i class="fas fa-hand-holding-heart"></i> الكفلاء
+            </a>
+
+            <a href="{% url 'donations_list' %}" class="{% if request.resolver_match.url_name == 'donations_list' %}active{% endif %}">
+                <i class="fas fa-donate"></i> التبرعات
+            </a>
+
+            <a href="{% url 'reports_view' %}" class="{% if request.resolver_match.url_name == 'reports_view' %}active{% endif %}">
+                <i class="fas fa-chart-line"></i> التقارير
+            </a>
+
+            <a href="{% url 'settings_view' %}" class="{% if request.resolver_match.url_name == 'settings_view' %}active{% endif %}">
+                <i class="fas fa-user-cog"></i> الإعدادات
+            </a>
+        </nav>
+    </div>
+
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+</body>
+</html>
