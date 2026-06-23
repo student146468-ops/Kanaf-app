@@ -233,13 +233,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     _buildSocialIcon(
-                                      iconPath: 'assets/images/google_logo.png', 
+                                      iconPath: 'assets/images/google_icon.png', 
                                       fallbackIcon: Icons.g_mobiledata_rounded,
                                       onTap: () {},
                                     ),
                                     const SizedBox(width: 24),
                                     _buildSocialIcon(
-                                      iconPath: 'assets/images/apple_logo.png', 
+                                      iconPath: 'assets/images/apple_icon.png', 
                                       fallbackIcon: Icons.apple_rounded,
                                       onTap: () {},
                                     ),
@@ -394,6 +394,9 @@ class _LoginScreenState extends State<LoginScreen> {
           padding: const EdgeInsets.all(13.0),
           child: Image.asset(
             iconPath, 
+            width: 28,
+            height: 28,
+            fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) => Icon(fallbackIcon, color: AppColors.glassTextPrimary.withOpacity(0.7), size: 24),
           ),
         ),

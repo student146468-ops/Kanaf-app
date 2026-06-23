@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
-import 'apply_opportunity_view.dart'; // الربط المباشر مع الواجهة رقم 20
+// الربط المباشر مع الواجهة رقم 20
 
 class VolunteerOpportunityDetailsView extends StatelessWidget {
   const VolunteerOpportunityDetailsView({super.key});
@@ -54,7 +54,8 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
               children: [
                 // شريط علوي شفاف مريح للتنقل والرجوع
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -65,9 +66,11 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: AppColors.glassBgNormal,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.glassBorderNormal),
+                            border:
+                                Border.all(color: AppColors.glassBorderNormal),
                           ),
-                          child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                          child: const Icon(Icons.arrow_back_ios_new_rounded,
+                              color: Colors.white, size: 20),
                         ),
                       ),
                       const Text(
@@ -79,7 +82,8 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
                           fontFamily: 'Tajawal',
                         ),
                       ),
-                      const SizedBox(width: 44), // لموازنة السهم في الطرف الآخر هندسياً
+                      const SizedBox(
+                          width: 44), // لموازنة السهم في الطرف الآخر هندسياً
                     ],
                   ),
                 ),
@@ -87,11 +91,11 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(top: 120, left: 20, right: 20, bottom: 100),
+                    padding: const EdgeInsets.only(
+                        top: 120, left: 20, right: 20, bottom: 100),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        
                         // كرت العنوان الرئيسي والجهة الحاضنة (Solid & Sharp)
                         Container(
                           width: double.infinity,
@@ -101,37 +105,51 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(color: AppColors.innerBorder),
                             boxShadow: const [
-                              BoxShadow(color: AppColors.innerShadow, blurRadius: 15, offset: Offset(0, 8))
+                              BoxShadow(
+                                  color: AppColors.innerShadow,
+                                  blurRadius: 15,
+                                  offset: Offset(0, 8))
                             ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: AppColors.brandOrangeLight,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Text(
                                   'تعليم وتطوير',
-                                  style: TextStyle(color: AppColors.brandOrange, fontSize: 11, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                      color: AppColors.brandOrange,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ),
                               const SizedBox(height: 12),
                               const Text(
                                 'تدريس أساسيات الحاسوب والبرمجة للأيتام',
-                                style: TextStyle(color: AppColors.textDarkPrimary, fontSize: 18, fontWeight: FontWeight.bold, height: 1.4),
+                                style: TextStyle(
+                                    color: AppColors.textDarkPrimary,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    height: 1.4),
                               ),
                               const SizedBox(height: 12),
                               Row(
                                 children: const [
-                                  Icon(Icons.location_on_outlined, color: AppColors.brandOrange, size: 18),
+                                  Icon(Icons.location_on_outlined,
+                                      color: AppColors.brandOrange, size: 18),
                                   SizedBox(width: 6),
                                   Expanded(
                                     child: Text(
                                       'دار رعاية الأيتام المركزية - غريان، ليبيا',
-                                      style: TextStyle(color: AppColors.textDarkSecondary, fontSize: 13),
+                                      style: TextStyle(
+                                          color: AppColors.textDarkSecondary,
+                                          fontSize: 13),
                                     ),
                                   ),
                                 ],
@@ -139,7 +157,7 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
                             ],
                           ),
                         ),
-                        
+
                         const SizedBox(height: 20),
 
                         // كرت الوقت والدقيق والجدولة (المحددات الزمنية)
@@ -153,11 +171,20 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _buildInfoTimeline(Icons.calendar_today_rounded, 'الأيام', 'السبت والإثنين'),
-                              Container(width: 1, height: 40, color: AppColors.innerBorder),
-                              _buildInfoTimeline(Icons.access_time_rounded, 'الوقت', '16:00 - 18:00'),
-                              Container(width: 1, height: 40, color: AppColors.innerBorder),
-                              _buildInfoTimeline(Icons.hourglass_top_rounded, 'المدة', '4 ساعات / أسبوع'),
+                              _buildInfoTimeline(Icons.calendar_today_rounded,
+                                  'الأيام', 'السبت والإثنين'),
+                              Container(
+                                  width: 1,
+                                  height: 40,
+                                  color: AppColors.innerBorder),
+                              _buildInfoTimeline(Icons.access_time_rounded,
+                                  'الوقت', '16:00 - 18:00'),
+                              Container(
+                                  width: 1,
+                                  height: 40,
+                                  color: AppColors.innerBorder),
+                              _buildInfoTimeline(Icons.hourglass_top_rounded,
+                                  'المدة', '4 ساعات / أسبوع'),
                             ],
                           ),
                         ),
@@ -167,24 +194,36 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
                         // قسم المهام المطلوبة (شرح تتابعي عالي القراءة والنقاء)
                         const Text(
                           '📋 المهام والمسؤوليات المطلوبة:',
-                          style: TextStyle(color: AppColors.textDarkPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: AppColors.textDarkPrimary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
-                        _buildBulletPoint('شرح المبادئ الأساسية لأنظمة التشغيل وملفات الحاسوب للأطفال.'),
-                        _buildBulletPoint('تقديم مقدمة مبسطة وممتعة ومحفزة عن المنطق البرمجي وكيف تفكر الآلة.'),
-                        _buildBulletPoint('متابعة التطبيقات العملية للأطفال داخل معمل الحاسوب الخاص بالدار وتوجيههم.'),
+                        _buildBulletPoint(
+                            'شرح المبادئ الأساسية لأنظمة التشغيل وملفات الحاسوب للأطفال.'),
+                        _buildBulletPoint(
+                            'تقديم مقدمة مبسطة وممتعة ومحفزة عن المنطق البرمجي وكيف تفكر الآلة.'),
+                        _buildBulletPoint(
+                            'متابعة التطبيقات العملية للأطفال داخل معمل الحاسوب الخاص بالدار وتوجيههم.'),
 
                         const SizedBox(height: 24),
 
                         // قسم الشروط والمؤهلات (لضمان كفاءة التجربة الإنسانية)
                         const Text(
                           '⚡ الشروط والمؤهلات:',
-                          style: TextStyle(color: AppColors.textDarkPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: AppColors.textDarkPrimary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
-                        _buildBulletPoint('أن يكون المتقدم طالباً أو خريجاً في تخصص هندسة البرمجيات أو تقنية المعلومات.'),
-                        _buildBulletPoint('القدرة العالية على تبسيط المعلومات والتعامل الصبور والراقي مع فئة الأطفال الأيتام.'),
-                        _buildBulletPoint('الالتزام التام بالمواعيد المحددة بالتنسيق مع المشرفين في مدينة غريان.'),
+                        _buildBulletPoint(
+                            'أن يكون المتقدم طالباً أو خريجاً في تخصص هندسة البرمجيات أو تقنية المعلومات.'),
+                        _buildBulletPoint(
+                            'القدرة العالية على تبسيط المعلومات والتعامل الصبور والراقي مع فئة الأطفال الأيتام.'),
+                        _buildBulletPoint(
+                            'الالتزام التام بالمواعيد المحددة بالتنسيق مع المشرفين في مدينة غريان.'),
                       ],
                     ),
                   ),
@@ -202,9 +241,14 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.only(topRight: Radius.circular(28), topLeft: Radius.circular(28)),
+                borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(28),
+                    topLeft: Radius.circular(28)),
                 boxShadow: [
-                  BoxShadow(color: AppColors.innerShadow, blurRadius: 20, offset: Offset(0, -4))
+                  BoxShadow(
+                      color: AppColors.innerShadow,
+                      blurRadius: 20,
+                      offset: Offset(0, -4))
                 ],
               ),
               child: Row(
@@ -214,9 +258,15 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: const [
-                      Text('المقاعد المتاحة', style: TextStyle(color: AppColors.textDarkMuted, fontSize: 12)),
+                      Text('المقاعد المتاحة',
+                          style: TextStyle(
+                              color: AppColors.textDarkMuted, fontSize: 12)),
                       SizedBox(height: 4),
-                      Text('2 متطوعين فقط', style: TextStyle(color: Colors.redAccent, fontSize: 15, fontWeight: FontWeight.bold)),
+                      Text('2 متطوعين فقط',
+                          style: TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold)),
                     ],
                   ),
                   const SizedBox(width: 24),
@@ -226,22 +276,25 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.brandOrange,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
                         elevation: 2,
                         shadowColor: AppColors.brandOrange.withOpacity(0.3),
                       ),
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const ApplyOpportunityView()),
-                        );
+                        Navigator.of(context).pushNamed('/apply_opportunity');
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Text('تقديم طلب تطوع الآن', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                          Text('تقديم طلب تطوع الآن',
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white)),
                           SizedBox(width: 8),
-                          Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
+                          Icon(Icons.arrow_forward_rounded,
+                              size: 18, color: Colors.white),
                         ],
                       ),
                     ),
@@ -261,9 +314,15 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
       children: [
         Icon(icon, color: AppColors.brandOrange, size: 20),
         const SizedBox(height: 6),
-        Text(label, style: const TextStyle(color: AppColors.textDarkMuted, fontSize: 11)),
+        Text(label,
+            style:
+                const TextStyle(color: AppColors.textDarkMuted, fontSize: 11)),
         const SizedBox(height: 2),
-        Text(value, style: const TextStyle(color: AppColors.textDarkPrimary, fontSize: 12, fontWeight: FontWeight.bold)),
+        Text(value,
+            style: const TextStyle(
+                color: AppColors.textDarkPrimary,
+                fontSize: 12,
+                fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -278,12 +337,16 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
             margin: const EdgeInsets.only(top: 6, left: 8, right: 4),
             width: 6,
             height: 6,
-            decoration: const BoxDecoration(color: AppColors.brandOrange, shape: BoxShape.circle),
+            decoration: const BoxDecoration(
+                color: AppColors.brandOrange, shape: BoxShape.circle),
           ),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(color: AppColors.textDarkSecondary, fontSize: 13, height: 1.5),
+              style: const TextStyle(
+                  color: AppColors.textDarkSecondary,
+                  fontSize: 13,
+                  height: 1.5),
             ),
           ),
         ],

@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import '../../models/donation_model.dart';
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/glass_container.dart';
+import 'care_home_light_widgets.dart';
 
 /// [IncomingDonationsScreen] - الواجهة رقم 33: إدارة وتدقيق التبرعات الواردة لدار الرعاية لعام 2026.
-/// مصممة بنقاء هيكلي فخم لعرض وتتبع التبرعات المالية والعينية الواردة لفرع غريان وفحصها فورياً.
+/// مصممة بنقاء هيكلي واضح لعرض وتتبع التبرعات المالية والعينية الواردة لفرع غريان وفحصها فورياً.
 class IncomingDonationsScreen extends StatefulWidget {
   const IncomingDonationsScreen({super.key});
 
   @override
-  State<IncomingDonationsScreen> createState() => _IncomingDonationsScreenState();
+  State<IncomingDonationsScreen> createState() =>
+      _IncomingDonationsScreenState();
 }
 
 class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
   String _selectedTypeFilter = 'الكل'; // الفلتر المختار: الكل، مالي، عيني
 
-  // بيانات محاكاة تفصيلية ومقنعة لعمليات دعم حقيقية داخل تطبيق "كَنَفْ" لإبهار المناقشين والمهندسة رحاب
+  // بيانات محاكاة تفصيلية ومقنعة لعمليات دعم حقيقية داخل تطبيق "كَنَفْ" لتجربة تشغيل واقعية
   final List<Map<String, dynamic>> _donations = [
     {
       'id': 'd1',
@@ -60,8 +63,13 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
     final isWebOrDesktop = size.width > 600;
     final containerWidth = isWebOrDesktop ? 420.0 : double.infinity;
 
+    final provider = AppProviderScope.of(context);
+    final donations = provider.donations.isEmpty
+        ? _donations
+        : provider.donations.map(_donationToMap).toList();
+
     // فلترة التبرعات ديناميكياً وفق التخصص المختار لمنع التشتت البصري للمشرف
-    final filteredDonations = _donations.where((d) {
+    final filteredDonations = donations.where((d) {
       if (_selectedTypeFilter == 'الكل') return true;
       return d['type'] == _selectedTypeFilter;
     }).toList();
@@ -69,21 +77,26 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFF131313),
+        backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Container(
             width: containerWidth,
             height: double.infinity,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: AppColors.scaffoldBackground,
               boxShadow: isWebOrDesktop
-                  ? [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 45, spreadRadius: 8)]
+                  ? [
+                      BoxShadow(
+                          color: AppColors.innerShadow,
+                          blurRadius: 45,
+                          spreadRadius: 8)
+                    ]
                   : [],
             ),
             child: Stack(
               children: [
-                // الخلفية الكريستالية الحية المستقرة للتطبيق
+                // خلفية بيضاء هادئة وموحدة للتطبيق
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -91,9 +104,9 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
                         colors: [
-                          Color(0xFF261611),
-                          Color(0xFF141416),
-                          Color(0xFF0D1117),
+                          Colors.white,
+                          AppColors.scaffoldBackground,
+                          AppColors.scaffoldBackground,
                         ],
                         stops: [0.0, 0.52, 1.0],
                       ),
@@ -107,8 +120,8 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.4),
-                          Colors.black.withOpacity(0.92),
+                          Colors.white,
+                          Colors.white,
                         ],
                       ),
                     ),
@@ -123,12 +136,13 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                       Expanded(
                         child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0, vertical: 10.0),
                           child: Column(
                             // تم إصلاح السطر 120 هنا بحذف كلمة cross الزائدة
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSummaryCard(),
+                              _buildSummaryCard(donations),
                               const SizedBox(height: 24),
                               _buildFilterTabs(),
                               const SizedBox(height: 14),
@@ -136,10 +150,12 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                                   ? _buildEmptyState()
                                   : ListView.builder(
                                       shrinkWrap: true,
-                                      physics: const NeverScrollableScrollPhysics(),
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
                                       itemCount: filteredDonations.length,
                                       itemBuilder: (context, index) {
-                                        final donation = filteredDonations[index];
+                                        final donation =
+                                            filteredDonations[index];
                                         return _buildDonationCard(donation);
                                       },
                                     ),
@@ -159,6 +175,27 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
     );
   }
 
+  Map<String, dynamic> _donationToMap(DonationModel donation) {
+    final type = donation.amount != null ? 'مالي' : 'عيني';
+    final date = donation.donationDate ?? donation.createdAt;
+    return {
+      'id': '${donation.id}',
+      'donor':
+          donation.donorName.isEmpty ? 'متبرع غير محدد' : donation.donorName,
+      'type': type,
+      'amount': donation.amount != null
+          ? '${donation.amount!.toStringAsFixed(0)} د.ل'
+          : donation.itemType,
+      'details': donation.description ?? donation.category ?? 'دعم وارد للدار.',
+      'date': date == null
+          ? 'غير محدد'
+          : '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+      'is_received': donation.status == 'completed' ||
+          donation.status == 'تم الاستلام' ||
+          donation.status == 'received',
+    };
+  }
+
   Widget _buildAppBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -171,11 +208,12 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: AppColors.cardBackground,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.15)),
+                border: Border.all(color: AppColors.innerBorder),
               ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.textDarkPrimary, size: 18),
             ),
           ),
           const Text(
@@ -184,7 +222,7 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
               fontFamily: 'Cairo',
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.glassTextPrimary,
+              color: AppColors.textDarkPrimary,
             ),
           ),
           const SizedBox(width: 40),
@@ -193,8 +231,14 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
     );
   }
 
-  Widget _buildSummaryCard() {
-    return GlassContainer(
+  Widget _buildSummaryCard(List<Map<String, dynamic>> donations) {
+    final totalAmount = donations.fold<double>(0, (sum, donation) {
+      final amount = donation['amount'].toString().replaceAll(',', '');
+      final match = RegExp(r'\d+(\.\d+)?').firstMatch(amount);
+      return sum + (match == null ? 0 : double.parse(match.group(0)!));
+    });
+
+    return CareHomeCard(
       padding: const EdgeInsets.all(20.0),
       child: Row(
         children: [
@@ -204,7 +248,8 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
               color: AppColors.brandOrange.withOpacity(0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.account_balance_wallet_rounded, color: AppColors.brandOrange, size: 26),
+            child: const Icon(Icons.account_balance_wallet_rounded,
+                color: AppColors.brandOrange, size: 26),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -216,17 +261,19 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                   style: TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 12,
-                    color: AppColors.glassTextSecondary,
+                    color: AppColors.textDarkSecondary,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  '4,250 د.ل',
-                  style: TextStyle(
+                Text(
+                  totalAmount > 0
+                      ? '${totalAmount.toStringAsFixed(0)} د.ل'
+                      : 'بانتظار التحديث',
+                  style: const TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.glassTextPrimary,
+                    color: AppColors.textDarkPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -259,10 +306,14 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 4),
               height: 38,
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.brandOrange.withOpacity(0.18) : Colors.white.withOpacity(0.04),
+                color: isSelected
+                    ? AppColors.brandOrange.withOpacity(0.18)
+                    : AppColors.surfaceLight,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected ? AppColors.brandOrange : Colors.white.withOpacity(0.08),
+                  color: isSelected
+                      ? AppColors.brandOrange
+                      : AppColors.cardBackground,
                   width: 1,
                 ),
               ),
@@ -273,7 +324,9 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                     fontFamily: 'Cairo',
                     fontSize: 12.5,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                    color: isSelected ? AppColors.brandOrange : AppColors.glassTextPrimary,
+                    color: isSelected
+                        ? AppColors.brandOrange
+                        : AppColors.textDarkPrimary,
                   ),
                 ),
               ),
@@ -286,11 +339,12 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
 
   Widget _buildDonationCard(Map<String, dynamic> donation) {
     final bool isMoney = donation['type'] == 'مالي';
-    final Color badgeColor = donation['is_received'] ? const Color(0xFF10B981) : Colors.orangeAccent;
+    final Color badgeColor =
+        donation['is_received'] ? const Color(0xFF10B981) : Colors.orangeAccent;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: GlassContainer(
+      child: CareHomeCard(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,34 +352,46 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      isMoney ? Icons.monetization_on_rounded : Icons.inventory_2_rounded,
-                      color: isMoney ? Colors.amber : Colors.tealAccent,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      donation['donor'],
-                      style: const TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.glassTextPrimary,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(
+                        isMoney
+                            ? Icons.monetization_on_rounded
+                            : Icons.inventory_2_rounded,
+                        color: isMoney ? Colors.amber : Colors.teal,
+                        size: 18,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          donation['donor'],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: 'Cairo',
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDarkPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: badgeColor.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: badgeColor.withOpacity(0.3)),
                   ),
                   child: Text(
-                    donation['is_received'] ? 'تم الاستلام' : 'قيد الفرز والتحقق',
+                    donation['is_received']
+                        ? 'تم الاستلام'
+                        : 'قيد الفرز والتحقق',
                     style: TextStyle(
                       fontFamily: 'Cairo',
                       fontSize: 10,
@@ -352,10 +418,10 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
               style: TextStyle(
                 fontFamily: 'Cairo',
                 fontSize: 12.5,
-                color: AppColors.glassTextSecondary,
+                color: AppColors.textDarkSecondary,
               ),
             ),
-            const Divider(color: Colors.white12, height: 20),
+            const Divider(color: AppColors.divider, height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -364,7 +430,7 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                   style: TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 11,
-                    color: Colors.white.withOpacity(0.3),
+                    color: AppColors.textDarkMuted.withOpacity(0.45),
                   ),
                 ),
                 if (!donation['is_received'])
@@ -375,13 +441,16 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                       });
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('تم تأكيد الفحص اليدوي وإضافتها للمخازن بنجاح', style: TextStyle(fontFamily: 'Cairo')),
+                          content: Text(
+                              'تم تأكيد الفحص اليدوي وإضافتها للمخازن بنجاح',
+                              style: TextStyle(fontFamily: 'Cairo')),
                           backgroundColor: Color(0xFF10B981),
                         ),
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.brandOrange,
                         borderRadius: BorderRadius.circular(8),
@@ -392,7 +461,7 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                           fontFamily: 'Cairo',
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.brandOrangeDark,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -411,14 +480,15 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 30),
-          Icon(Icons.receipt_long_rounded, size: 50, color: Colors.white.withOpacity(0.15)),
+          Icon(Icons.receipt_long_rounded,
+              size: 50, color: AppColors.innerBorder),
           const SizedBox(height: 12),
           Text(
-            'لا توجد عمليات دعم مسجلة تحت هذا التصنيف',
+            'لا توجد عمليات دعم مسجلة طھط­طھ هذا التصنيف',
             style: TextStyle(
               fontFamily: 'Cairo',
               fontSize: 13.5,
-              color: AppColors.glassTextSecondary,
+              color: AppColors.textDarkSecondary,
             ),
           ),
         ],

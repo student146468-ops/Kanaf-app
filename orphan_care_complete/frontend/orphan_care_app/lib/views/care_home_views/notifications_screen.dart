@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/glass_container.dart';
+import 'care_home_light_widgets.dart';
 
 /// [NotificationsScreen] - الواجهة رقم 33: مركز الإشعارات والتنبيهات اللوجستية لدار الرعاية لعام 2026.
-/// تجمع الإشعارات الحية للتبرعات، طلبات التطوع، وتنبيهات النظام بلمسة زجاجية فخمة ومريحة للعين.
+/// تجمع الإشعارات الحية للتبرعات، طلبات التطوع، وتنبيهات النظام بلمسة واضحة واضحة ومريحة للعين.
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -14,12 +14,13 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   String _activeCategoryFilter = 'الكل'; // الكل، التبرعات، التطوع، النظام
 
-  // بيانات محاكاة فائقة الدقة والواقعية لمشروع كَنَفْ لإبهار لجنة التحكيم
+  // بيانات محاكاة فائقة الدقة والواقعية لمشروع كَنَفْ لتجربة تشغيل واقعية
   final List<Map<String, dynamic>> _notifications = [
     {
       'id': 'n1',
       'title': 'تبرع عيني جديد قيد التوصيل',
-      'body': 'قام المتبرع "أحمد الساعدي" بالتكفل بطلب حليب الأطفال، المندوب قادم لفرع غريان.',
+      'body':
+          'قام المتبرع "أحمد الساعدي" بالتكفل بطلب حليب الأطفال، المندوب قادم لفرع غريان.',
       'time': 'منذ 5 دقائق',
       'category': 'التبرعات',
       'icon': Icons.card_giftcard_rounded,
@@ -31,11 +32,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     {
       'id': 'n2',
       'title': 'طلب انضمام متطوع ترفيهي',
-      'body': 'قدمت الأخصائية "فاطمة الخويلدي" طلب دعم نفسي للأطفال. يرجى مراجعة المؤهلات.',
+      'body':
+          'قدمت الأخصائية "فاطمة الخويلدي" طلب دعم نفسي للأطفال. يرجى مراجعة المؤهلات.',
       'time': 'منذ ساعة',
       'category': 'التطوع',
       'icon': Icons.volunteer_activism_rounded,
-      'badge_color': const Color(0xFF3B82F6), // Blue Accent فخم ومستقر
+      'badge_color': const Color(0xFF3B82F6), // Blue Accent واضح ومستقر
       'is_unread': true,
       'route': '/care_home_manage_volunteers',
       'arg': null,
@@ -43,7 +45,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     {
       'id': 'n3',
       'title': 'تنبيه أمن النظام والنسخ الاحتياطي',
-      'body': 'تم بنجاح النسخ الاحتياطي التلقائي لقاعدة بيانات الأطفال والأيتام لعام 2026 بأمان.',
+      'body':
+          'تم بنجاح النسخ الاحتياطي التلقائي لقاعدة بيانات الأطفال والأيتام لعام 2026 بأمان.',
       'time': 'منذ 5 ساعات',
       'category': 'النظام',
       'icon': Icons.shield_rounded,
@@ -55,7 +58,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     {
       'id': 'n4',
       'title': 'اكتملت كفالة المستلزمات الطبية',
-      'body': 'تم استلام كافة أطقم الأدوية والمستلزمات الطبية وإغلاق الطلب بنجاح في المستودع.',
+      'body':
+          'تم استلام كافة أطقم الأدوية والمستلزمات الطبية وإغلاق الطلب بنجاح في المستودع.',
       'time': 'بالأمس',
       'category': 'التبرعات',
       'icon': Icons.task_alt_rounded,
@@ -81,21 +85,26 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFF131313),
+        backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Container(
             width: containerWidth,
             height: double.infinity,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: AppColors.scaffoldBackground,
               boxShadow: isWebOrDesktop
-                  ? [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 45, spreadRadius: 8)]
+                  ? [
+                      BoxShadow(
+                          color: AppColors.innerShadow,
+                          blurRadius: 45,
+                          spreadRadius: 8)
+                    ]
                   : [],
             ),
             child: Stack(
               children: [
-                // الخلفية الكريستالية الحية المستقرة والموحدة لتطبيق كَنَفْ
+                // خلفية بيضاء هادئة وموحدة لتطبيق كَنَفْ
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -103,9 +112,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
                         colors: [
-                          Color(0xFF261611),
-                          Color(0xFF141416),
-                          Color(0xFF0D1117),
+                          Colors.white,
+                          AppColors.scaffoldBackground,
+                          AppColors.scaffoldBackground,
                         ],
                         stops: [0.0, 0.52, 1.0],
                       ),
@@ -119,8 +128,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.3),
-                          Colors.black.withOpacity(0.93),
+                          Colors.white,
+                          Colors.white,
                         ],
                       ),
                     ),
@@ -139,7 +148,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             ? _buildEmptyState()
                             : ListView.builder(
                                 physics: const BouncingScrollPhysics(),
-                                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20.0, vertical: 8.0),
                                 itemCount: filteredNotifications.length,
                                 itemBuilder: (context, index) {
                                   final notif = filteredNotifications[index];
@@ -170,11 +180,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: AppColors.cardBackground,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.15)),
+                border: Border.all(color: AppColors.innerBorder),
               ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.textDarkPrimary, size: 18),
             ),
           ),
           const Text(
@@ -183,7 +194,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               fontFamily: 'Cairo',
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.glassTextPrimary,
+              color: AppColors.textDarkPrimary,
             ),
           ),
           // خيار تحديد الكل كمقروء بلمسة أنيقة
@@ -196,7 +207,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               });
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('تم تعيين جميع الإشعارات كمقروءة', style: TextStyle(fontFamily: 'Cairo')),
+                  content: Text('تم تعيين جميع الإشعارات كمقروءة',
+                      style: TextStyle(fontFamily: 'Cairo')),
                   backgroundColor: Color(0xFF10B981),
                 ),
               );
@@ -205,11 +217,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: AppColors.surfaceLight,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                border: Border.all(color: AppColors.innerBorder),
               ),
-              child: const Icon(Icons.done_all_rounded, color: AppColors.glassTextSecondary, size: 20),
+              child: const Icon(Icons.done_all_rounded,
+                  color: AppColors.textDarkSecondary, size: 20),
             ),
           ),
         ],
@@ -232,10 +245,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 3),
                 height: 38,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.brandOrange.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                  color: isSelected
+                      ? AppColors.brandOrange.withOpacity(0.2)
+                      : AppColors.surfaceLight,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isSelected ? AppColors.brandOrange : Colors.white.withOpacity(0.08),
+                    color: isSelected
+                        ? AppColors.brandOrange
+                        : AppColors.cardBackground,
                     width: 1,
                   ),
                 ),
@@ -245,8 +262,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     style: TextStyle(
                       fontFamily: 'Cairo',
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      color: isSelected ? AppColors.brandOrange : AppColors.glassTextPrimary,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w600,
+                      color: isSelected
+                          ? AppColors.brandOrange
+                          : AppColors.textDarkPrimary,
                     ),
                   ),
                 ),
@@ -269,27 +289,31 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           onTap: () {
             setState(() => notif['is_unread'] = false);
             if (notif['route'] != null) {
-              Navigator.of(context).pushNamed(notif['route'], arguments: notif['arg']);
+              Navigator.of(context)
+                  .pushNamed(notif['route'], arguments: notif['arg']);
             }
           },
           borderRadius: BorderRadius.circular(24),
           child: Stack(
             children: [
-              GlassContainer(
+              CareHomeCard(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // أيقونة الإشعار بنظام النيون ثلاثي الأبعاد والملون
+                    // أيقونة الإشعار بنظام بصري واضح ومنظم
                     Container(
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
                         color: notif['badge_color'].withOpacity(0.12),
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: notif['badge_color'].withOpacity(0.25), width: 1.5),
+                        border: Border.all(
+                            color: notif['badge_color'].withOpacity(0.25),
+                            width: 1.5),
                       ),
-                      child: Icon(notif['icon'], color: notif['badge_color'], size: 22),
+                      child: Icon(notif['icon'],
+                          color: notif['badge_color'], size: 22),
                     ),
                     const SizedBox(width: 14),
 
@@ -301,21 +325,32 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                notif['title'],
-                                style: TextStyle(
-                                  fontFamily: 'Cairo',
-                                  fontSize: 14,
-                                  fontWeight: isUnread ? FontWeight.w800 : FontWeight.bold,
-                                  color: isUnread ? Colors.white : AppColors.glassTextPrimary.withOpacity(0.8),
+                              Expanded(
+                                child: Text(
+                                  notif['title'],
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontFamily: 'Cairo',
+                                    fontSize: 14,
+                                    fontWeight: isUnread
+                                        ? FontWeight.w800
+                                        : FontWeight.bold,
+                                    color: isUnread
+                                        ? AppColors.textDarkPrimary
+                                        : AppColors.textDarkPrimary
+                                            .withOpacity(0.8),
+                                  ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               Text(
                                 notif['time'],
                                 style: TextStyle(
                                   fontFamily: 'Cairo',
                                   fontSize: 10.5,
-                                  color: AppColors.glassTextSecondary.withOpacity(0.6),
+                                  color: AppColors.textDarkSecondary
+                                      .withOpacity(0.6),
                                 ),
                               ),
                             ],
@@ -326,7 +361,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             style: TextStyle(
                               fontFamily: 'Cairo',
                               fontSize: 12.5,
-                              color: isUnread ? AppColors.glassTextPrimary : AppColors.glassTextSecondary,
+                              color: isUnread
+                                  ? AppColors.textDarkPrimary
+                                  : AppColors.textDarkSecondary,
                               height: 1.4,
                             ),
                           ),
@@ -336,7 +373,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ],
                 ),
               ),
-              // نقطة زرقاء متوهجة نيونية ممتازة تشير أن الإشعار غير مقروء تمنع تشتت العين
+              // نقطة زرقاء تشير إلى أن الإشعار غير مقروء بدون تشتيت العين
               if (isUnread)
                 Positioned(
                   top: 14,
@@ -348,7 +385,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       color: AppColors.brandOrange,
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: AppColors.brandOrange, blurRadius: 6, spreadRadius: 1),
+                        BoxShadow(
+                            color: AppColors.brandOrange,
+                            blurRadius: 6,
+                            spreadRadius: 1),
                       ],
                     ),
                   ),
@@ -365,14 +405,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.notifications_off_rounded, size: 56, color: Colors.white.withOpacity(0.15)),
+          Icon(Icons.notifications_off_rounded,
+              size: 56, color: AppColors.innerBorder),
           const SizedBox(height: 14),
           Text(
             'لا توجد تنبيهات جديدة في هذا القسم حالياً',
             style: TextStyle(
               fontFamily: 'Cairo',
               fontSize: 13.5,
-              color: AppColors.glassTextSecondary,
+              color: AppColors.textDarkSecondary,
             ),
           ),
         ],

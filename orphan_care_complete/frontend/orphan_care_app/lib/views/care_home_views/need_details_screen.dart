@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/glass_container.dart';
+import 'care_home_light_widgets.dart';
 
 /// [NeedDetailsScreen] - الواجهة رقم 30: تفاصيل احتياج + تتبع حالته لدار الرعاية لعام 2026.
 /// تحتوي على شريط تتبع انسيابي للمراحل اللوجستية وبطاقة تفصيلية عن حالة الكفالة.
@@ -13,16 +13,18 @@ class NeedDetailsScreen extends StatefulWidget {
 
 // تم تصحيح السطر هنا ليكون متوافقاً تماماً مع اسم الواجهة الأساسية
 class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
-  // بيانات محاكاة تفصيلية للطلب المختار لعرضها أمام لجنة التحكيم
+  // بيانات محاكاة تفصيلية للطلب المختار لعرضها داخل التطبيق
   final Map<String, dynamic> _needDetails = {
     'id': '1',
     'title': 'حليب أطفال ومكملات غذائية (عمر 1-3)',
     'category': 'غذائي',
     'quantity': '40 صندوق متكامل',
     'priority': 'حرج جداً',
-    'current_step': 2, // الخطوة الحالية: 0 = تم النشر، 1 = تم التكفل، 2 = قيد التوصيل، 3 = تم الاستلام
+    'current_step':
+        2, // الخطوة الحالية: 0 = تم النشر، 1 = تم التكفل، 2 = قيد التوصيل، 3 = تم الاستلام
     'date_published': '2026-06-01',
-    'details': 'نظراً لزيادة عدد الأطفال الرضع المسجلين حديثاً بالدار بفرع غريان، نحتاج بشكل عاجل لتوفير حليب من الأصناف المدعمة طبياً لتغطية النقص الحالي.',
+    'details':
+        'نظراً لزيادة عدد الأطفال الرضع المسجلين حديثاً بالدار بفرع غريان، نحتاج بشكل عاجل لتوفير حليب من الأصناف المدعمة طبياً لتغطية النقص الحالي.',
     'sponsor_name': 'المهندس عبد الرحمن محمد (متبرع دائم)',
     'sponsor_phone': '091-XXXXXXX',
   };
@@ -32,25 +34,35 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
     final size = MediaQuery.of(context).size;
     final isWebOrDesktop = size.width > 600;
     final containerWidth = isWebOrDesktop ? 420.0 : double.infinity;
+    final routeNeedId = ModalRoute.of(context)?.settings.arguments;
+    final needDetails = {
+      ..._needDetails,
+      if (routeNeedId != null) 'id': routeNeedId.toString(),
+    };
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFF131313),
+        backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Container(
             width: containerWidth,
             height: double.infinity,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: AppColors.scaffoldBackground,
               boxShadow: isWebOrDesktop
-                  ? [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 45, spreadRadius: 8)]
+                  ? [
+                      BoxShadow(
+                          color: AppColors.innerShadow,
+                          blurRadius: 45,
+                          spreadRadius: 8)
+                    ]
                   : [],
             ),
             child: Stack(
               children: [
-                // الخلفية الكريستالية الحية للتطبيق
+                // خلفية بيضاء هادئة للتطبيق
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -58,9 +70,9 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
                         colors: [
-                          Color(0xFF261611),
-                          Color(0xFF141416),
-                          Color(0xFF0D1117),
+                          Colors.white,
+                          AppColors.scaffoldBackground,
+                          AppColors.scaffoldBackground,
                         ],
                         stops: [0.0, 0.52, 1.0],
                       ),
@@ -74,8 +86,8 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.4),
-                          Colors.black.withOpacity(0.92),
+                          Colors.white,
+                          Colors.white,
                         ],
                       ),
                     ),
@@ -90,21 +102,22 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
                       Expanded(
                         child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 10.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 22.0, vertical: 10.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildMainInfoCard(),
+                              _buildMainInfoCard(needDetails),
                               const SizedBox(height: 24),
                               _buildSectionTitle('مسار تتبع حالة الاحتياج'),
                               const SizedBox(height: 14),
-                              _buildTrackingTimeline(),
+                              _buildTrackingTimeline(needDetails),
                               const SizedBox(height: 24),
                               _buildSectionTitle('بيانات جهة الكفالة والدعم'),
                               const SizedBox(height: 14),
-                              _buildSponsorCard(),
+                              _buildSponsorCard(needDetails),
                               const SizedBox(height: 35),
-                              _buildActionButtons(),
+                              _buildActionButtons(needDetails),
                               const SizedBox(height: 20),
                             ],
                           ),
@@ -133,11 +146,12 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: AppColors.cardBackground,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.15)),
+                border: Border.all(color: AppColors.innerBorder),
               ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.textDarkPrimary, size: 18),
             ),
           ),
           const Text(
@@ -146,17 +160,17 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
               fontFamily: 'Cairo',
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.glassTextPrimary,
+              color: AppColors.textDarkPrimary,
             ),
           ),
-          const SizedBox(width: 40), 
+          const SizedBox(width: 40),
         ],
       ),
     );
   }
 
-  Widget _buildMainInfoCard() {
-    return GlassContainer(
+  Widget _buildMainInfoCard(Map<String, dynamic> needDetails) {
+    return CareHomeCard(
       padding: const EdgeInsets.all(18.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,48 +179,68 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.redAccent.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
                 ),
                 child: Text(
-                  _needDetails['priority'],
-                  style: const TextStyle(fontFamily: 'Cairo', fontSize: 11, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                  needDetails['priority'],
+                  style: const TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.redAccent),
                 ),
               ),
               Text(
-                'تاريخ النشر: ${_needDetails['date_published']}',
-                style: TextStyle(fontFamily: 'Cairo', fontSize: 11.5, color: AppColors.glassTextSecondary),
+                'تاريخ النشر: ${needDetails['date_published']}',
+                style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 11.5,
+                    color: AppColors.textDarkSecondary),
               ),
             ],
           ),
           const SizedBox(height: 14),
           Text(
-            _needDetails['title'],
-            style: const TextStyle(fontFamily: 'Cairo', fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.glassTextPrimary),
+            needDetails['title'],
+            style: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDarkPrimary),
           ),
           const SizedBox(height: 6),
           Text(
-            'الكمية المطلوبة: ${_needDetails['quantity']}',
-            style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.brandOrange),
+            'الكمية المطلوبة: ${needDetails['quantity']}',
+            style: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.brandOrange),
           ),
-          const Divider(color: Colors.white12, height: 24),
+          const Divider(color: AppColors.divider, height: 24),
           Text(
-            _needDetails['details'],
-            style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: AppColors.glassTextSecondary, height: 1.5),
+            needDetails['details'],
+            style: TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 13,
+                color: AppColors.textDarkSecondary,
+                height: 1.5),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTrackingTimeline() {
+  Widget _buildTrackingTimeline(Map<String, dynamic> needDetails) {
     final steps = ['تم النشر', 'تم التكفل به', 'قيد التوصيل', 'تم الاستلام'];
-    int currentStep = _needDetails['current_step'];
+    int currentStep = needDetails['current_step'];
 
-    return GlassContainer(
+    return CareHomeCard(
       padding: const EdgeInsets.all(20.0),
       child: Column(
         children: List.generate(steps.length, (index) {
@@ -224,25 +258,37 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
                     width: 24,
                     height: 24,
                     decoration: BoxDecoration(
-                      color: isCompleted ? AppColors.brandOrange : Colors.white.withOpacity(0.05),
+                      color: isCompleted
+                          ? AppColors.brandOrange
+                          : AppColors.surfaceLight,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isCompleted ? AppColors.brandOrange : Colors.white.withOpacity(0.2),
+                        color: isCompleted
+                            ? AppColors.brandOrange
+                            : AppColors.innerBorder,
                         width: 2,
                       ),
                       boxShadow: isCurrent
-                          ? [BoxShadow(color: AppColors.brandOrange.withOpacity(0.4), blurRadius: 8, spreadRadius: 1)]
+                          ? [
+                              BoxShadow(
+                                  color: AppColors.brandOrange.withOpacity(0.4),
+                                  blurRadius: 8,
+                                  spreadRadius: 1)
+                            ]
                           : [],
                     ),
                     child: isCompleted
-                        ? const Icon(Icons.check_rounded, color: AppColors.brandOrangeDark, size: 14)
+                        ? const Icon(Icons.check_rounded,
+                            color: Colors.white, size: 14)
                         : null,
                   ),
                   if (index != steps.length - 1)
                     Container(
                       width: 2,
                       height: 36,
-                      color: index < currentStep ? AppColors.brandOrange : Colors.white.withOpacity(0.12),
+                      color: index < currentStep
+                          ? AppColors.brandOrange
+                          : AppColors.innerBorder,
                     ),
                 ],
               ),
@@ -259,8 +305,11 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
                         style: TextStyle(
                           fontFamily: 'Cairo',
                           fontSize: 13.5,
-                          fontWeight: isCompleted ? FontWeight.bold : FontWeight.w500,
-                          color: isCompleted ? AppColors.glassTextPrimary : AppColors.glassTextSecondary,
+                          fontWeight:
+                              isCompleted ? FontWeight.bold : FontWeight.w500,
+                          color: isCompleted
+                              ? AppColors.textDarkPrimary
+                              : AppColors.textDarkSecondary,
                         ),
                       ),
                       if (isCurrent)
@@ -268,7 +317,10 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
                           padding: const EdgeInsets.only(top: 2),
                           child: Text(
                             'يجري تحديث الحالة حالياً بواسطة الكفيل والمندوب.',
-                            style: TextStyle(fontFamily: 'Cairo', fontSize: 11, color: AppColors.brandOrange.withOpacity(0.8)),
+                            style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: 11,
+                                color: AppColors.brandOrange.withOpacity(0.8)),
                           ),
                         ),
                     ],
@@ -282,18 +334,19 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
     );
   }
 
-  Widget _buildSponsorCard() {
-    return GlassContainer(
+  Widget _buildSponsorCard(Map<String, dynamic> needDetails) {
+    return CareHomeCard(
       padding: const EdgeInsets.all(16.0),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withOpacity(0.15), 
+              color: const Color(0xFF10B981).withOpacity(0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.volunteer_activism_rounded, color: Color(0xFF10B981), size: 22), 
+            child: const Icon(Icons.volunteer_activism_rounded,
+                color: Color(0xFF10B981), size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -301,13 +354,20 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _needDetails['sponsor_name'],
-                  style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.glassTextPrimary),
+                  needDetails['sponsor_name'],
+                  style: const TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDarkPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'رقم التواصل: ${_needDetails['sponsor_phone']}',
-                  style: TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.glassTextSecondary),
+                  'رقم التواصل: ${needDetails['sponsor_phone']}',
+                  style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 12,
+                      color: AppColors.textDarkSecondary),
                 ),
               ],
             ),
@@ -317,26 +377,33 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(Map<String, dynamic> needDetails) {
     return Row(
       children: [
         // زر التعديل المربوط برمجياً بالواجهة رقم 31
         Expanded(
           child: GestureDetector(
-            onTap: () => Navigator.of(context).pushNamed('/care_home_edit_need', arguments: _needDetails['id']),
+            onTap: () => Navigator.of(context).pushNamed('/care_home_edit_need',
+                arguments: needDetails['id']),
             child: Container(
               height: 52,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: AppColors.cardBackground,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withOpacity(0.15)),
+                border: Border.all(color: AppColors.innerBorder),
               ),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.edit_note_rounded, color: Colors.white, size: 20),
+                  Icon(Icons.edit_note_rounded,
+                      color: AppColors.textDarkPrimary, size: 20),
                   SizedBox(width: 8),
-                  Text('تعديل البيانات', style: TextStyle(fontFamily: 'Cairo', fontSize: 14.5, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text('تعديل البيانات',
+                      style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDarkPrimary)),
                 ],
               ),
             ),
@@ -349,8 +416,9 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('تم تأكيد استلام الدعم وإغلاق الطلب بنجاح', style: TextStyle(fontFamily: 'Cairo')), 
-                  backgroundColor: Color(0xFF10B981), 
+                  content: Text('تم تأكيد استلام الدعم وإغلاق الطلب بنجاح',
+                      style: TextStyle(fontFamily: 'Cairo')),
+                  backgroundColor: Color(0xFF10B981),
                 ),
               );
               Navigator.of(context).pop();
@@ -358,15 +426,20 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
             child: Container(
               height: 52,
               decoration: BoxDecoration(
-                color: AppColors.glassBtnActive,
+                color: AppColors.brandOrange,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.archive_rounded, color: AppColors.brandOrangeDark, size: 20),
+                  Icon(Icons.archive_rounded, color: Colors.white, size: 20),
                   SizedBox(width: 8),
-                  Text('تأكيد الاستلام', style: TextStyle(fontFamily: 'Cairo', fontSize: 14.5, fontWeight: FontWeight.bold, color: AppColors.brandOrangeDark)),
+                  Text('تأكيد الاستلام',
+                      style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white)),
                 ],
               ),
             ),
@@ -379,7 +452,11 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(fontFamily: 'Cairo', fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.glassTextPrimary),
+      style: const TextStyle(
+          fontFamily: 'Cairo',
+          fontSize: 15,
+          fontWeight: FontWeight.w800,
+          color: AppColors.textDarkPrimary),
     );
   }
 }

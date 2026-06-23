@@ -1,8 +1,44 @@
 import 'package:flutter/material.dart';
+
 import '../../utils/app_colors.dart';
+import 'donor_mobile_chrome.dart';
 
 class OrphanageProfileScreen extends StatelessWidget {
   const OrphanageProfileScreen({super.key});
+
+  final List<Map<String, dynamic>> _needs = const [
+    {
+      'orphanage': 'دار رعاية الأيتام - غريان',
+      'title': 'توفير مواد تموينية للمطبخ الداخلي',
+      'raised': '1,800 د.ل',
+      'target': '3,000 د.ل',
+      'progress': 0.60,
+      'daysLeft': '7 أيام',
+      'category': 'غذائي',
+      'urgency': 'عاجل',
+      'description': 'مواد أساسية تساعد في تجهيز وجبات يومية متوازنة للأطفال.',
+    },
+    {
+      'orphanage': 'دار رعاية الأيتام - غريان',
+      'title': 'شراء كسوة صيفية للأطفال',
+      'raised': '2,200 د.ل',
+      'target': '4,500 د.ل',
+      'progress': 0.49,
+      'daysLeft': '10 أيام',
+      'category': 'كساء',
+      'urgency': 'متوسط',
+      'description': 'ملابس وأحذية جديدة تناسب أعمار الأطفال وتحفظ كرامتهم.',
+    },
+  ];
+
+  final Map<String, String> _orphanage = const {
+    'name': 'دار رعاية الأيتام - غريان',
+    'status': 'موثقة في كنف',
+    'about':
+        'تعمل الدار على توفير رعاية يومية آمنة للأطفال، مع متابعة تعليمية وصحية تساعدهم على النمو في بيئة مستقرة.',
+    'location': 'غريان - بالقرب من المجمع الصحي',
+    'phone': '091-XXXXXXX / 092-XXXXXXX',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -10,231 +46,371 @@ class OrphanageProfileScreen extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: AppColors.scaffoldBackground,
-        body: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            _buildSliverAppBar(context),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildQuickStatsRow(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('نبذة عن الدار'),
-                    const SizedBox(height: 8),
-                    _buildAboutCard(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('معلومات التواصل والموقع'),
-                    const SizedBox(height: 8),
-                    _buildContactCard(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('الاحتياجات الحالية للدار'),
-                  ],
-                ),
-              ),
-            ),
-            _buildOrphanageNeedsList(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSliverAppBar(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 220,
-      pinned: true,
-      backgroundColor: AppColors.brandOrange,
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
-        onPressed: () => Navigator.pop(context),
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        centerTitle: false,
-        titlePadding: const EdgeInsets.only(right: 20, bottom: 16),
-        title: const Text(
-          'دار رعاية الأيتام - غريان',
-          style: TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        appBar: donorMobileAppBar(
+          title: 'ملف دار الرعاية',
+          leading: IconButton(
+            tooltip: 'رجوع',
+            icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: AppColors.textDarkPrimary, size: 18),
+            onPressed: () => Navigator.pop(context),
           ),
         ),
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: AppColors.orangeGradient,
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                children: [
+                  _buildHeader(_orphanage),
+                  const SizedBox(height: 14),
+                  _buildStats(),
+                  const SizedBox(height: 18),
+                  const _SectionTitle('نبذة عن الدار'),
+                  const SizedBox(height: 10),
+                  _InfoCard(
+                    icon: Icons.favorite_rounded,
+                    text: _orphanage['about']!,
+                  ),
+                  const SizedBox(height: 18),
+                  const _SectionTitle('التواصل والموقع'),
+                  const SizedBox(height: 10),
+                  _buildContactCard(_orphanage),
+                  const SizedBox(height: 18),
+                  const _SectionTitle('احتياجات الدار الحالية'),
+                  const SizedBox(height: 10),
+                  ..._needs.map((need) => _NeedTile(need: need)),
+                ],
               ),
             ),
-            Positioned(
-              bottom: -20,
-              left: -20,
-              child: Icon(Icons.home_work_rounded, size: 180, color: Colors.white.withOpacity(0.08)),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildQuickStatsRow() {
-    return Row(
-      children: [
-        _buildStatItem('45 طفل', 'مقيم بالدار', Icons.child_care_rounded),
-        const SizedBox(width: 12),
-        _buildStatItem('12 حالة', 'مستعجلة', Icons.gavel_rounded),
-        const SizedBox(width: 12),
-        _buildStatItem('%88', 'نسبة الكفالة', Icons.star_rounded),
-      ],
-    );
-  }
-
-  Widget _buildStatItem(String value, String label, IconData icon) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-        decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.innerBorder, width: 1.2),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: AppColors.brandOrange, size: 20),
-            const SizedBox(height: 8),
-            Text(value, style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textDarkPrimary)),
-            const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontFamily: 'Cairo', fontSize: 11, color: AppColors.textDarkMuted)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(fontFamily: 'Cairo', fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textDarkPrimary),
-    );
-  }
-
-  Widget _buildAboutCard() {
+  Widget _buildHeader(Map<String, String> orphanage) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.innerBorder, width: 1.2),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.innerBorder),
       ),
-      child: const Text(
-        'تأسست دار رعاية الأيتام بغريان لتقديم الرعاية الشاملة للأطفال فاقدي السند الأسري، حيث تسعى لتوفير بيئة أسرية دافئة، ورعاية صحية، وتعليمية ممتازة لتنشئة جيل صالح وقادر على العطاء في المجتمع الليبي.',
-        style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: AppColors.textDarkSecondary, height: 1.6),
-      ),
-    );
-  }
-
-  Widget _buildContactCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.innerBorder, width: 1.2),
-      ),
-      child: Column(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              Icon(Icons.location_on_rounded, color: AppColors.brandOrange, size: 18),
-              SizedBox(width: 12),
-              Text('غريان - بالقرب من المجمع الصحي', style: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: AppColors.textDarkSecondary)),
-            ],
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppColors.brandOrangeLight,
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: const Icon(Icons.apartment_rounded,
+                size: 34, color: AppColors.brandOrange),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.0),
-            child: Divider(color: AppColors.innerBorder),
-          ),
-          Row(
-            children: [
-              const Icon(Icons.phone_rounded, color: AppColors.brandOrange, size: 18),
-              const SizedBox(width: 12),
-              Text(
-                '091-XXXXXXX / 092-XXXXXXX',
-                textDirection: TextDirection.ltr, 
-                style: const TextStyle(
-                  fontFamily: 'Cairo', 
-                  fontSize: 13, 
-                  color: AppColors.textDarkSecondary,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  orphanage['name']!,
+                  style: const TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 18,
+                    height: 1.35,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textDarkPrimary,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                const _VerificationBadge(),
+                const SizedBox(height: 6),
+                Text(
+                  orphanage['status']!,
+                  style: const TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 13.5,
+                    color: AppColors.textDarkSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildOrphanageNeedsList() {
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            // 💎 تم تغليف الـ Container بـ InkWell لتفعيل الضغط والانتقال لصفحة تفاصيل الاحتياج
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: InkWell(
-                onTap: () {
-                  Navigator.pushNamed(context, '/need_details');
-                },
-                borderRadius: BorderRadius.circular(16), // متوافق مع زوايا الكرت تماماً
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.innerBorder),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: const BoxDecoration(color: AppColors.brandOrangeLight, shape: BoxShape.circle),
-                        child: Icon(index == 0 ? Icons.restaurant_rounded : Icons.checkroom_rounded, color: AppColors.brandOrange, size: 18),
+  Widget _buildStats() {
+    return const Row(
+      children: [
+        Expanded(child: _StatCard(value: '45', label: 'طفل')),
+        SizedBox(width: 10),
+        Expanded(child: _StatCard(value: '12', label: 'احتياج')),
+        SizedBox(width: 10),
+        Expanded(child: _StatCard(value: '88%', label: 'تغطية')),
+      ],
+    );
+  }
+
+  Widget _buildContactCard(Map<String, String> orphanage) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.innerBorder),
+      ),
+      child: Column(
+        children: [
+          _ContactRow(
+            icon: Icons.location_on_rounded,
+            text: orphanage['location']!,
+          ),
+          const Divider(height: 22, color: AppColors.divider),
+          _ContactRow(
+            icon: Icons.phone_rounded,
+            text: orphanage['phone']!,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VerificationBadge extends StatelessWidget {
+  const _VerificationBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.successGreenLight,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.verified_rounded, color: AppColors.successGreen, size: 15),
+          SizedBox(width: 5),
+          Text(
+            'دار موثقة',
+            style: TextStyle(
+              fontFamily: 'Tajawal',
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: AppColors.successGreen,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.title);
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontFamily: 'Cairo',
+        fontSize: 15,
+        fontWeight: FontWeight.w800,
+        color: AppColors.textDarkPrimary,
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({required this.value, required this.label});
+
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.innerBorder),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: AppColors.brandOrangeDark,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Tajawal',
+              fontSize: 12,
+              color: AppColors.textDarkSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  const _InfoCard({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.innerBorder),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppColors.brandOrange),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontFamily: 'Tajawal',
+                fontSize: 14,
+                height: 1.55,
+                color: AppColors.textDarkSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ContactRow extends StatelessWidget {
+  const _ContactRow({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColors.brandOrange, size: 20),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            textDirection:
+                text.contains('X') ? TextDirection.ltr : TextDirection.rtl,
+            style: const TextStyle(
+              fontFamily: 'Tajawal',
+              fontSize: 13.5,
+              color: AppColors.textDarkSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NeedTile extends StatelessWidget {
+  const _NeedTile({required this.need});
+
+  final Map<String, dynamic> need;
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = (need['progress'] as num).toDouble().clamp(0.0, 1.0);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () =>
+              Navigator.pushNamed(context, '/need_details', arguments: need),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.innerBorder),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: AppColors.brandOrangeLight,
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              index == 0 ? 'توفير مواد تموينية أساسية للمطبخ الداخلي' : 'شراء كسوة الصيف للأطفال من عمر 4 إلى 10 سنوات',
-                              style: const TextStyle(fontFamily: 'Cairo', fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDarkPrimary),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text('نسبة الإنجاز: %60', style: TextStyle(fontFamily: 'Cairo', fontSize: 11, color: AppColors.textDarkMuted)),
-                          ],
+                      child: const Icon(Icons.favorite_rounded,
+                          color: AppColors.brandOrange),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        need['title'] as String,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: 14.5,
+                          height: 1.35,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textDarkPrimary,
                         ),
                       ),
-                      const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppColors.textDarkMuted),
-                    ],
+                    ),
+                    const Icon(Icons.chevron_left_rounded,
+                        color: AppColors.textDarkMuted),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(99),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 7,
+                    backgroundColor: AppColors.surfaceLight,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppColors.brandOrange),
                   ),
                 ),
-              ),
-            );
-          },
-          childCount: 2,
+              ],
+            ),
+          ),
         ),
       ),
     );

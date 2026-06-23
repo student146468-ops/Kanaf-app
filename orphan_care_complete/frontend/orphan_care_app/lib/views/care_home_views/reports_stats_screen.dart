@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/glass_container.dart';
+import 'care_home_light_widgets.dart';
 
 /// [ReportsStatsScreen] - الواجهة رقم 35: لوحة التقارير والتحليلات الذكية لدار الرعاية لعام 2026.
-/// تعرض إحصائيات التبرعات المستلمة، ونسب تلبية الاحتياجات، ومستوى تفاعل المتطوعين برسوم بيانية وبطاقات زجاجية ثلاثية الأبعاد.
+/// تعرض إحصائيات التبرعات المستلمة، ونسب تلبية الاحتياجات، ومستوى تفاعل المتطوعين برسوم بيانية وبطاقات واضحة واضحة.
 class ReportsStatsScreen extends StatefulWidget {
   const ReportsStatsScreen({super.key});
 
@@ -14,7 +15,7 @@ class ReportsStatsScreen extends StatefulWidget {
 class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
   String _selectedPeriod = 'هذا الشهر'; // هذا الشهر، هذا العام، الكلي
 
-  // بيانات دقيقة ومحاكاة قوية لـ "تطبيق كَنَفْ" لإبهار المهندسة رحاب والمناقشين
+  // بيانات دقيقة ومحاكاة قوية لـ "تطبيق كَنَفْ" لعرض لوحة إحصائية مقنعة.
   final Map<String, dynamic> _statsData = {
     'total_donations': '45,230 د.ل',
     'needs_fulfilled_rate': 88, // نسبة مئوية لطلب مخصص
@@ -22,12 +23,12 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
     'children_sponsored': '112 طفل',
   };
 
-  // توزيع نسب الاحتياجات الملبّاة لبناء رسم بياني شريطي نيون ومودرن
+  // توزيع نسب الاحتياجات الملبّاة لبناء رسم بياني شريطي منظم.
   final List<Map<String, dynamic>> _chartData = [
     {'label': 'غذائية', 'percentage': 0.95, 'color': const Color(0xFF10B981)},
     {'label': 'طبية', 'percentage': 0.82, 'color': const Color(0xFF3B82F6)},
     {'label': 'كسوة', 'percentage': 0.70, 'color': AppColors.brandOrange},
-    {'label': 'تعليمية', 'percentage': 0.90, 'color': Colors.purpleAccent},
+    {'label': 'تعليمية', 'percentage': 0.90, 'color': const Color(0xFF8B5CF6)},
   ];
 
   @override
@@ -35,25 +36,31 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
     final size = MediaQuery.of(context).size;
     final isWebOrDesktop = size.width > 600;
     final containerWidth = isWebOrDesktop ? 420.0 : double.infinity;
+    final providerStats = AppProviderScope.of(context).dashboardStats;
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFF131313),
+        backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Container(
             width: containerWidth,
             height: double.infinity,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: AppColors.scaffoldBackground,
               boxShadow: isWebOrDesktop
-                  ? [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 45, spreadRadius: 8)]
+                  ? [
+                      BoxShadow(
+                          color: AppColors.innerShadow,
+                          blurRadius: 45,
+                          spreadRadius: 8)
+                    ]
                   : [],
             ),
             child: Stack(
               children: [
-                // الخلفية الكريستالية الحية لتعزيز الهوية البصرية الموحدة
+                // خلفية بيضاء هادئة لتعزيز الهوية البصرية الموحدة
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -61,9 +68,9 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
                         colors: [
-                          Color(0xFF261611),
-                          Color(0xFF141416),
-                          Color(0xFF0D1117),
+                          Colors.white,
+                          AppColors.scaffoldBackground,
+                          AppColors.scaffoldBackground,
                         ],
                         stops: [0.0, 0.52, 1.0],
                       ),
@@ -77,8 +84,8 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.35),
-                          Colors.black.withOpacity(0.94),
+                          Colors.white,
+                          Colors.white,
                         ],
                       ),
                     ),
@@ -94,20 +101,27 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
                       Expanded(
                         child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0, vertical: 10.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildMainGridCards(),
+                              _buildMainGridCards(providerStats),
                               const SizedBox(height: 24),
-                              _buildSectionTitle('نسبة تلبية الاحتياجات حسب الفئة'),
+                              _buildSectionTitle(
+                                  'نسبة تلبية الاحتياجات حسب الفئة'),
                               const SizedBox(height: 14),
                               _buildNeonProgressBarChart(),
                               const SizedBox(height: 24),
-                              _buildSectionTitle('تحميل التقارير الرسمية المعتمدة'),
+                              _buildSectionTitle(
+                                  'تحميل التقارير الرسمية المعتمدة'),
                               const SizedBox(height: 14),
-                              _buildDownloadReportCard('تقرير التبرعات الربع سنوي لعام 2026.pdf', 'تم التحديث منذ يومين'),
-                              _buildDownloadReportCard('تقرير المستودع والاحتياجات اللوجستية.pdf', 'تم التحديث اليوم'),
+                              _buildDownloadReportCard(
+                                  'تقرير التبرعات الربع سنوي لعام 2026.pdf',
+                                  'تم التحديث منذ يومين'),
+                              _buildDownloadReportCard(
+                                  'تقرير المستودع والاحتياجات اللوجستية.pdf',
+                                  'تم التحديث اليوم'),
                               const SizedBox(height: 25),
                               _buildNavigateToDashboardButton(),
                               const SizedBox(height: 20),
@@ -138,11 +152,12 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: AppColors.cardBackground,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.15)),
+                border: Border.all(color: AppColors.innerBorder),
               ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.textDarkPrimary, size: 18),
             ),
           ),
           const Text(
@@ -151,7 +166,7 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
               fontFamily: 'Cairo',
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.glassTextPrimary,
+              color: AppColors.textDarkPrimary,
             ),
           ),
           const SizedBox(width: 40),
@@ -168,9 +183,9 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
         height: 42,
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.04),
+          color: AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withOpacity(0.06)),
+          border: Border.all(color: AppColors.surfaceLight),
         ),
         child: Row(
           children: periods.map((per) {
@@ -181,7 +196,8 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.white.withOpacity(0.1) : Colors.transparent,
+                    color:
+                        isSelected ? AppColors.innerBorder : Colors.transparent,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
@@ -190,8 +206,11 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
                       style: TextStyle(
                         fontFamily: 'Cairo',
                         fontSize: 12.5,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                        color: isSelected ? AppColors.brandOrange : AppColors.glassTextSecondary,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w600,
+                        color: isSelected
+                            ? AppColors.brandOrange
+                            : AppColors.textDarkSecondary,
                       ),
                     ),
                   ),
@@ -204,7 +223,21 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
     );
   }
 
-  Widget _buildMainGridCards() {
+  Widget _buildMainGridCards(Map<String, dynamic> providerStats) {
+    final String totalDonations =
+        providerStats['total_donations']?.toString() ??
+            providerStats['monthly_support']?.toString() ??
+            _statsData['total_donations'].toString();
+    final String fulfilledRate =
+        providerStats['needs_fulfilled_rate']?.toString() ??
+            _statsData['needs_fulfilled_rate'].toString();
+    final String volunteers = providerStats['volunteers']?.toString() ??
+        providerStats['active_volunteers']?.toString() ??
+        _statsData['active_volunteers'].toString();
+    final String sponsoredChildren =
+        providerStats['children_sponsored']?.toString() ??
+            _statsData['children_sponsored'].toString();
+
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -213,16 +246,21 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
       mainAxisSpacing: 12,
       childAspectRatio: 1.35,
       children: [
-        _buildStatCard('إجمالي التبرعات', _statsData['total_donations'], Icons.account_balance_wallet_rounded, AppColors.brandOrange),
-        _buildStatCard('تلبية الاحتياجات', '${_statsData['needs_fulfilled_rate']}%', Icons.analytics_rounded, const Color(0xFF10B981)),
-        _buildStatCard('المتطوعين النشطين', _statsData['active_volunteers'], Icons.people_alt_rounded, const Color(0xFF3B82F6)),
-        _buildStatCard('الأطفال المكفولين', _statsData['children_sponsored'], Icons.child_friendly_rounded, Colors.purpleAccent),
+        _buildStatCard('إجمالي التبرعات', totalDonations,
+            Icons.account_balance_wallet_rounded, AppColors.brandOrange),
+        _buildStatCard('تلبية الاحتياجات', '$fulfilledRate%',
+            Icons.analytics_rounded, const Color(0xFF10B981)),
+        _buildStatCard('المتطوعين النشطين', volunteers,
+            Icons.people_alt_rounded, const Color(0xFF3B82F6)),
+        _buildStatCard('الأطفال المكفولين', sponsoredChildren,
+            Icons.child_friendly_rounded, const Color(0xFF8B5CF6)),
       ],
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return GlassContainer(
+  Widget _buildStatCard(
+      String title, String value, IconData icon, Color color) {
+    return CareHomeCard(
       padding: const EdgeInsets.all(14.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,7 +284,7 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
               fontFamily: 'Cairo',
               fontSize: 18,
               fontWeight: FontWeight.w900,
-              color: Colors.white,
+              color: AppColors.textDarkPrimary,
             ),
           ),
           const SizedBox(height: 2),
@@ -255,7 +293,7 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
             style: TextStyle(
               fontFamily: 'Cairo',
               fontSize: 11.5,
-              color: AppColors.glassTextSecondary,
+              color: AppColors.textDarkSecondary,
             ),
           ),
         ],
@@ -264,7 +302,7 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
   }
 
   Widget _buildNeonProgressBarChart() {
-    return GlassContainer(
+    return CareHomeCard(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: _chartData.map((item) {
@@ -278,11 +316,19 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
                   children: [
                     Text(
                       item['label'],
-                      style: const TextStyle(fontFamily: 'Cairo', fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.glassTextPrimary),
+                      style: const TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textDarkPrimary),
                     ),
                     Text(
                       '${(item['percentage'] * 100).toInt()}%',
-                      style: TextStyle(fontFamily: 'Cairo', fontSize: 12, fontWeight: FontWeight.w800, color: item['color']),
+                      style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: item['color']),
                     ),
                   ],
                 ),
@@ -292,7 +338,9 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
                     Container(
                       height: 7,
                       width: double.infinity,
-                      decoration: BoxDecoration(color: Colors.white.withOpacity(0.06), borderRadius: BorderRadius.circular(10)),
+                      decoration: BoxDecoration(
+                          color: AppColors.surfaceLight,
+                          borderRadius: BorderRadius.circular(10)),
                     ),
                     FractionallySizedBox(
                       widthFactor: item['percentage'],
@@ -302,7 +350,10 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
                           color: item['color'],
                           borderRadius: BorderRadius.circular(10),
                           boxShadow: [
-                            BoxShadow(color: item['color'].withOpacity(0.4), blurRadius: 6, spreadRadius: 1),
+                            BoxShadow(
+                                color: item['color'].withOpacity(0.4),
+                                blurRadius: 6,
+                                spreadRadius: 1),
                           ],
                         ),
                       ),
@@ -320,7 +371,7 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
   Widget _buildDownloadReportCard(String reportName, String updateTime) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      child: GlassContainer(
+      child: CareHomeCard(
         padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
         child: Row(
           children: [
@@ -328,10 +379,11 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: AppColors.surfaceLight,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 20),
+              child: const Icon(Icons.picture_as_pdf_rounded,
+                  color: Colors.redAccent, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -340,23 +392,32 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
                 children: [
                   Text(
                     reportName,
-                    style: const TextStyle(fontFamily: 'Cairo', fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.glassTextPrimary),
+                    style: const TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textDarkPrimary),
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
                   Text(
                     updateTime,
-                    style: TextStyle(fontFamily: 'Cairo', fontSize: 10.5, color: AppColors.glassTextSecondary.withOpacity(0.6)),
+                    style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 10.5,
+                        color: AppColors.textDarkSecondary.withOpacity(0.6)),
                   ),
                 ],
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.file_download_rounded, color: AppColors.brandOrange, size: 22),
+              icon: const Icon(Icons.file_download_rounded,
+                  color: AppColors.brandOrange, size: 22),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('جاري تحميل $reportName لفرع غريان...', style: const TextStyle(fontFamily: 'Cairo')),
+                    content: Text('جاري تحميل $reportName لفرع غريان...',
+                        style: const TextStyle(fontFamily: 'Cairo')),
                     backgroundColor: const Color(0xFF10B981),
                   ),
                 );
@@ -378,15 +439,16 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
         height: 50,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: AppColors.innerBorder),
         ),
         child: const Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.dashboard_customize_rounded, color: AppColors.glassTextPrimary, size: 18),
+              Icon(Icons.dashboard_customize_rounded,
+                  color: AppColors.textDarkPrimary, size: 18),
               SizedBox(width: 8),
               Text(
                 'العودة للوحة التحكم الرئيسية',
@@ -394,7 +456,7 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
                   fontFamily: 'Cairo',
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.glassTextPrimary,
+                  color: AppColors.textDarkPrimary,
                 ),
               ),
             ],
@@ -411,7 +473,7 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
         fontFamily: 'Cairo',
         fontSize: 14,
         fontWeight: FontWeight.w800,
-        color: AppColors.glassTextPrimary,
+        color: AppColors.textDarkPrimary,
       ),
     );
   }

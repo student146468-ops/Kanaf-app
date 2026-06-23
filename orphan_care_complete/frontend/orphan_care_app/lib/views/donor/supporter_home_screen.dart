@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../utils/app_colors.dart'; // تأكدي من صحة المسار لملف الألوان الخاص بكِ
+
+import '../../utils/app_colors.dart';
+import 'donor_mobile_chrome.dart';
 
 class SupporterHomeScreen extends StatefulWidget {
   const SupporterHomeScreen({super.key});
@@ -11,214 +13,200 @@ class SupporterHomeScreen extends StatefulWidget {
 class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
   String _selectedCategory = 'الكل';
 
-  // قائمة الفئات المودرن مع الأيقونات المتوافقة مع طبيعة كنف
-  final List<Map<String, dynamic>> _categories = [
-    {'title': 'الكل', 'icon': Icons.grid_view_rounded},
-    {'title': 'مالي', 'icon': Icons.account_balance_wallet_rounded},
-    {'title': 'غذائي', 'icon': Icons.restaurant_rounded},
+  final List<Map<String, dynamic>> _categories = const [
+    {'title': 'الكل', 'icon': Icons.apps_rounded},
+    {'title': 'مالي', 'icon': Icons.savings_rounded},
+    {'title': 'غذائي', 'icon': Icons.ramen_dining_rounded},
     {'title': 'كساء', 'icon': Icons.checkroom_rounded},
-    {'title': 'صحي', 'icon': Icons.volunteer_activism_rounded},
+    {'title': 'صحي', 'icon': Icons.health_and_safety_rounded},
   ];
 
-  // بيانات الحالات التجريبية الاحترافية المليئة بالهوية الليبية المحلية
-  final List<Map<String, dynamic>> _needsData = [
+  final List<Map<String, dynamic>> _fallbackNeedsData = const [
     {
       'id': '1',
       'orphanage': 'دار رعاية الأيتام - غريان',
       'category': 'مالي',
-      'title': 'تأمين المصاريف الدراسية والجامعية لـ 5 طلاب متميزين من أيتام الدار لفصل الخريف',
+      'title': 'تغطية المصاريف الدراسية لخمسة طلاب خلال الفصل القادم',
       'progress': 0.65,
       'raised': '3,250 د.ل',
       'target': '5,000 د.ل',
-      'urgency': 'عاجل جداً',
+      'urgency': 'عاجل',
       'daysLeft': '3 أيام',
+      'description': 'مساهمة تعليمية تحفظ انتظام الطلاب وتخفف العبء عن الدار.',
     },
     {
       'id': '2',
-      'orphanage': 'جمعية كَنَفْ للأطفال - غريان',
+      'orphanage': 'جمعية كنف للأطفال - غريان',
       'category': 'غذائي',
-      'title': 'توفير السلات الغذائية الرمضانية المتكاملة لـ 30 عائلة من عائلات الأيتام المكفولة',
+      'title': 'توفير سلات غذائية متوازنة لأطفال الدار خلال الشهر',
       'progress': 0.40,
       'raised': '1,600 د.ل',
       'target': '4,000 د.ل',
       'urgency': 'متوسط',
       'daysLeft': '12 يوم',
+      'description': 'احتياج يومي يساعد الفريق على تقديم وجبات صحية ومنتظمة.',
     },
     {
       'id': '3',
       'orphanage': 'بيت الأمل للبنين - غريان',
       'category': 'كساء',
-      'title': 'توفير ملابس العيد والكسوة الشتوية لـ 25 طفلاً من المقيمين داخل الدار',
+      'title': 'توفير كسوة مريحة للأطفال من عمر 4 إلى 10 سنوات',
       'progress': 0.85,
       'raised': '5,100 د.ل',
       'target': '6,000 د.ل',
       'urgency': 'عاجل',
       'daysLeft': '5 أيام',
+      'description': 'ملابس وأحذية جديدة تحفظ كرامة الأطفال وتلائم الموسم.',
     },
   ];
 
   @override
   Widget build(BuildContext context) {
-    // تصفية الحالات تلقائياً بناءً على الفرز المختيار
     final filteredNeeds = _selectedCategory == 'الكل'
-        ? _needsData
-        : _needsData.where((need) => need['category'] == _selectedCategory).toList();
+        ? _fallbackNeedsData
+        : _fallbackNeedsData
+            .where((need) => need['category'] == _selectedCategory)
+            .toList();
 
     return Directionality(
-      textDirection: TextDirection.rtl, // المحاذاة الشاملة لليمين لمنع عيوب الاتجاه
+      textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: AppColors.scaffoldBackground,
-        appBar: _buildPremiumAppBar(),
+        appBar: _buildAppBar(),
         body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeroWelcome(),
-              _buildModernFilterBar(),
-              _buildSectionTitle(filteredNeeds.length),
-              Expanded(
-                child: filteredNeeds.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(child: _buildWelcomeCard()),
+                  SliverToBoxAdapter(child: _buildCategoryBar()),
+                  SliverToBoxAdapter(
+                      child: _buildSectionHeader(filteredNeeds.length)),
+                  if (filteredNeeds.isEmpty)
+                    const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _EmptyState(),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      sliver: SliverList.separated(
                         itemCount: filteredNeeds.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
-                          return _buildPremiumNeedCard(filteredNeeds[index]);
+                          return _NeedCard(need: filteredNeeds[index]);
                         },
                       ),
+                    ),
+                ],
               ),
+            ),
+          ),
+        ),
+        bottomNavigationBar: donorMobileBottomBar(
+          child: _buildBottomNavigation(),
+        ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: donorMobileMaxWidth),
+          child: AppBar(
+            backgroundColor: Colors.white,
+            surfaceTintColor: Colors.white,
+            elevation: 0,
+            titleSpacing: 20,
+            title: const Text(
+              'كنف العطاء',
+              style: TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDarkPrimary,
+              ),
+            ),
+            actions: [
+              IconButton(
+                tooltip: 'البحث',
+                icon: const Icon(Icons.manage_search_rounded,
+                    color: AppColors.textDarkSecondary),
+                onPressed: () => Navigator.pushNamed(context, '/search_filter'),
+              ),
+              IconButton(
+                tooltip: 'الإشعارات',
+                icon: const Icon(Icons.notifications_active_outlined,
+                    color: AppColors.textDarkSecondary),
+                onPressed: () => Navigator.pushNamed(context, '/notifications'),
+              ),
+              const SizedBox(width: 8),
             ],
           ),
         ),
-        // 💎 هـ) إضافة شريط التنقل السفلي لربط الانتقال إلى الحساب الشخصي
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: 0, // الصفحة الحالية هي الرئيسية (الرقم 0)
-          selectedItemColor: AppColors.brandOrange,
-          unselectedItemColor: AppColors.textDarkSecondary,
-          selectedLabelStyle: const TextStyle(fontFamily: 'Cairo', fontSize: 12, fontWeight: FontWeight.bold),
-          unselectedLabelStyle: const TextStyle(fontFamily: 'Cairo', fontSize: 12),
-          onTap: (index) {
-            if (index == 1) {
-              // عند الضغط على الأيقونة الثانية ينتقل لصفحة الملف الشخصي
-              Navigator.pushNamed(context, '/profile');
-            }
-          },
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_rounded),
-              label: 'الرئيسية',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_rounded),
-              label: 'الحساب الشخصي',
-            ),
-          ],
-        ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildPremiumAppBar() {
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      centerTitle: false,
-      title: const Row(
-        children: [
-          Icon(Icons.volunteer_activism_rounded, color: AppColors.brandOrange, size: 24),
-          SizedBox(width: 8),
-          Text(
-            'رئيسية العطاء',
-            style: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: AppColors.textDarkPrimary,
-            ),
+  Widget _buildWelcomeCard() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.innerBorder),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.innerShadow,
+            blurRadius: 18,
+            offset: Offset(0, 8),
           ),
         ],
       ),
-      actions: [
-        // 💎 ب) ربط أيقونة البحث بواجهة الفلترة والبحث المتقدم
-        IconButton(
-          icon: const Icon(Icons.search_rounded, color: AppColors.textDarkSecondary),
-          onPressed: () {
-            Navigator.pushNamed(context, '/search_filter');
-          },
-        ),
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            // 💎 أ) ربط أيقونة الجرس بواجهة الإشعارات المركزية
-            IconButton(
-              icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textDarkSecondary),
-              onPressed: () {
-                Navigator.pushNamed(context, '/notifications');
-              },
-            ),
-            Positioned(
-              top: 12,
-              right: 12,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(color: AppColors.brandOrange, shape: BoxShape.circle),
-              ),
-            )
-          ],
-        ),
-        const SizedBox(width: 10),
-      ],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1.0),
-        child: Container(color: AppColors.innerBorder, height: 1.0),
-      ),
-    );
-  }
-
-  Widget _buildHeroWelcome() {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: AppColors.orangeGradient,
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.brandOrange.withOpacity(0.15),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          )
-        ],
-      ),
-      child: const Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'مرحباً بك في كَنَفْ يا باغي الخير 👋',
-            style: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: AppColors.brandOrangeLight,
+              borderRadius: BorderRadius.circular(18),
             ),
+            child: const Icon(Icons.volunteer_activism_rounded,
+                color: AppColors.brandOrange),
           ),
-          SizedBox(height: 6),
-          Text(
-            'مساهمتك الإنسانية اليوم تصنع فارقاً حقيقياً ومستداماً في حياة أطفالنا وتدعم مسيرتهم نحو مستقبل أفضل.',
-            style: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.glassTextSecondary,
-              height: 1.5,
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'مرحبًا بك في كنف',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textDarkPrimary,
+                  ),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  'هنا تصل مساهمتك إلى احتياج واضح، موثق، وقابل للمتابعة بهدوء وثقة.',
+                  style: TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 14,
+                    height: 1.55,
+                    color: AppColors.textDarkSecondary,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -226,83 +214,71 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
     );
   }
 
-  Widget _buildModernFilterBar() {
+  Widget _buildCategoryBar() {
     return SizedBox(
       height: 46,
-      child: ListView.builder(
+      child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: _categories.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final category = _categories[index];
-          final bool isSelected = _selectedCategory == category['title'];
+          final isSelected = _selectedCategory == category['title'];
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: InkWell(
-              onTap: () => setState(() => _selectedCategory = category['title']),
-              borderRadius: BorderRadius.circular(16),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.brandOrange : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isSelected ? AppColors.brandOrange : AppColors.innerBorder,
-                    width: 1.2,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      category['icon'],
-                      size: 16,
-                      color: isSelected ? Colors.white : AppColors.textDarkSecondary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      category['title'],
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 13,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                        color: isSelected ? Colors.white : AppColors.textDarkSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          return ChoiceChip(
+            avatar: Icon(
+              category['icon'] as IconData,
+              size: 17,
+              color: isSelected ? Colors.white : AppColors.textDarkSecondary,
             ),
+            label: Text(category['title'] as String),
+            selected: isSelected,
+            showCheckmark: false,
+            selectedColor: AppColors.brandOrange,
+            backgroundColor: Colors.white,
+            side: BorderSide(
+              color: isSelected ? AppColors.brandOrange : AppColors.innerBorder,
+            ),
+            labelStyle: TextStyle(
+              fontFamily: 'Cairo',
+              fontWeight: FontWeight.w700,
+              fontSize: 12.5,
+              color: isSelected ? Colors.white : AppColors.textDarkSecondary,
+            ),
+            onSelected: (_) {
+              setState(() => _selectedCategory = category['title'] as String);
+            },
           );
         },
       ),
     );
   }
 
-  Widget _buildSectionTitle(int count) {
+  Widget _buildSectionHeader(int count) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 12),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'الاحتياجات الحالية القائمة',
-            style: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 15.5,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDarkPrimary,
+          const Expanded(
+            child: Text(
+              'احتياجات يمكن دعمها الآن',
+              style: TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDarkPrimary,
+              ),
             ),
           ),
           Text(
-            '($count حالة)',
+            '$count حالة',
             style: const TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: 'Tajawal',
               fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: AppColors.brandOrange,
+              fontWeight: FontWeight.w700,
+              color: AppColors.brandOrangeDark,
             ),
           ),
         ],
@@ -310,143 +286,299 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
     );
   }
 
-  Widget _buildPremiumNeedCard(Map<String, dynamic> need) {
-    bool isUrgent = need['urgency'] == 'عاجل جداً' || need['urgency'] == 'عاجل';
+  Widget _buildBottomNavigation() {
+    return NavigationBar(
+      selectedIndex: 0,
+      height: 68,
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.white,
+      indicatorColor: AppColors.brandOrangeLight,
+      onDestinationSelected: (index) {
+        if (index == 1) {
+          Navigator.pushNamed(context, '/donation_history');
+        } else if (index == 2) {
+          Navigator.pushNamed(context, '/profile');
+        }
+      },
+      destinations: const [
+        NavigationDestination(
+          icon: Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home_rounded, color: AppColors.brandOrange),
+          label: 'الرئيسية',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.receipt_long_outlined),
+          selectedIcon:
+              Icon(Icons.receipt_long_rounded, color: AppColors.brandOrange),
+          label: 'السجل',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.person_outline_rounded),
+          selectedIcon:
+              Icon(Icons.person_rounded, color: AppColors.brandOrange),
+          label: 'حسابي',
+        ),
+      ],
+    );
+  }
+}
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+class _NeedCard extends StatelessWidget {
+  const _NeedCard({required this.need});
+
+  final Map<String, dynamic> need;
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = (need['progress'] as num).toDouble().clamp(0.0, 1.0);
+    final isUrgent = need['urgency'] == 'عاجل';
+    final isCompact = MediaQuery.sizeOf(context).width < 360;
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.innerBorder, width: 1.2),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // 💎 ج) ربط اسم الدار ليتفاعل وينتقل لصفحة بروفايل دار الرعاية
-                InkWell(
-                  onTap: () {
-                    Navigator.pushNamed(context, '/orphanage_profile');
-                  },
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.home_work_rounded, color: AppColors.brandOrange, size: 18),
-                        const SizedBox(width: 8),
-                        Text(
-                          need['orphanage'],
+        onTap: () =>
+            Navigator.pushNamed(context, '/need_details', arguments: need),
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.innerBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  _StatusPill(
+                    label: need['category'] as String,
+                    icon: Icons.category_rounded,
+                    color: AppColors.skyBlueDark,
+                    background: AppColors.skyBlueLight,
+                  ),
+                  _StatusPill(
+                    label: need['urgency'] as String,
+                    icon: isUrgent
+                        ? Icons.priority_high_rounded
+                        : Icons.schedule_rounded,
+                    color: isUrgent
+                        ? AppColors.brandOrangeDark
+                        : AppColors.textDarkSecondary,
+                    background: isUrgent
+                        ? AppColors.brandOrangeLight
+                        : AppColors.surfaceLight,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                need['title'] as String,
+                maxLines: isCompact ? 2 : 3,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: 15.5,
+                  height: 1.45,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textDarkPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                need['description'] as String,
+                maxLines: isCompact ? 1 : 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontFamily: 'Tajawal',
+                  fontSize: 13.5,
+                  height: 1.45,
+                  color: AppColors.textDarkSecondary,
+                ),
+              ),
+              const SizedBox(height: 14),
+              InkWell(
+                onTap: () => Navigator.pushNamed(context, '/orphanage_profile'),
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.apartment_rounded,
+                          color: AppColors.textDarkMuted, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          need['orphanage'] as String,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontFamily: 'Cairo',
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Tajawal',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
                             color: AppColors.textDarkSecondary,
-                            decoration: TextDecoration.underline, // إشارة للمستخدم أنه كرت قابل للضغط
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const Icon(Icons.chevron_left_rounded,
+                          color: AppColors.textDarkMuted),
+                    ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isUrgent ? const Color(0xFFFDF0EA) : AppColors.innerBorder,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    need['urgency'],
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: isUrgent ? AppColors.brandOrange : AppColors.textDarkSecondary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              need['title'],
-              style: const TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDarkPrimary,
-                height: 1.5,
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('تم جمع: ${need['raised']}', style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, color: AppColors.textDarkSecondary)),
-                Text('الهدف: ${need['target']}', style: const TextStyle(fontFamily: 'Cairo', fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.brandOrangeDark)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: need['progress'],
-              backgroundColor: AppColors.innerBorder,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.brandOrange),
-              minHeight: 6,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            const SizedBox(height: 14),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.access_time_rounded, color: AppColors.textDarkMuted, size: 14),
-                    const SizedBox(width: 4),
-                    Text('متبقي: ${need['daysLeft']}', style: const TextStyle(fontFamily: 'Cairo', fontSize: 11.5, color: AppColors.textDarkMuted)),
-                  ],
-                ),
-                // 💎 د) ربط زر "تفاصيل الحالة" لينتقل بالمسار المعتمد في الـ main.dart
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.brandOrange,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'جُمع ${need['raised']}',
+                      style: const TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.brandOrangeDark,
+                      ),
+                    ),
                   ),
-                  onPressed: () {
-                    // تم تعديلها هنا لتطابق المسار المعتمد بالاسم داخل الـ main.dart لرحلة تصفح متكاملة
-                    Navigator.pushNamed(context, '/need_details');
-                  },
-                  child: const Text(
-                    'تفاصيل الحالة',
-                    style: TextStyle(fontFamily: 'Cairo', fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                  Text(
+                    'الهدف ${need['target']}',
+                    style: const TextStyle(
+                      fontFamily: 'Tajawal',
+                      fontSize: 13,
+                      color: AppColors.textDarkMuted,
+                    ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(99),
+                child: LinearProgressIndicator(
+                  minHeight: 8,
+                  value: progress,
+                  backgroundColor: AppColors.surfaceLight,
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.brandOrange),
                 ),
-              ],
-            )
-          ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  const Icon(Icons.timer_outlined,
+                      color: AppColors.textDarkMuted, size: 17),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'متبقي ${need['daysLeft']}',
+                      style: const TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontSize: 13,
+                        color: AppColors.textDarkSecondary,
+                      ),
+                    ),
+                  ),
+                  FilledButton.icon(
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      '/need_details',
+                      arguments: need,
+                    ),
+                    icon: const Icon(Icons.favorite_rounded, size: 17),
+                    label: Text(isCompact ? 'ادعم' : 'ادعم الآن'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.brandOrange,
+                      foregroundColor: Colors.white,
+                      textStyle: const TextStyle(
+                        fontFamily: 'Cairo',
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildEmptyState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.background,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.volunteer_activism_outlined, size: 48, color: AppColors.textDarkMuted),
-          SizedBox(height: 12),
+          Icon(icon, color: color, size: 15),
+          const SizedBox(width: 5),
           Text(
-            'لا توجد احتياجات قائمة حالياً في هذه الفئة.',
-            style: TextStyle(fontFamily: 'Cairo', fontSize: 14, color: AppColors.textDarkSecondary),
+            label,
+            style: TextStyle(
+              fontFamily: 'Tajawal',
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.volunteer_activism_outlined,
+                size: 48, color: AppColors.textDarkMuted),
+            SizedBox(height: 12),
+            Text(
+              'لا توجد احتياجات ضمن هذا التصنيف الآن.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Tajawal',
+                fontSize: 14,
+                color: AppColors.textDarkSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

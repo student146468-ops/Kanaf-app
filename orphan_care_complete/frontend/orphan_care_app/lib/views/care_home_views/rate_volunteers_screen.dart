@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/glass_container.dart';
+import 'care_home_light_widgets.dart';
 
 /// [RateVolunteersScreen] - الواجهة رقم 34: تقييم وتكريم المتطوعين لدار الرعاية لعام 2026.
-/// تتيح للمشرفين تقييم أداء المتطوعين بنظام النجوم المتوهجة وإسناد أوسمة تميز تفاعلية وثلاثية الأبعاد.
+/// تتيح للمشرفين تقييم أداء المتطوعين بنظام النجوم المتوهجة وإسناد أوسمة تميز تفاعلية وواضحة.
 class RateVolunteersScreen extends StatefulWidget {
   const RateVolunteersScreen({super.key});
 
@@ -16,7 +16,7 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
   String _selectedBadge = 'متميز لغوياً'; // الوسام المختار افتراضياً
   final TextEditingController _notesController = TextEditingController();
 
-  // بيانات المتطوع المستهدف بالتقييم (يتم استقبالها ديناميكياً أو كمحاكاة فخمة للجنة)
+  // بيانات المتطوع المستهدف بالتقييم إلى حين تمرير بيانات حقيقية من شاشة الإدارة.
   final Map<String, dynamic> _targetVolunteer = {
     'id': 'v1',
     'name': 'أحمد علي الساعدي',
@@ -25,12 +25,28 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
     'duration': '3 أشهر تطوع مستمر',
   };
 
-  // قائمة الأوسمة التقديرية ثلاثية الأبعاد والمناسبة لطبيعة دور الرعاية
+  // قائمة الأوسمة التقديرية واضحة والمناسبة لطبيعة دور الرعاية
   final List<Map<String, dynamic>> _appreciationBadges = [
-    {'name': 'متميز لغوياً', 'icon': Icons.g_translate_rounded, 'color': const Color(0xFF3B82F6)},
-    {'name': 'قائد مؤثر', 'icon': Icons.auto_awesome_rounded, 'color': Colors.amber},
-    {'name': 'صديق الطفولة', 'icon': Icons.child_care_rounded, 'color': const Color(0xFF10B981)},
-    {'name': 'ملتزم ومثالي', 'icon': Icons.verified_user_rounded, 'color': Colors.purpleAccent},
+    {
+      'name': 'متميز لغوياً',
+      'icon': Icons.g_translate_rounded,
+      'color': const Color(0xFF3B82F6)
+    },
+    {
+      'name': 'قائد مؤثر',
+      'icon': Icons.auto_awesome_rounded,
+      'color': Colors.amber
+    },
+    {
+      'name': 'صديق الطفولة',
+      'icon': Icons.child_care_rounded,
+      'color': const Color(0xFF10B981)
+    },
+    {
+      'name': 'ملتزم ومثالي',
+      'icon': Icons.verified_user_rounded,
+      'color': const Color(0xFF8B5CF6)
+    },
   ];
 
   @override
@@ -48,21 +64,26 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFF131313),
+        backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Container(
             width: containerWidth,
             height: double.infinity,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: AppColors.scaffoldBackground,
               boxShadow: isWebOrDesktop
-                  ? [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 45, spreadRadius: 8)]
+                  ? [
+                      BoxShadow(
+                          color: AppColors.innerShadow,
+                          blurRadius: 45,
+                          spreadRadius: 8)
+                    ]
                   : [],
             ),
             child: Stack(
               children: [
-                // الخلفية الكريستالية الحية الموحدة لتطبيق كَنَفْ
+                // خلفية بيضاء هادئة الموحدة لتطبيق كَنَفْ
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -70,9 +91,9 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
                         colors: [
-                          Color(0xFF261611),
-                          Color(0xFF141416),
-                          Color(0xFF0D1117),
+                          Colors.white,
+                          AppColors.scaffoldBackground,
+                          AppColors.scaffoldBackground,
                         ],
                         stops: [0.0, 0.52, 1.0],
                       ),
@@ -86,8 +107,8 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.4),
-                          Colors.black.withOpacity(0.92),
+                          Colors.white,
+                          Colors.white,
                         ],
                       ),
                     ),
@@ -102,13 +123,15 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
                       Expanded(
                         child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 10.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 22.0, vertical: 10.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildVolunteerHeaderCard(),
                               const SizedBox(height: 24),
-                              _buildSectionTitle('التقييم العام بالأداء الميداني'),
+                              _buildSectionTitle(
+                                  'التقييم العام بالأداء الميداني'),
                               const SizedBox(height: 14),
                               _buildStarsRatingBar(),
                               const SizedBox(height: 24),
@@ -116,7 +139,8 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
                               const SizedBox(height: 14),
                               _buildBadgesGrid(),
                               const SizedBox(height: 24),
-                              _buildSectionTitle('ملاحظات وتوصيات إضافية لوثيقته'),
+                              _buildSectionTitle(
+                                  'ملاحظات وتوصيات إضافية لوثيقته'),
                               const SizedBox(height: 14),
                               _buildNotesInputField(),
                               const SizedBox(height: 35),
@@ -149,11 +173,12 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: AppColors.cardBackground,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.15)),
+                border: Border.all(color: AppColors.innerBorder),
               ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.textDarkPrimary, size: 18),
             ),
           ),
           const Text(
@@ -162,7 +187,7 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
               fontFamily: 'Cairo',
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.glassTextPrimary,
+              color: AppColors.textDarkPrimary,
             ),
           ),
           const SizedBox(width: 40), // لضمان التوازن البصري التام في الـ AppBar
@@ -172,7 +197,7 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
   }
 
   Widget _buildVolunteerHeaderCard() {
-    return GlassContainer(
+    return CareHomeCard(
       padding: const EdgeInsets.all(16.0),
       child: Row(
         children: [
@@ -182,9 +207,11 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
             decoration: BoxDecoration(
               color: AppColors.brandOrange.withOpacity(0.15),
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.brandOrange.withOpacity(0.3), width: 1.5),
+              border: Border.all(
+                  color: AppColors.brandOrange.withOpacity(0.3), width: 1.5),
             ),
-            child: const Icon(Icons.person_outline_rounded, color: AppColors.brandOrange, size: 26),
+            child: const Icon(Icons.person_outline_rounded,
+                color: AppColors.brandOrange, size: 26),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -197,7 +224,7 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
                     fontFamily: 'Cairo',
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.glassTextPrimary,
+                    color: AppColors.textDarkPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -206,7 +233,7 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
                   style: TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 12,
-                    color: AppColors.glassTextSecondary,
+                    color: AppColors.textDarkSecondary,
                   ),
                 ),
               ],
@@ -218,13 +245,14 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
   }
 
   Widget _buildStarsRatingBar() {
-    return GlassContainer(
+    return CareHomeCard(
       padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 12.0),
       child: Center(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(5, (index) {
-            int starValue = 5 - index; // ليعمل نظام النجوم من اليمين إلى اليسار بشكل لائق مع لغتنا العربية
+            int starValue = 5 -
+                index; // ليعمل نظام النجوم من اليمين إلى اليسار بشكل لائق مع لغتنا العربية
             bool isSelected = starValue <= _ratingScore;
 
             return GestureDetector(
@@ -232,10 +260,12 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 margin: const EdgeInsets.symmetric(horizontal: 6),
-                transform: isSelected ? Matrix4.identity().scaled(1.1) : Matrix4.identity(),
+                transform: isSelected
+                    ? Matrix4.identity().scaled(1.1)
+                    : Matrix4.identity(),
                 child: Icon(
                   isSelected ? Icons.star_rounded : Icons.star_border_rounded,
-                  color: isSelected ? Colors.amber : Colors.white24,
+                  color: isSelected ? Colors.amber : AppColors.innerBorder,
                   size: 38,
                   shadows: isSelected
                       ? [const Shadow(color: Colors.amber, blurRadius: 10)]
@@ -269,20 +299,29 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 250),
             decoration: BoxDecoration(
-              color: isSelected ? badge['color'].withOpacity(0.18) : Colors.white.withOpacity(0.04),
+              color: isSelected
+                  ? badge['color'].withOpacity(0.18)
+                  : AppColors.surfaceLight,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected ? badge['color'] : Colors.white.withOpacity(0.08),
+                color: isSelected ? badge['color'] : AppColors.cardBackground,
                 width: isSelected ? 1.5 : 1,
               ),
               boxShadow: isSelected
-                  ? [BoxShadow(color: badge['color'].withOpacity(0.1), blurRadius: 8)]
+                  ? [
+                      BoxShadow(
+                          color: badge['color'].withOpacity(0.1), blurRadius: 8)
+                    ]
                   : [],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(badge['icon'], color: isSelected ? badge['color'] : AppColors.glassTextSecondary, size: 20),
+                Icon(badge['icon'],
+                    color: isSelected
+                        ? badge['color']
+                        : AppColors.textDarkSecondary,
+                    size: 20),
                 const SizedBox(width: 8),
                 Text(
                   badge['name'],
@@ -290,7 +329,9 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
                     fontFamily: 'Cairo',
                     fontSize: 12.5,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                    color: isSelected ? Colors.white : AppColors.glassTextSecondary,
+                    color: isSelected
+                        ? AppColors.textDarkPrimary
+                        : AppColors.textDarkSecondary,
                   ),
                 ),
               ],
@@ -302,15 +343,21 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
   }
 
   Widget _buildNotesInputField() {
-    return GlassContainer(
+    return CareHomeCard(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
       child: TextField(
         controller: _notesController,
         maxLines: 3,
-        style: const TextStyle(fontFamily: 'Cairo', fontSize: 13.5, color: Colors.white),
+        style: const TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 13.5,
+            color: AppColors.textDarkPrimary),
         decoration: InputDecoration(
           hintText: 'اكتبي هنا ثناءً خاصاً أو ملاحظات تضاف لملفه الشخصي...',
-          hintStyle: TextStyle(fontFamily: 'Cairo', fontSize: 12.5, color: Colors.white38),
+          hintStyle: TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: 12.5,
+              color: AppColors.textDarkMuted),
           border: InputBorder.none,
         ),
       ),
@@ -323,20 +370,26 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
         // تفاعل الحفظ الفوري وبناء الـ SnackBar المتناسق وخالي الأخطاء
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('تم اعتماد التقييم ومنح وسام التميز بنجاح ✅', style: TextStyle(fontFamily: 'Cairo')),
-            backgroundColor: Color(0xFF10B981), // الزمردي الصريح والآمن للكومبايلر
+            content: Text('تم اعتماد التقييم ومنح وسام التميز بنجاح ✅',
+                style: TextStyle(fontFamily: 'Cairo')),
+            backgroundColor:
+                Color(0xFF10B981), // الزمردي الصريح والآمن للكومبايلر
           ),
         );
-        Navigator.of(context).pop(); // العودة التلقائية لواجهة إدارة المتطوعين المربوطة بها
+        Navigator.of(context)
+            .pop(); // العودة التلقائية لواجهة إدارة المتطوعين المربوطة بها
       },
       child: Container(
         height: 52,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.glassBtnActive,
+          color: AppColors.brandOrange,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: AppColors.brandOrange.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 4)),
+            BoxShadow(
+                color: AppColors.brandOrange.withOpacity(0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 4)),
           ],
         ),
         child: const Center(
@@ -346,7 +399,7 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
               fontFamily: 'Cairo',
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: AppColors.brandOrangeDark,
+              color: Colors.white,
             ),
           ),
         ),
@@ -361,7 +414,7 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
         fontFamily: 'Cairo',
         fontSize: 14,
         fontWeight: FontWeight.w800,
-        color: AppColors.glassTextPrimary,
+        color: AppColors.textDarkPrimary,
       ),
     );
   }

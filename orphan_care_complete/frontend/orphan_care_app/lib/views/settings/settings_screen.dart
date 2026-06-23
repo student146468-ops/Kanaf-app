@@ -2,8 +2,15 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _notificationsEnabled = true;
 
   @override
   Widget build(BuildContext context) {
@@ -15,12 +22,17 @@ class SettingsScreen extends StatelessWidget {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: Colors.white),
             onPressed: () => Navigator.of(context).pop(),
           ),
           title: const Text(
             'الإعدادات العامة',
-            style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: Colors.white, fontSize: 20),
+            style: TextStyle(
+                fontFamily: 'Cairo',
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: 20),
           ),
           centerTitle: true,
         ),
@@ -40,7 +52,8 @@ class SettingsScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: AppColors.brandOrange.withOpacity(0.15),
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.brandOrange, width: 1.5),
+                        border: Border.all(
+                            color: AppColors.brandOrange, width: 1.5),
                       ),
                       child: const Center(
                         child: Text('👩‍💻', style: TextStyle(fontSize: 28)),
@@ -53,12 +66,19 @@ class SettingsScreen extends StatelessWidget {
                         children: [
                           const Text(
                             'أماني عادل أحمد',
-                            style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
+                            style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 16),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'amani@example.com',
-                            style: TextStyle(fontFamily: 'Cairo', color: Colors.white.withOpacity(0.4), fontSize: 12),
+                            style: TextStyle(
+                                fontFamily: 'Cairo',
+                                color: Colors.white.withOpacity(0.4),
+                                fontSize: 12),
                           ),
                         ],
                       ),
@@ -71,7 +91,11 @@ class SettingsScreen extends StatelessWidget {
               // ⚙️ المجموعة الأولى: إعدادات الحساب والأمان
               const Text(
                 '🔐 الحساب والأمان',
-                style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
+                style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 15),
               ),
               const SizedBox(height: 12),
               _buildGlassCard(
@@ -81,14 +105,16 @@ class SettingsScreen extends StatelessWidget {
                       icon: Icons.lock_outline_rounded,
                       title: 'تغيير كلمة المرور',
                       iconColor: AppColors.brandOrange,
-                      onTap: () => Navigator.of(context).pushNamed('/change_password'),
+                      onTap: () =>
+                          Navigator.of(context).pushNamed('/change_password'),
                     ),
                     _buildDivider(),
                     _buildSettingTile(
                       icon: Icons.shield_outlined,
                       title: 'الخصوصية ومشاركة البيانات',
                       iconColor: const Color(0xFF0F9D58),
-                      onTap: () {},
+                      onTap: () =>
+                          Navigator.of(context).pushNamed('/change_password'),
                     ),
                   ],
                 ),
@@ -98,7 +124,11 @@ class SettingsScreen extends StatelessWidget {
               // 🔔 المجموعة الثانية: التفضيلات والتطبيق
               const Text(
                 '🎨 تفضيلات التطبيق',
-                style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
+                style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 15),
               ),
               const SizedBox(height: 12),
               _buildGlassCard(
@@ -109,9 +139,10 @@ class SettingsScreen extends StatelessWidget {
                       title: 'إشعارات النظام اللوجستية',
                       iconColor: Colors.blueAccent,
                       trailing: Switch(
-                        value: true,
+                        value: _notificationsEnabled,
                         activeColor: AppColors.brandOrange,
-                        onChanged: (val) {},
+                        onChanged: (val) =>
+                            setState(() => _notificationsEnabled = val),
                       ),
                     ),
                     _buildDivider(),
@@ -121,7 +152,10 @@ class SettingsScreen extends StatelessWidget {
                       iconColor: Colors.purpleAccent,
                       trailing: const Text(
                         'العربية (أمريكا)',
-                        style: TextStyle(fontFamily: 'Cairo', color: Colors.white38, fontSize: 12),
+                        style: TextStyle(
+                            fontFamily: 'Cairo',
+                            color: Colors.white38,
+                            fontSize: 12),
                       ),
                     ),
                   ],
@@ -137,7 +171,8 @@ class SettingsScreen extends StatelessWidget {
                       icon: Icons.help_outline_rounded,
                       title: 'مركز الدعم والمساعدة',
                       iconColor: Colors.teal,
-                      onTap: () {},
+                      onTap: () =>
+                          Navigator.of(context).pushNamed('/about_app'),
                     ),
                     _buildDivider(),
                     _buildSettingTile(
@@ -158,7 +193,8 @@ class SettingsScreen extends StatelessWidget {
               const Center(
                 child: Text(
                   'تطبيق كَنَفْ الإنساني v1.0.0 © 2026',
-                  style: TextStyle(fontFamily: 'Cairo', color: Colors.white24, fontSize: 11),
+                  style: TextStyle(
+                      fontFamily: 'Cairo', color: Colors.white24, fontSize: 11),
                 ),
               ),
             ],
@@ -216,10 +252,16 @@ class SettingsScreen extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: TextStyle(fontFamily: 'Cairo', color: textColor, fontWeight: FontWeight.w600, fontSize: 14),
+                style: TextStyle(
+                    fontFamily: 'Cairo',
+                    color: textColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14),
               ),
             ),
-            trailing ?? Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.white.withOpacity(0.2)),
+            trailing ??
+                Icon(Icons.arrow_forward_ios_rounded,
+                    size: 14, color: Colors.white.withOpacity(0.2)),
           ],
         ),
       ),
@@ -227,6 +269,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Widget _buildDivider() {
-    return Divider(color: Colors.white.withOpacity(0.05), thickness: 1, height: 1);
+    return Divider(
+        color: Colors.white.withOpacity(0.05), thickness: 1, height: 1);
   }
 }

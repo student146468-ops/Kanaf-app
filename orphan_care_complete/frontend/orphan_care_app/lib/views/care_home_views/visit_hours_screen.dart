@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/glass_container.dart';
+import 'care_home_light_widgets.dart';
 
 /// [VisitHoursScreen] - الواجهة رقم 36: تنظيم وحجز ساعات الزيارة لدار الرعاية لعام 2026.
 /// تتيح للمشرفين والمتبرعين تنسيق مواعيد الزيارات الميدانية واختيار الفترات الزمنية المتاحة لمنع الازدحام والتشتت.
@@ -15,19 +15,44 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _visitorNameController = TextEditingController();
   final TextEditingController _purposeController = TextEditingController();
-  
+
   String _selectedSlot = '10:00 ص - 12:00 م'; // الفترة المختارة افتراضياً
   String _visitorType = 'كفيل / متبرع'; // نوع الزائر الافتراضي
 
-  // فترات الزيارة المتاحة والمحاكة بدقة لعرضها أمام لجنة التحكيم والمناقشين
+  // فترات الزيارة المتاحة والمحاكية بدقة لعرضها في واجهة منظمة.
   final List<Map<String, dynamic>> _visitingSlots = [
-    {'time': '09:00 ص - 11:00 ص', 'status': 'ممتلئة', 'icon': Icons.block_rounded, 'color': Colors.redAccent},
-    {'time': '10:00 ص - 12:00 م', 'status': 'متاحة', 'icon': Icons.check_circle_outline_rounded, 'color': const Color(0xFF10B981)},
-    {'time': '04:00 م - 06:00 م', 'status': 'متاحة', 'icon': Icons.check_circle_outline_rounded, 'color': const Color(0xFF10B981)},
-    {'time': '06:00 م - 08:00 م', 'status': 'محجوزة مؤقتاً', 'icon': Icons.hourglass_empty_rounded, 'color': Colors.amber},
+    {
+      'time': '09:00 ص - 11:00 ص',
+      'status': 'ممتلئة',
+      'icon': Icons.block_rounded,
+      'color': Colors.redAccent
+    },
+    {
+      'time': '10:00 ص - 12:00 م',
+      'status': 'متاحة',
+      'icon': Icons.check_circle_outline_rounded,
+      'color': const Color(0xFF10B981)
+    },
+    {
+      'time': '04:00 م - 06:00 م',
+      'status': 'متاحة',
+      'icon': Icons.check_circle_outline_rounded,
+      'color': const Color(0xFF10B981)
+    },
+    {
+      'time': '06:00 م - 08:00 م',
+      'status': 'محجوزة مؤقتاً',
+      'icon': Icons.schedule_rounded,
+      'color': Colors.amber
+    },
   ];
 
-  final List<String> _visitorTypes = ['كفيل / متبرع', 'مؤسسة خيرية', 'جهة رقابية ودورية', 'عائلة زائرة'];
+  final List<String> _visitorTypes = [
+    'كفيل / متبرع',
+    'مؤسسة خيرية',
+    'جهة رقابية ودورية',
+    'عائلة زائرة'
+  ];
 
   @override
   void dispose() {
@@ -45,21 +70,26 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFF131313),
+        backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Container(
             width: containerWidth,
             height: double.infinity,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: AppColors.scaffoldBackground,
               boxShadow: isWebOrDesktop
-                  ? [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 45, spreadRadius: 8)]
+                  ? [
+                      BoxShadow(
+                          color: AppColors.innerShadow,
+                          blurRadius: 45,
+                          spreadRadius: 8)
+                    ]
                   : [],
             ),
             child: Stack(
               children: [
-                // الخلفية الكريستالية النيونية الحية المستقرة لتطبيق كَنَفْ
+                // خلفية بيضاء هادئة وموحدة لتطبيق كَنَفْ
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -67,9 +97,9 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
                         colors: [
-                          Color(0xFF261611),
-                          Color(0xFF141416),
-                          Color(0xFF0D1117),
+                          Colors.white,
+                          AppColors.scaffoldBackground,
+                          AppColors.scaffoldBackground,
                         ],
                         stops: [0.0, 0.52, 1.0],
                       ),
@@ -83,8 +113,8 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.4),
-                          Colors.black.withOpacity(0.93),
+                          Colors.white,
+                          Colors.white,
                         ],
                       ),
                     ),
@@ -99,7 +129,8 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
                       Expanded(
                         child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 10.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 22.0, vertical: 10.0),
                           child: Form(
                             key: _formKey,
                             child: Column(
@@ -107,15 +138,18 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
                               children: [
                                 _buildInfoRuleCard(),
                                 const SizedBox(height: 24),
-                                _buildSectionTitle('الفترات الزمنية المتاحة اليوم لفرع غريان'),
+                                _buildSectionTitle(
+                                    'الفترات الزمنية المتاحة اليوم لفرع غريان'),
                                 const SizedBox(height: 12),
                                 _buildTimeSlotsGrid(),
                                 const SizedBox(height: 24),
-                                _buildSectionTitle('اسم الزائر / الجهة القاصدة'),
+                                _buildSectionTitle(
+                                    'اسم الزائر / الجهة القاصدة'),
                                 const SizedBox(height: 8),
-                                _buildGlassInputField(
+                                _buildInputField(
                                   controller: _visitorNameController,
-                                  hint: 'اكتبي الاسم الكامل للزائر أو المؤسسة...',
+                                  hint:
+                                      'اكتبي الاسم الكامل للزائر أو المؤسسة...',
                                   icon: Icons.person_outline_rounded,
                                 ),
                                 const SizedBox(height: 20),
@@ -123,12 +157,19 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
                                   children: [
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          _buildSectionTitle('تصنيف فئة الزائر'),
+                                          _buildSectionTitle(
+                                              'تصنيف فئة الزائر'),
                                           const SizedBox(height: 8),
-                                          _buildGlassDropdown(_visitorType, _visitorTypes, (value) {
-                                            if (value != null) setState(() => _visitorType = value);
+                                          _buildDropdown(
+                                              _visitorType, _visitorTypes,
+                                              (value) {
+                                            if (value != null) {
+                                              setState(
+                                                  () => _visitorType = value);
+                                            }
                                           }),
                                         ],
                                       ),
@@ -136,11 +177,13 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 20),
-                                _buildSectionTitle('الغرض اللوجستي أو التربوي من الزيارة'),
+                                _buildSectionTitle(
+                                    'الغرض اللوجستي أو التربوي من الزيارة'),
                                 const SizedBox(height: 8),
-                                _buildGlassInputField(
+                                _buildInputField(
                                   controller: _purposeController,
-                                  hint: 'مثال: تقديم هدايا عينية، تفقد حالة صحية، تنسيق مبادرة...',
+                                  hint:
+                                      'مثال: تقديم هدايا عينية، تفقد حالة صحية، تنسيق مبادرة...',
                                   icon: Icons.assignment_outlined,
                                   maxLines: 3,
                                 ),
@@ -175,11 +218,12 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: AppColors.cardBackground,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.15)),
+                border: Border.all(color: AppColors.innerBorder),
               ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.textDarkPrimary, size: 18),
             ),
           ),
           const Text(
@@ -188,7 +232,7 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
               fontFamily: 'Cairo',
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.glassTextPrimary,
+              color: AppColors.textDarkPrimary,
             ),
           ),
           const SizedBox(width: 40),
@@ -198,14 +242,17 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
   }
 
   Widget _buildInfoRuleCard() {
-    return GlassContainer(
+    return CareHomeCard(
       padding: const EdgeInsets.all(14.0),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: AppColors.brandOrange.withOpacity(0.15), shape: BoxShape.circle),
-            child: const Icon(Icons.gavel_rounded, color: AppColors.brandOrange, size: 18),
+            decoration: BoxDecoration(
+                color: AppColors.brandOrange.withOpacity(0.15),
+                shape: BoxShape.circle),
+            child: const Icon(Icons.gavel_rounded,
+                color: AppColors.brandOrange, size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -214,7 +261,7 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
               style: TextStyle(
                 fontFamily: 'Cairo',
                 fontSize: 11.5,
-                color: AppColors.glassTextSecondary,
+                color: AppColors.textDarkSecondary,
                 height: 1.4,
               ),
             ),
@@ -241,7 +288,9 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('هذه الفترة ${slot['status']} حالياً، يرجى اختيار فترة متاحة.', style: const TextStyle(fontFamily: 'Cairo')),
+                  content: Text(
+                      'هذه الفترة ${slot['status']} حالياً، يرجى اختيار فترة متاحة.',
+                      style: const TextStyle(fontFamily: 'Cairo')),
                   backgroundColor: Colors.redAccent,
                 ),
               );
@@ -251,39 +300,52 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
             duration: const Duration(milliseconds: 200),
             margin: const EdgeInsets.only(bottom: 10),
             decoration: BoxDecoration(
-              color: isSelected 
-                  ? const Color(0xFF10B981).withOpacity(0.12) 
-                  : isAvailable ? Colors.white.withOpacity(0.04) : Colors.white.withOpacity(0.01),
+              color: isSelected
+                  ? const Color(0xFF10B981).withOpacity(0.12)
+                  : isAvailable
+                      ? AppColors.surfaceLight
+                      : AppColors.surfaceLight.withOpacity(0.6),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected 
-                    ? const Color(0xFF10B981) 
-                    : isAvailable ? Colors.white.withOpacity(0.08) : Colors.white.withOpacity(0.03),
+                color: isSelected
+                    ? const Color(0xFF10B981)
+                    : isAvailable
+                        ? AppColors.cardBackground
+                        : AppColors.innerBorder.withOpacity(0.5),
                 width: isSelected ? 1.5 : 1,
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
-                      Icon(slot['icon'], color: isSelected ? const Color(0xFF10B981) : slot['color'].withOpacity(0.7), size: 18),
+                      Icon(slot['icon'],
+                          color: isSelected
+                              ? const Color(0xFF10B981)
+                              : slot['color'].withOpacity(0.7),
+                          size: 18),
                       const SizedBox(width: 12),
                       Text(
                         slot['time'],
                         style: TextStyle(
                           fontFamily: 'Cairo',
                           fontSize: 13,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                          color: isAvailable ? Colors.white : Colors.white38,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.w600,
+                          color: isAvailable
+                              ? AppColors.textDarkPrimary
+                              : AppColors.textDarkMuted,
                         ),
                       ),
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: slot['color'].withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -307,22 +369,31 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
     );
   }
 
-  Widget _buildGlassInputField({
+  Widget _buildInputField({
     required TextEditingController controller,
     required String hint,
     required IconData icon,
     int maxLines = 1,
   }) {
-    return GlassContainer(
+    return CareHomeCard(
       padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4.0),
       child: TextFormField(
         controller: controller,
         maxLines: maxLines,
-        style: const TextStyle(fontFamily: 'Cairo', fontSize: 13.5, color: Colors.white),
+        style: const TextStyle(
+          fontFamily: 'Cairo',
+          fontSize: 13.5,
+          color: AppColors.textDarkPrimary,
+        ),
         decoration: InputDecoration(
-          icon: Icon(icon, color: AppColors.brandOrange.withOpacity(0.7), size: 18),
+          icon: Icon(icon,
+              color: AppColors.brandOrange.withOpacity(0.7), size: 18),
           hintText: hint,
-          hintStyle: const TextStyle(fontFamily: 'Cairo', fontSize: 12.5, color: Colors.white30),
+          hintStyle: TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 12.5,
+            color: AppColors.textDarkMuted.withOpacity(0.65),
+          ),
           border: InputBorder.none,
         ),
         validator: (value) {
@@ -335,8 +406,9 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
     );
   }
 
-  Widget _buildGlassDropdown(String currentValue, List<String> items, ValueChanged<String?> onChanged) {
-    return GlassContainer(
+  Widget _buildDropdown(String currentValue, List<String> items,
+      ValueChanged<String?> onChanged) {
+    return CareHomeCard(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -346,13 +418,15 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
               value: value,
               child: Text(
                 value,
-                style: const TextStyle(fontFamily: 'Cairo', fontSize: 13, color: Colors.black87),
+                style: const TextStyle(
+                    fontFamily: 'Cairo', fontSize: 13, color: Colors.black87),
               ),
             );
           }).toList(),
           onChanged: onChanged,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.brandOrange, size: 20),
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              color: AppColors.brandOrange, size: 20),
           dropdownColor: Colors.white.withOpacity(0.96),
           borderRadius: BorderRadius.circular(16),
         ),
@@ -364,24 +438,31 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
     return GestureDetector(
       onTap: () {
         if (_formKey.currentState!.validate()) {
-          // محاكاة تأكيد الحجز وإظهار صندوق التأكيد النيوني المبهج والمستقر
+          // محاكاة تأكيد الحجز وإظهار صندوق التأكيد المنظم المبهج والمستقر
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('تم جدولة وحجز موعد الزيارة بنجاح خلال فترة $_selectedSlot 🗓️', style: const TextStyle(fontFamily: 'Cairo')),
-              backgroundColor: const Color(0xFF10B981), // الزمردي الخالي من الأخطاء برمجياً
+              content: Text(
+                  'تم جدولة وحجز موعد الزيارة بنجاح خلال فترة $_selectedSlot 🗓️',
+                  style: const TextStyle(fontFamily: 'Cairo')),
+              backgroundColor:
+                  const Color(0xFF10B981), // الزمردي الخالي من الأخطاء برمجياً
             ),
           );
-          Navigator.of(context).pop(); // العودة التلقائية للوحة التحكم الرئيسية المربوطة بها
+          Navigator.of(context)
+              .pop(); // العودة التلقائية للوحة التحكم الرئيسية المربوطة بها
         }
       },
       child: Container(
         height: 52,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.glassBtnActive,
+          color: AppColors.brandOrange,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: AppColors.brandOrange.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 4)),
+            BoxShadow(
+                color: AppColors.brandOrange.withOpacity(0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 4)),
           ],
         ),
         child: const Center(
@@ -391,7 +472,7 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
               fontFamily: 'Cairo',
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: AppColors.brandOrangeDark,
+              color: Colors.white,
             ),
           ),
         ),
@@ -406,7 +487,7 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
         fontFamily: 'Cairo',
         fontSize: 13.5,
         fontWeight: FontWeight.w800,
-        color: AppColors.glassTextPrimary,
+        color: AppColors.textDarkPrimary,
       ),
     );
   }

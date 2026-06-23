@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
-import 'my_schedule_view.dart';
-import 'my_volunteer_history_view.dart';
 
 class ProfileVolunteerView extends StatelessWidget {
   const ProfileVolunteerView({super.key});
@@ -75,13 +73,19 @@ class ProfileVolunteerView extends StatelessWidget {
                                       color: Colors.white,
                                       shape: BoxShape.circle,
                                       boxShadow: [
-                                        BoxShadow(color: Color(0x26000000), blurRadius: 14, offset: Offset(0, 6))
+                                        BoxShadow(
+                                            color: Color(0x26000000),
+                                            blurRadius: 14,
+                                            offset: Offset(0, 6))
                                       ],
                                     ),
                                     child: CircleAvatar(
                                       radius: 50,
-                                      backgroundColor: AppColors.brandOrangeLight,
-                                      child: const Icon(Icons.person_rounded, size: 55, color: AppColors.brandOrange),
+                                      backgroundColor:
+                                          AppColors.brandOrangeLight,
+                                      child: const Icon(Icons.person_rounded,
+                                          size: 55,
+                                          color: AppColors.brandOrange),
                                     ),
                                   ),
                                   // زر تعديل الصورة التفاعلي ثلاثي الأبعاد
@@ -91,29 +95,45 @@ class ProfileVolunteerView extends StatelessWidget {
                                       color: Colors.white,
                                       shape: BoxShape.circle,
                                       boxShadow: [
-                                        BoxShadow(color: AppColors.brandOrange.withOpacity(0.3), blurRadius: 6, offset: const Offset(0, 2))
+                                        BoxShadow(
+                                            color: AppColors.brandOrange
+                                                .withOpacity(0.3),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 2))
                                       ],
-                                      border: Border.all(color: AppColors.innerBorder),
+                                      border: Border.all(
+                                          color: AppColors.innerBorder),
                                     ),
-                                    child: const Icon(Icons.camera_alt_rounded, color: AppColors.brandOrangeDark, size: 16),
+                                    child: const Icon(Icons.camera_alt_rounded,
+                                        color: AppColors.brandOrangeDark,
+                                        size: 16),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 14),
                               const Text(
                                 'أماني أحمد',
-                                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Tajawal'),
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Tajawal'),
                               ),
                               const SizedBox(height: 4),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: const Color(0x26FFFFFF),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: const Text(
                                   'متطوعة برمجية وتقنية 💻',
-                                  style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500, fontFamily: 'Tajawal'),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: 'Tajawal'),
                                 ),
                               ),
                             ],
@@ -138,16 +158,13 @@ class ProfileVolunteerView extends StatelessWidget {
                                 iconBg: const Color(0xFFFBE9E7),
                                 title: 'جدول مواعيدي التطوعية',
                                 subtitle: 'استعراض الحصص القادمة بدار غريان',
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const MyScheduleView()),
-                                  );
-                                },
+                                onTap: () => Navigator.of(context)
+                                    .pushNamed('/my_schedule'),
                               ),
                               const Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Divider(height: 1, color: AppColors.innerBorder),
+                                child: Divider(
+                                    height: 1, color: AppColors.innerBorder),
                               ),
                               _buildProfileRow(
                                 icon: Icons.history_edu_rounded,
@@ -155,12 +172,8 @@ class ProfileVolunteerView extends StatelessWidget {
                                 iconBg: const Color(0xFFE8F5E9),
                                 title: 'سجل مشاركاتي التاريخي',
                                 subtitle: 'لوحة الشرف وساعات العطاء الموثقة',
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const MyVolunteerHistoryView()),
-                                  );
-                                },
+                                onTap: () => Navigator.of(context)
+                                    .pushNamed('/my_volunteer_history'),
                               ),
                             ],
                           ),
@@ -183,12 +196,15 @@ class ProfileVolunteerView extends StatelessWidget {
                                 iconColor: const Color(0xFF2196F3),
                                 iconBg: const Color(0xFFE3F2FD),
                                 title: 'تعديل البيانات الشخصية',
-                                subtitle: 'الاسم، رقم الهاتف، والبريد الإلكتروني',
-                                onTap: () {},
+                                subtitle:
+                                    'الاسم، رقم الهاتف، والبريد الإلكتروني',
+                                onTap: () => Navigator.of(context)
+                                    .pushNamed('/settings'),
                               ),
                               const Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Divider(height: 1, color: AppColors.innerBorder),
+                                child: Divider(
+                                    height: 1, color: AppColors.innerBorder),
                               ),
                               _buildProfileRow(
                                 icon: Icons.shield_rounded,
@@ -196,7 +212,8 @@ class ProfileVolunteerView extends StatelessWidget {
                                 iconBg: const Color(0xFFEDE7F6),
                                 title: 'إعدادات الخصوصية والأمان',
                                 subtitle: 'تغيير كلمة المرور وتوثيق الحساب',
-                                onTap: () {},
+                                onTap: () => Navigator.of(context)
+                                    .pushNamed('/change_password'),
                               ),
                             ],
                           ),
@@ -210,23 +227,31 @@ class ProfileVolunteerView extends StatelessWidget {
                             // منطق تسجيل الخروج الآمن والعودة لشاشة الاختيار
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('تم تسجيل الخروج الآمن بنجاح، في أمان الله أماني.', style: TextStyle(fontFamily: 'Tajawal')),
+                                content: Text(
+                                    'تم تسجيل الخروج الآمن بنجاح، في أمان الله أماني.',
+                                    style: TextStyle(fontFamily: 'Tajawal')),
                                 backgroundColor: AppColors.brandOrangeDark,
                               ),
                             );
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                                '/login', (route) => false);
                           },
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             decoration: BoxDecoration(
-                              color: const Color(0x0DE25E14), // لون خروج برتقالي شفاف غاية في الأناقة والتناسق
+                              color: const Color(
+                                  0x0DE25E14), // لون خروج برتقالي شفاف غاية في الأناقة والتناسق
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.brandOrange.withOpacity(0.3), width: 1.2),
+                              border: Border.all(
+                                  color: AppColors.brandOrange.withOpacity(0.3),
+                                  width: 1.2),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: const [
-                                Icon(Icons.logout_rounded, color: AppColors.brandOrangeDark, size: 18),
+                                Icon(Icons.logout_rounded,
+                                    color: AppColors.brandOrangeDark, size: 18),
                                 SizedBox(width: 8),
                                 Text(
                                   'تسجيل الخروج الآمن',
@@ -300,12 +325,14 @@ class ProfileVolunteerView extends StatelessWidget {
                   BoxShadow(
                     color: iconColor.withOpacity(0.2),
                     blurRadius: 6,
-                    offset: const Offset(0, 3), // بروز الظل السفلي لإعطاء العمق البصري المحسوس
+                    offset: const Offset(
+                        0, 3), // بروز الظل السفلي لإعطاء العمق البصري المحسوس
                   ),
                   BoxShadow(
                     color: Colors.white.withOpacity(0.7),
                     blurRadius: 3,
-                    offset: const Offset(-1, -1), // إضاءة عكسية علوية تزيد من واقعية وتجسم الأيقونة
+                    offset: const Offset(-1,
+                        -1), // إضاءة عكسية علوية تزيد من واقعية وتجسم الأيقونة
                   )
                 ],
               ),
@@ -338,7 +365,8 @@ class ProfileVolunteerView extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textDarkMuted, size: 14),
+            const Icon(Icons.arrow_forward_ios_rounded,
+                color: AppColors.textDarkMuted, size: 14),
           ],
         ),
       ),

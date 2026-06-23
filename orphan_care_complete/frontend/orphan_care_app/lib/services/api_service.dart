@@ -7,8 +7,7 @@ class ApiService {
   late Dio _dio;
   
   // عنوان المنظومة الأساسي (يمكن تغييره حسب البيئة)
-  static const String baseUrl = 'http://localhost:8000/api';
-  
+static const String baseUrl1 = 'https://kanafapp.pythonanywhere.com/api';  
   factory ApiService() {
     return _instance;
   }
@@ -20,7 +19,7 @@ class ApiService {
   void _initializeDio() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: baseUrl,
+        baseUrl: baseUrl1,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
         responseType: ResponseType.json,

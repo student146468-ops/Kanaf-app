@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/glass_container.dart';
+import 'care_home_light_widgets.dart';
 
 /// [NeedsListScreen] - الواجهة رقم 29: قائمة الاحتياجات مع الأولوية لدار الرعاية لعام 2026.
 /// تعرض كافة الطلبات المنشورة مع تصفية ذكية وألوان دلالية للأولويات تمنع التشتت البصري.
@@ -14,7 +14,7 @@ class NeedsListScreen extends StatefulWidget {
 class _NeedsListScreenState extends State<NeedsListScreen> {
   String _activeFilter = 'الكل'; // الكل، معلق، مكتمل
 
-  // بيانات محاكاة تفصيلية ومقنعة للجنة المناقشة تعكس متطلبات دار رعاية حقيقية
+  // بيانات محاكاة تفصيلية ومقنعة لتجربة تشغيل واقعية تعكس متطلبات دار رعاية حقيقية
   final List<Map<String, dynamic>> _allNeeds = [
     {
       'id': '1',
@@ -75,21 +75,26 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFF131313),
+        backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Container(
             width: containerWidth,
             height: double.infinity,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: AppColors.scaffoldBackground,
               boxShadow: isWebOrDesktop
-                  ? [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 45, spreadRadius: 8)]
+                  ? [
+                      BoxShadow(
+                          color: AppColors.innerShadow,
+                          blurRadius: 45,
+                          spreadRadius: 8)
+                    ]
                   : [],
             ),
             child: Stack(
               children: [
-                // الخلفية الكريستالية الحية
+                // خلفية بيضاء هادئة
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -97,9 +102,9 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
                         colors: [
-                          Color(0xFF261611),
-                          Color(0xFF141416),
-                          Color(0xFF0D1117),
+                          Colors.white,
+                          AppColors.scaffoldBackground,
+                          AppColors.scaffoldBackground,
                         ],
                         stops: [0.0, 0.52, 1.0],
                       ),
@@ -113,8 +118,8 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.3),
-                          Colors.black.withOpacity(0.9),
+                          Colors.white,
+                          Colors.white,
                         ],
                       ),
                     ),
@@ -133,7 +138,8 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
                             ? _buildEmptyState()
                             : ListView.builder(
                                 physics: const BouncingScrollPhysics(),
-                                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20.0, vertical: 10.0),
                                 itemCount: filteredNeeds.length,
                                 itemBuilder: (context, index) {
                                   final need = filteredNeeds[index];
@@ -164,11 +170,12 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: AppColors.cardBackground,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.15)),
+                border: Border.all(color: AppColors.innerBorder),
               ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.textDarkPrimary, size: 18),
             ),
           ),
           const Text(
@@ -177,7 +184,7 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
               fontFamily: 'Cairo',
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.glassTextPrimary,
+              color: AppColors.textDarkPrimary,
             ),
           ),
           // زر سريع للإضافة لتوفير اختصارات مرنة وتجربة مستخدم مريحة للمشرف
@@ -189,9 +196,11 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
               decoration: BoxDecoration(
                 color: AppColors.brandOrange.withOpacity(0.15),
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.brandOrange.withOpacity(0.4)),
+                border:
+                    Border.all(color: AppColors.brandOrange.withOpacity(0.4)),
               ),
-              child: const Icon(Icons.add_rounded, color: AppColors.brandOrange, size: 22),
+              child: const Icon(Icons.add_rounded,
+                  color: AppColors.brandOrange, size: 22),
             ),
           ),
         ],
@@ -214,10 +223,14 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 height: 40,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.brandOrange.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                  color: isSelected
+                      ? AppColors.brandOrange.withOpacity(0.2)
+                      : AppColors.surfaceLight,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isSelected ? AppColors.brandOrange : Colors.white.withOpacity(0.1),
+                    color: isSelected
+                        ? AppColors.brandOrange
+                        : AppColors.innerBorder,
                     width: 1,
                   ),
                 ),
@@ -227,8 +240,11 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
                     style: TextStyle(
                       fontFamily: 'Cairo',
                       fontSize: 13,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      color: isSelected ? AppColors.brandOrange : AppColors.glassTextPrimary,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w600,
+                      color: isSelected
+                          ? AppColors.brandOrange
+                          : AppColors.textDarkPrimary,
                     ),
                   ),
                 ),
@@ -241,7 +257,8 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
   }
 
   Widget _buildNeedCard(Map<String, dynamic> need) {
-    Color priorityColor = const Color(0xFF10B981); // تم استبدال القيمة التلقائية بلون أخضر زمردي ثابت ومطابق لرموز النظام
+    Color priorityColor = const Color(
+        0xFF10B981); // تم استبدال القيمة التلقائية بلون أخضر زمردي ثابت ومطابق لرموز النظام
     if (need['priority'] == 'متوسط') priorityColor = Colors.orange;
     if (need['priority'] == 'حرج جداً') priorityColor = Colors.redAccent;
 
@@ -251,9 +268,10 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
         color: Colors.transparent,
         child: InkWell(
           // ✨ ربط مباشر وتلقائي بواجهة التفاصيل مع تمرير الـ ID المختار
-          onTap: () => Navigator.of(context).pushNamed('/care_home_need_details', arguments: need['id']),
+          onTap: () => Navigator.of(context)
+              .pushNamed('/care_home_need_details', arguments: need['id']),
           borderRadius: BorderRadius.circular(24),
-          child: GlassContainer(
+          child: CareHomeCard(
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
@@ -264,7 +282,8 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
                   decoration: BoxDecoration(
                     color: need['color'].withOpacity(0.15),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: need['color'].withOpacity(0.3), width: 1),
+                    border: Border.all(
+                        color: need['color'].withOpacity(0.3), width: 1),
                   ),
                   child: Icon(need['icon'], color: need['color'], size: 22),
                 ),
@@ -279,11 +298,14 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: priorityColor.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: priorityColor.withOpacity(0.3), width: 1),
+                              border: Border.all(
+                                  color: priorityColor.withOpacity(0.3),
+                                  width: 1),
                             ),
                             child: Text(
                               need['priority'],
@@ -296,11 +318,16 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
                             ),
                           ),
                           Text(
-                            need['status'] == 'مكتمل' ? 'مكتمل ✅' : 'قيد الانتظار ⏳',
+                            need['status'] == 'مكتمل'
+                                ? 'مكتمل ✅'
+                                : 'قيد الانتظار ⏳',
                             style: TextStyle(
                               fontFamily: 'Cairo',
                               fontSize: 11,
-                              color: need['status'] == 'مكتمل' ? const Color(0xFF10B981) : Colors.white60, // تصحيح Colors.emerald هنا
+                              color: need['status'] == 'مكتمل'
+                                  ? const Color(0xFF10B981)
+                                  : AppColors
+                                      .textDarkMuted, // تصحيح Colors.emerald هنا
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -313,7 +340,7 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
                           fontFamily: 'Cairo',
                           fontSize: 14.5,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.glassTextPrimary,
+                          color: AppColors.textDarkPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -322,7 +349,7 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
                         style: TextStyle(
                           fontFamily: 'Cairo',
                           fontSize: 12.5,
-                          color: AppColors.glassTextSecondary,
+                          color: AppColors.textDarkSecondary,
                         ),
                       ),
                     ],
@@ -341,14 +368,15 @@ class _NeedsListScreenState extends State<NeedsListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.assignment_turned_in_rounded, size: 64, color: Colors.white.withOpacity(0.2)),
+          Icon(Icons.assignment_turned_in_rounded,
+              size: 64, color: AppColors.innerBorder),
           const SizedBox(height: 16),
           Text(
-            'لا توجد احتياجات تندرج تحت هذا التبويب حالياً',
+            'لا توجد احتياجات تندرج طھط­طھ هذا التبويب حالياً',
             style: TextStyle(
               fontFamily: 'Cairo',
               fontSize: 14,
-              color: AppColors.glassTextSecondary,
+              color: AppColors.textDarkSecondary,
             ),
           ),
         ],

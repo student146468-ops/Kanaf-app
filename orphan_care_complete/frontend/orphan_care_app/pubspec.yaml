@@ -31,7 +31,7 @@ dependencies:
   fl_chart: ^0.63.0
   
   # 🔔 الإشعارات
-  flutter_local_notifications: ^16.0.0
+  flutter_local_notifications: 17.2.4
   
   # 🌐 التوطين (Localization)
   intl: ^0.19.0
@@ -47,7 +47,9 @@ flutter:
   assets:
     - assets/images/logo.png
     - assets/images/child.png
-    - assets/images/happy_child.png
+    - assets/images/apple_icon.png
+    - assets/images/google_icon.png
+    - assets/images/happy_child.png    
   
   # الخطوط العربية الاحترافية
   fonts:

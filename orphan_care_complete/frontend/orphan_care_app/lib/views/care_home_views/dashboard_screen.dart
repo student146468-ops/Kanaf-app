@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/glass_container.dart';
+import 'care_home_light_widgets.dart';
 
 /// [CareHomeDashboardScreen] - الواجهة رقم 27: لوحة التحكم الرئيسية لدار الرعاية لعام 2026.
-/// مصممة بالكامل بنمط الـ Glassmorphism الكريستالي لمنع التشتت وجذب انتباه المناقشين.
+/// مصممة بواجهة موبايل بيضاء ونظيفة لتنظيم دعم دار الرعاية بوضوح.
 class CareHomeDashboardScreen extends StatefulWidget {
   const CareHomeDashboardScreen({super.key});
 
   @override
-  State<CareHomeDashboardScreen> createState() => _CareHomeDashboardScreenState();
+  State<CareHomeDashboardScreen> createState() =>
+      _CareHomeDashboardScreenState();
 }
 
 class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
-  // بيانات محاكاة سريعة للإحصائيات لعرضها بشكل فخم ومقنع للجنة
+  // بيانات احتياطية للإحصائيات عند عدم توفر بيانات المزود.
   final int _activeNeedsCount = 14;
   final int _newVolunteersCount = 8;
   final String _totalDonations = "4,250 د.ل";
@@ -26,21 +28,26 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFF131313), // الخلفية الداكنة المعتمدة لإبراز طبقات الزجاج
+        backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Container(
             width: containerWidth,
             height: double.infinity,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: AppColors.scaffoldBackground,
               boxShadow: isWebOrDesktop
-                  ? [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 45, spreadRadius: 8)]
+                  ? [
+                      BoxShadow(
+                          color: AppColors.innerShadow,
+                          blurRadius: 45,
+                          spreadRadius: 8)
+                    ]
                   : [],
             ),
             child: Stack(
               children: [
-                // 1️⃣ الصورة الخلفية الحية الطافية لـ "تطبيق كَنَفْ"
+                // 1️⃣ خلفية هادئة لتطبيق كَنَفْ
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -48,9 +55,9 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
                         colors: [
-                          Color(0xFF261611),
-                          Color(0xFF141416),
-                          Color(0xFF0D1117),
+                          Colors.white,
+                          AppColors.scaffoldBackground,
+                          AppColors.scaffoldBackground,
                         ],
                         stops: [0.0, 0.52, 1.0],
                       ),
@@ -66,9 +73,9 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.3),
-                          AppColors.brandOrangeDark.withOpacity(0.2),
-                          Colors.black.withOpacity(0.9),
+                          Colors.white,
+                          Colors.white,
+                          Colors.white,
                         ],
                       ),
                     ),
@@ -83,7 +90,8 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                       Expanded(
                         child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0, vertical: 10.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -114,7 +122,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
     );
   }
 
-  /// 🛠️ الجزء 1: الترويسة العلوية الفخمة المرتبطة بالإشعارات والملف الشخصي
+  /// ًں› ï¸ڈ الجزء 1: الترويسة العلوية الواضحة المرتبطة بالإشعارات والملف الشخصي
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -124,17 +132,22 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
           Row(
             children: [
               GestureDetector(
-                onTap: () => Navigator.of(context).pushNamed('/care_home_profile'),
+                onTap: () =>
+                    Navigator.of(context).pushNamed('/care_home_profile'),
                 child: Container(
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.brandOrange.withOpacity(0.6), width: 1.5),
-                    image: const DecorationImage(
-                      image: AssetImage('assets/images/care_home_3d.png'),
-                      fit: BoxFit.cover,
-                    ),
+                    border: Border.all(
+                        color: AppColors.brandOrange.withOpacity(0.6),
+                        width: 1.5),
+                    color: AppColors.brandOrange.withOpacity(0.12),
+                  ),
+                  child: const Icon(
+                    Icons.home_work_rounded,
+                    color: AppColors.brandOrange,
+                    size: 24,
                   ),
                 ),
               ),
@@ -148,7 +161,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                       fontFamily: 'Cairo',
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.glassTextPrimary,
+                      color: AppColors.textDarkPrimary,
                     ),
                   ),
                   Text(
@@ -156,7 +169,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                     style: TextStyle(
                       fontFamily: 'Cairo',
                       fontSize: 12,
-                      color: AppColors.glassTextSecondary,
+                      color: AppColors.textDarkSecondary,
                     ),
                   ),
                 ],
@@ -165,18 +178,19 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
           ),
           // زر الإشعارات المربوط بالواجهة رقم 37 تلقائياً
           GestureDetector(
-            onTap: () => Navigator.of(context).pushNamed('/care_home_notifications'),
+            onTap: () =>
+                Navigator.of(context).pushNamed('/care_home_notifications'),
             child: Container(
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: AppColors.cardBackground,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
+                border: Border.all(color: AppColors.innerBorder, width: 1),
               ),
               child: const Icon(
                 Icons.notifications_none_rounded,
-                color: AppColors.glassTextPrimary,
+                color: AppColors.textDarkPrimary,
                 size: 22,
               ),
             ),
@@ -186,7 +200,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
     );
   }
 
-  /// 🛠️ الجزء 2: المقطع الترحيبي التفاعلي
+  /// ًں› ï¸ڈ الجزء 2: المقطع الترحيبي التفاعلي
   Widget _buildWelcomeSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,31 +210,37 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
           style: TextStyle(
             fontFamily: 'Cairo',
             fontSize: 16,
-            color: AppColors.glassTextSecondary,
+            color: AppColors.textDarkSecondary,
           ),
         ),
         const SizedBox(height: 2),
         const Text(
-          'لوحة إدارة شؤون كنف الرعاية',
+          'نظّم احتياجات الدار بوضوح',
           style: TextStyle(
             fontFamily: 'Cairo',
             fontSize: 22,
             fontWeight: FontWeight.w900,
-            color: AppColors.glassTextPrimary,
+            color: AppColors.textDarkPrimary,
           ),
         ),
       ],
     );
   }
 
-  /// 🛠️ الجزء 3: شبكة الإحصائيات الزجاجية بلمسة ألوان عصرية طافية ومريحة
+  /// ًں› ï¸ڈ الجزء 3: شبكة الإحصائيات الواضحة بلمسة ألوان عصرية طافية ومريحة
   Widget _buildStatisticsGrid() {
+    final stats = AppProviderScope.of(context).dashboardStats;
+    final activeNeeds =
+        stats['active_needs']?.toString() ?? '$_activeNeedsCount';
+    final totalDonations =
+        stats['monthly_support']?.toString() ?? _totalDonations;
+
     return Row(
       children: [
         Expanded(
           child: _buildStatCard(
             'احتياجات نشطة',
-            '$_activeNeedsCount',
+            activeNeeds,
             Icons.analytics_outlined,
             AppColors.brandOrange,
             () => Navigator.of(context).pushNamed('/care_home_needs_list'),
@@ -230,20 +250,23 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
         Expanded(
           child: _buildStatCard(
             'تبرعات واردة',
-            _totalDonations,
+            totalDonations,
             Icons.account_balance_wallet_outlined,
-            const Color(0xFF10B981), // تم استبدال السمة غير المعرفة بالكود السداسي الصافي للون الزمردي
-            () => Navigator.of(context).pushNamed('/care_home_incoming_donations'),
+            const Color(
+                0xFF10B981), // تم استبدال السمة غير المعرفة بالكود السداسي الصافي للون الزمردي
+            () => Navigator.of(context)
+                .pushNamed('/care_home_incoming_donations'),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color accentColor, VoidCallback onTap) {
+  Widget _buildStatCard(String title, String value, IconData icon,
+      Color accentColor, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: GlassContainer(
+      child: CareHomeCard(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,7 +275,8 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Icon(icon, color: accentColor, size: 24),
-                Icon(Icons.arrow_outward_rounded, color: Colors.white.withOpacity(0.3), size: 16),
+                Icon(Icons.arrow_outward_rounded,
+                    color: AppColors.textDarkMuted.withOpacity(0.45), size: 16),
               ],
             ),
             const SizedBox(height: 16),
@@ -262,7 +286,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                 fontFamily: 'Cairo',
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
-                color: AppColors.glassTextPrimary,
+                color: AppColors.textDarkPrimary,
               ),
             ),
             const SizedBox(height: 4),
@@ -272,7 +296,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                 fontFamily: 'Cairo',
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: AppColors.glassTextSecondary,
+                color: AppColors.textDarkSecondary,
               ),
             ),
           ],
@@ -281,15 +305,18 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
     );
   }
 
-  /// 🛠️ الجزء 4: شبكة أزرار العمليات السريعة المربوطة هندسياً ببقية الملفات الـ 13
+  /// ًں› ï¸ڈ الجزء 4: شبكة أزرار العمليات السريعة المربوطة هندسياً ببقية الملفات الـ 13
   Widget _buildQuickActionsGrid() {
+    final width = MediaQuery.of(context).size.width;
+    final crossAxisCount = width < 380 ? 2 : 3;
+
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 3,
+      crossAxisCount: crossAxisCount,
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      childAspectRatio: 0.95,
+      childAspectRatio: crossAxisCount == 2 ? 1.45 : 0.95,
       children: [
         _buildActionItem(
           'إضافة احتياج',
@@ -306,13 +333,13 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
         _buildActionItem(
           'مواعيد الزيارة',
           Icons.calendar_month_rounded,
-          Colors.purpleAccent,
+          const Color(0xFF8B5CF6),
           () => Navigator.of(context).pushNamed('/care_home_visit_hours'),
         ),
         _buildActionItem(
           'التقارير',
           Icons.insert_chart_rounded,
-          Colors.tealAccent,
+          const Color(0xFF0F766E),
           () => Navigator.of(context).pushNamed('/care_home_reports'),
         ),
         _buildActionItem(
@@ -324,17 +351,18 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
         _buildActionItem(
           'الملف العام',
           Icons.storefront_rounded,
-          Colors.pinkAccent,
+          const Color(0xFFDB2777),
           () => Navigator.of(context).pushNamed('/care_home_profile'),
         ),
       ],
     );
   }
 
-  Widget _buildActionItem(String label, IconData icon, Color iconColor, VoidCallback onTap) {
+  Widget _buildActionItem(
+      String label, IconData icon, Color iconColor, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: GlassContainer(
+      child: CareHomeCard(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -355,7 +383,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                 fontFamily: 'Cairo',
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: AppColors.glassTextPrimary,
+                color: AppColors.textDarkPrimary,
               ),
             ),
           ],
@@ -364,13 +392,26 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
     );
   }
 
-  /// 🛠️ الجزء 5: التحديثات والنشاطات الأخيرة داخل الدار
+  /// ًں› ï¸ڈ الجزء 5: التحديثات والنشاطات الأخيرة داخل الدار
   Widget _buildRecentActivitiesList() {
     final activities = [
-      {'title': 'تم كفالة طلب كسوة العيد', 'time': 'منذ 10 دقائق', 'type': 'donation'},
-      {'title': 'طلب انضمام جديد من المتطوع أحمد', 'time': 'منذ ساعة', 'type': 'volunteer'},
+      {
+        'title': 'تم كفالة طلب كسوة العيد',
+        'time': 'منذ 10 دقائق',
+        'type': 'donation'
+      },
+      {
+        'title': 'طلب انضمام جديد من المتطوع أحمد',
+        'time': 'منذ ساعة',
+        'type': 'volunteer'
+      },
       // دمج المتغير الذكي هنا لإنهاء تحذير الكومبايلر الأصفر تماماً
-      {'title': 'يوجد لدينا حالياً $_newVolunteersCount متطوعين جدد قيد الانتظار', 'time': 'منذ ساعتين', 'type': 'system'},
+      {
+        'title':
+            'يوجد لدينا حالياً $_newVolunteersCount متطوعين جدد قيد الانتظار',
+        'time': 'منذ ساعتين',
+        'type': 'system'
+      },
     ];
 
     return ListView.separated(
@@ -391,7 +432,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
           iconColor = Colors.blueAccent;
         }
 
-        return GlassContainer(
+        return CareHomeCard(
           padding: const EdgeInsets.all(14.0),
           child: Row(
             children: [
@@ -404,7 +445,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                     fontFamily: 'Cairo',
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.glassTextPrimary,
+                    color: AppColors.textDarkPrimary,
                   ),
                 ),
               ),
@@ -413,7 +454,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                 style: TextStyle(
                   fontFamily: 'Cairo',
                   fontSize: 11,
-                  color: AppColors.glassTextSecondary,
+                  color: AppColors.textDarkSecondary,
                 ),
               ),
             ],
@@ -431,7 +472,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
         fontFamily: 'Cairo',
         fontSize: 16,
         fontWeight: FontWeight.w800,
-        color: AppColors.glassTextPrimary,
+        color: AppColors.textDarkPrimary,
       ),
     );
   }

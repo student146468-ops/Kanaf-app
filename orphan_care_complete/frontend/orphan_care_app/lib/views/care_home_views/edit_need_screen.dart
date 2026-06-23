@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 
 /// [EditNeedScreen] - الواجهة رقم 31: تعديل بيانات احتياج منشور مسبقاً لدار الرعاية.
-/// تم بناؤها بنقاء برمجي كامل وتأثيرات بصرية تمنع تشتت عين المستخدم وتضمن استقرار الأداء.
+/// تم بناؤها بنقاء برمجي كامل وتأثيرات بصرية تمنع طھط´طھطھ عين المستخدم وتضمن استقرار الأداء.
 class EditNeedScreen extends StatefulWidget {
   const EditNeedScreen({super.key});
 
@@ -24,20 +24,38 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
   bool _isUpdating = false;
 
   final List<Map<String, dynamic>> _categories = [
-    {'name': 'غذائي', 'icon': Icons.bakery_dining_rounded, 'color': Colors.amber},
-    {'name': 'طبي', 'icon': Icons.health_and_safety_rounded, 'color': Colors.redAccent},
-    {'name': 'كسوة', 'icon': Icons.checkroom_rounded, 'color': Colors.tealAccent},
-    {'name': 'تعليمي', 'icon': Icons.school_rounded, 'color': Colors.blueAccent},
+    {
+      'name': 'غذائي',
+      'icon': Icons.bakery_dining_rounded,
+      'color': Colors.amber
+    },
+    {
+      'name': 'طبي',
+      'icon': Icons.health_and_safety_rounded,
+      'color': Colors.redAccent
+    },
+    {
+      'name': 'كسوة',
+      'icon': Icons.checkroom_rounded,
+      'color': const Color(0xFF14B8A6)
+    },
+    {
+      'name': 'تعليمي',
+      'icon': Icons.school_rounded,
+      'color': Colors.blueAccent
+    },
   ];
 
   @override
   void initState() {
     super.initState();
     // جلب البيانات القديمة ومحاكاتها تلقائياً لتكون جاهزة للمناقشة
-    _titleController = TextEditingController(text: 'حليب أطفال ومكملات غذائية (عمر 1-3)');
+    _titleController =
+        TextEditingController(text: 'حليب أطفال ومكملات غذائية (عمر 1-3)');
     _quantityController = TextEditingController(text: '40 صندوق متكامل');
     _detailsController = TextEditingController(
-      text: 'نظراً لزيادة عدد الأطفال الرضع المسجلين حديثاً بالدار بفرع غريان، نحتاج بشكل عاجل لتوفير حليب من الأصناف المدعمة طبياً لتغطية النقص الحالي.',
+      text:
+          'نظراً لزيادة عدد الأطفال الرضع المسجلين حديثاً بالدار بفرع غريان، نحتاج بشكل عاجل لتوفير حليب من الأصناف المدعمة طبياً لتغطية النقص الحالي.',
     );
 
     _titleFocusNode.addListener(() => setState(() {}));
@@ -60,7 +78,8 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
     if (_titleController.text.isEmpty || _quantityController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('الرجاء التأكد من عدم ترك الحقول الأساسية فارغة', style: TextStyle(fontFamily: 'Cairo')),
+          content: Text('الرجاء التأكد من عدم ترك الحقول الأساسية فارغة',
+              style: TextStyle(fontFamily: 'Cairo')),
           backgroundColor: AppColors.brandOrange,
         ),
       );
@@ -68,14 +87,17 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
     }
 
     setState(() => _isUpdating = true);
-    await Future.delayed(const Duration(milliseconds: 1200)); // محاكاة الاتصال بالسيرفر لتحديث البيانات
+    await Future.delayed(const Duration(
+        milliseconds: 1200)); // محاكاة الاتصال بالسيرفر لتحديث البيانات
 
     if (mounted) {
       setState(() => _isUpdating = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('تم تحديث بيانات الاحتياج بنجاح وحفظ التغييرات', style: TextStyle(fontFamily: 'Cairo')),
-          backgroundColor: Color(0xFF10B981), // تم استبدال اللون المفقود وتصحيح الكونسطنت هنا
+          content: Text('تم تحديث بيانات الاحتياج بنجاح وحفظ التغييرات',
+              style: TextStyle(fontFamily: 'Cairo')),
+          backgroundColor: Color(
+              0xFF10B981), // تم استبدال اللون المفقود وتصحيح الكونسطنت هنا
         ),
       );
       Navigator.of(context).pop(); // العودة التلقائية لواجهة التفاصيل
@@ -91,16 +113,21 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFF131313),
+        backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Container(
             width: containerWidth,
             height: double.infinity,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: AppColors.scaffoldBackground,
               boxShadow: isWebOrDesktop
-                  ? [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 45, spreadRadius: 8)]
+                  ? [
+                      BoxShadow(
+                          color: AppColors.innerShadow,
+                          blurRadius: 45,
+                          spreadRadius: 8)
+                    ]
                   : [],
             ),
             child: Stack(
@@ -113,9 +140,9 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
                         colors: [
-                          Color(0xFF261611),
-                          Color(0xFF141416),
-                          Color(0xFF0D1117),
+                          Colors.white,
+                          AppColors.scaffoldBackground,
+                          AppColors.scaffoldBackground,
                         ],
                         stops: [0.0, 0.52, 1.0],
                       ),
@@ -129,8 +156,8 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.4),
-                          Colors.black.withOpacity(0.88),
+                          Colors.white,
+                          Colors.white,
                         ],
                       ),
                     ),
@@ -145,7 +172,8 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
                       Expanded(
                         child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24.0, vertical: 10.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -154,23 +182,24 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
                               const SizedBox(height: 12),
                               _buildCategorySelector(),
                               const SizedBox(height: 24),
-                              _buildSectionLabel('البيانات الأساسية المراد تحديثها'),
+                              _buildSectionLabel(
+                                  'البيانات الأساسية المراد تحديثها'),
                               const SizedBox(height: 14),
-                              _buildGlassField(
+                              _buildInputField(
                                 controller: _titleController,
                                 focusNode: _titleFocusNode,
                                 hint: 'عنوان الاحتياج',
                                 icon: Icons.title_rounded,
                               ),
                               const SizedBox(height: 16),
-                              _buildGlassField(
+                              _buildInputField(
                                 controller: _quantityController,
                                 focusNode: _quantityFocusNode,
                                 hint: 'الكمية والعدد المطلوب',
                                 icon: Icons.production_quantity_limits_rounded,
                               ),
                               const SizedBox(height: 16),
-                              _buildGlassField(
+                              _buildInputField(
                                 controller: _detailsController,
                                 focusNode: _detailsFocusNode,
                                 hint: 'شرح تفصيلي للمتطلبات الإضافية...',
@@ -178,7 +207,8 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
                                 maxLines: 4,
                               ),
                               const SizedBox(height: 24),
-                              _buildSectionLabel('تحديث مستوى الأولوية الدلالي'),
+                              _buildSectionLabel(
+                                  'تحديث مستوى الأولوية الدلالي'),
                               const SizedBox(height: 12),
                               _buildPrioritySelector(),
                               const SizedBox(height: 40),
@@ -210,11 +240,12 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: AppColors.cardBackground,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.15)),
+                border: Border.all(color: AppColors.innerBorder),
               ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+              child: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.textDarkPrimary, size: 18),
             ),
           ),
           const Expanded(
@@ -225,7 +256,7 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
                   fontFamily: 'Cairo',
                   fontSize: 17.5,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.glassTextPrimary,
+                  color: AppColors.textDarkPrimary,
                 ),
               ),
             ),
@@ -243,7 +274,7 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
         fontFamily: 'Cairo',
         fontSize: 14.5,
         fontWeight: FontWeight.w700,
-        color: AppColors.glassTextPrimary,
+        color: AppColors.textDarkPrimary,
       ),
     );
   }
@@ -265,24 +296,35 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
               margin: const EdgeInsets.only(left: 10),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.brandOrange.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+                color: isSelected
+                    ? AppColors.brandOrange.withOpacity(0.2)
+                    : AppColors.surfaceLight,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: isSelected ? AppColors.brandOrange : Colors.white.withOpacity(0.15),
+                  color: isSelected
+                      ? AppColors.brandOrange
+                      : AppColors.innerBorder,
                   width: 1.2,
                 ),
               ),
               child: Row(
                 children: [
-                  Icon(cat['icon'], color: isSelected ? AppColors.brandOrange : Colors.white70, size: 18),
+                  Icon(cat['icon'],
+                      color: isSelected
+                          ? AppColors.brandOrange
+                          : AppColors.textDarkSecondary,
+                      size: 18),
                   const SizedBox(width: 8),
                   Text(
                     cat['name'],
                     style: TextStyle(
                       fontFamily: 'Cairo',
                       fontSize: 13,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isSelected ? AppColors.brandOrange : AppColors.glassTextPrimary,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: isSelected
+                          ? AppColors.brandOrange
+                          : AppColors.textDarkPrimary,
                     ),
                   ),
                 ],
@@ -294,7 +336,7 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
     );
   }
 
-  Widget _buildGlassField({
+  Widget _buildInputField({
     required TextEditingController controller,
     required FocusNode focusNode,
     required String hint,
@@ -305,10 +347,10 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.2),
+        color: AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isFocused ? AppColors.brandOrange : Colors.white.withOpacity(0.15),
+          color: isFocused ? AppColors.brandOrange : AppColors.innerBorder,
           width: isFocused ? 1.5 : 1.0,
         ),
       ),
@@ -317,17 +359,27 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
         focusNode: focusNode,
         maxLines: maxLines,
         cursorColor: AppColors.brandOrange,
-        style: const TextStyle(fontFamily: 'Cairo', fontSize: 14, color: AppColors.glassTextPrimary),
+        style: const TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 14,
+            color: AppColors.textDarkPrimary),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(fontFamily: 'Cairo', fontSize: 13, color: AppColors.glassTextSecondary),
+          hintStyle: TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: 13,
+              color: AppColors.textDarkSecondary),
           prefixIcon: Padding(
             padding: EdgeInsets.only(bottom: maxLines > 1 ? 60 : 0),
             key: const ValueKey('edit_icon_prefix'),
-            child: Icon(icon, color: isFocused ? AppColors.brandOrange : Colors.white60, size: 20),
+            child: Icon(icon,
+                color:
+                    isFocused ? AppColors.brandOrange : AppColors.textDarkMuted,
+                size: 20),
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         ),
       ),
     );
@@ -338,7 +390,7 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
     return Row(
       children: priorities.map((p) {
         final isSelected = _priorityLevel == p;
-        Color pColor = Colors.white38;
+        Color pColor = AppColors.textDarkMuted;
         if (isSelected) {
           if (p == 'منخفض') pColor = const Color(0xFF10B981);
           if (p == 'متوسط') pColor = Colors.orange;
@@ -353,10 +405,12 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 4),
               height: 44,
               decoration: BoxDecoration(
-                color: isSelected ? pColor.withOpacity(0.15) : Colors.white.withOpacity(0.04),
+                color: isSelected
+                    ? pColor.withOpacity(0.15)
+                    : AppColors.surfaceLight,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected ? pColor : Colors.white.withOpacity(0.08),
+                  color: isSelected ? pColor : AppColors.cardBackground,
                   width: isSelected ? 1.5 : 1.0,
                 ),
               ),
@@ -367,7 +421,7 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
                     fontFamily: 'Cairo',
                     fontSize: 13,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? pColor : AppColors.glassTextSecondary,
+                    color: isSelected ? pColor : AppColors.textDarkSecondary,
                   ),
                 ),
               ),
@@ -385,7 +439,7 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
         width: double.infinity,
         height: 54,
         decoration: BoxDecoration(
-          color: AppColors.glassBtnActive,
+          color: AppColors.brandOrange,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Center(
@@ -393,7 +447,9 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
               ? const SizedBox(
                   width: 22,
                   height: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandOrangeDark)),
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
                 )
               : const Text(
                   'حفظ وتحديث التغييرات',
@@ -401,7 +457,7 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
                     fontFamily: 'Cairo',
                     fontSize: 15.5,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.brandOrangeDark,
+                    color: Colors.white,
                   ),
                 ),
         ),
