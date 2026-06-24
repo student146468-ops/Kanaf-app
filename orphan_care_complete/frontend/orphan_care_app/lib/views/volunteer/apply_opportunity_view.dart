@@ -1,6 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
+import 'volunteer_ui.dart';
 
 class ApplyOpportunityView extends StatefulWidget {
   const ApplyOpportunityView({super.key});
@@ -13,142 +15,98 @@ class _ApplyOpportunityViewState extends State<ApplyOpportunityView> {
   final _formKey = GlobalKey<FormState>();
   final _reasonController = TextEditingController();
   final _skillsController = TextEditingController();
-  bool _isFileUploaded = false;
+  bool _hasAttachment = false;
   bool _isSubmitting = false;
-
-  final FocusNode _reasonFocusNode = FocusNode();
-  final FocusNode _skillsFocusNode = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-    _reasonFocusNode.addListener(() => setState(() {}));
-    _skillsFocusNode.addListener(() => setState(() {}));
-  }
 
   @override
   void dispose() {
     _reasonController.dispose();
     _skillsController.dispose();
-    _reasonFocusNode.dispose();
-    _skillsFocusNode.dispose();
     super.dispose();
   }
 
-  // 💎 نافذة النجاح الكريستالية الفاخرة المحدثة لعام 2026 بربط فوري آمن
-  void _showSuccessDialog() {
-    showDialog(
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate() || _isSubmitting) return;
+
+    setState(() => _isSubmitting = true);
+    final provider = AppProviderScope.of(context);
+
+    await provider.applyAsVolunteer({
+      'name': 'متطوع كنف',
+      'specialty': _skillsController.text.trim(),
+      'points': 0,
+      'status': 'pending',
+      'hours_worked': 0,
+      'motivation': _reasonController.text.trim(),
+      'opportunity': 'دعم تعليمي في أساسيات الحاسوب',
+      'has_attachment': _hasAttachment,
+    });
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+    _showResultSheet(provider.errorMessage);
+  }
+
+  void _showResultSheet(String? errorMessage) {
+    showModalBottomSheet<void>(
       context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Dialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            child: Container(
-              padding: const EdgeInsets.all(28),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.95),
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: AppColors.glassBorderSelected.withOpacity(0.3), width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.brandOrange.withOpacity(0.12),
-                    blurRadius: 30,
-                    offset: const Offset(0, 15),
-                  ),
-                ],
+      showDragHandle: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) {
+        final hasError = errorMessage != null;
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              VolunteerIconBox(
+                icon: hasError
+                    ? Icons.cloud_off_rounded
+                    : Icons.check_circle_outline_rounded,
+                color: hasError ? AppColors.errorRed : AppColors.successGreen,
+                backgroundColor: hasError
+                    ? AppColors.errorRedLight
+                    : AppColors.successGreenLight,
+                size: 58,
+                iconSize: 32,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // ⚡ أيقونة نجاح مجسمة ثلاثية الأبعاد متوهجة بنظام الطبقات والنيون اللطيف
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF1E9),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.brandOrange.withOpacity(0.3),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                        ),
-                        const BoxShadow(
-                          color: Colors.white,
-                          blurRadius: 10,
-                          spreadRadius: -4,
-                        )
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.check_circle_rounded,
-                      color: AppColors.brandOrange,
-                      size: 56,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'تم إرسال طلبكِ بنجاح! 🎉',
-                    style: TextStyle(
-                      color: AppColors.textDarkPrimary,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Tajawal',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'شكراً لعطائكِ أماني. تلقت إدارة "كَنَفْ" طلب التطوع لتدريس البرمجة للأيتام، وسيتم مراجعته والتواصل معكِ عبر الإشعارات خلال 24 ساعة.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppColors.textDarkSecondary,
-                      fontSize: 13.5,
-                      height: 1.6,
-                      fontFamily: 'Tajawal',
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  // زر العودة التفاعلي المربوط بـ Stack الأمان للرئيسية
-                  Container(
-                    height: 54,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: AppColors.orangeGradient,
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.brandOrangeDark.withOpacity(0.35),
-                          blurRadius: 14,
-                          offset: const Offset(0, 6),
-                        )
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(context); // إغلاق الـ Dialog
-                        // 💎 الربط الفوري المباشر بصفحة المتطوع الرئيسية المعتمدة لديكِ لتصفير المكدس وأمان التطبيق
-                        Navigator.pushNamedAndRemoveUntil(context, '/home_volunteer', (route) => false);
-                      },
-                      child: const Text(
-                        'العودة للرئيسية',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 14),
+              Text(
+                hasError ? 'تم حفظ الطلب محليًا' : 'تم إرسال طلبك بنجاح',
+                style: const TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textDarkPrimary,
+                ),
               ),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                hasError
+                    ? 'لم يتوفر اتصال بالخادم الآن، لكن بيانات الطلب جاهزة للربط الحقيقي لاحقًا.'
+                    : 'سيتم مراجعة الطلب وإشعارك بالحالة من صفحة الإشعارات.',
+                textAlign: TextAlign.center,
+                style: volunteerBodyStyle,
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: VolunteerPrimaryButton(
+                  label: 'العودة للرئيسية',
+                  icon: Icons.home_rounded,
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      '/home_volunteer',
+                      (route) => false,
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -157,307 +115,203 @@ class _ApplyOpportunityViewState extends State<ApplyOpportunityView> {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          centerTitle: true,
-          leading: GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              margin: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.innerBorder, width: 1),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 6, offset: const Offset(0, 3))
-                ]
-              ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textDarkPrimary, size: 14),
-            ),
-          ),
-          title: const Text(
-            'تقديم طلب تطوع',
-            style: TextStyle(color: AppColors.textDarkPrimary, fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Tajawal'),
-          ),
-        ),
-        body: SafeArea(
-          child: SingleChildScrollView(
+    return VolunteerAppScaffold(
+      title: 'تقديم طلب تطوع',
+      body: SafeArea(
+        top: false,
+        child: Form(
+          key: _formKey,
+          child: ListView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 14.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ✨ بطاقة علوية زجاجية فخمة ثلاثية الأبعاد لتعزيز حماس المتطوعة
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: AppColors.brandOrangeLight.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: AppColors.glassBorderNormal, width: 1.2),
-                    ),
-                    child: Row(
-                      children: [
-                        // أيقونة بريق ثلاثي أبعاد مجسم
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(color: AppColors.innerShadow, blurRadius: 8, offset: Offset(0, 3))
-                            ]
-                          ),
-                          child: const Icon(Icons.volunteer_activism_rounded, color: AppColors.brandOrange, size: 24),
-                        ),
-                        const SizedBox(width: 14),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'أنتِ تقدمين على فرصة:',
-                                style: TextStyle(color: AppColors.brandOrangeDark, fontSize: 11.5, fontWeight: FontWeight.bold, fontFamily: 'Tajawal'),
-                              ),
-                              SizedBox(height: 3),
-                              Text(
-                                'تدريس أساسيات الحاسوب والبرمجة للأيتام',
-                                style: TextStyle(color: AppColors.textDarkPrimary, fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Tajawal'),
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 28),
-
-                  // ✍️ الحقل الأول: سبب الرغبة في التطوع بتصميم ناعم ومودرن وعميق
-                  const Text(
-                    'لماذا ترغبين في الانضمام لهذه الفرصة التطوعية؟ *',
-                    style: TextStyle(color: AppColors.textDarkPrimary, fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Tajawal'),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildGlassInputField(
-                    controller: _reasonController,
-                    focusNode: _reasonFocusNode,
-                    hintText: 'اكتبي دافعكِ الإنساني باختصار، كيف سيساهم شغفكِ في إحداث فارق للأطفال...',
-                    maxLines: 4,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'يرجى كتابة سبب الرغبة في التطوع لضمان قبول طلبكِ';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: 26),
-
-                  // ✍️ الحقل الثاني: المهارات والخبرات السابقة
-                  const Text(
-                    'الخبرات أو المهارات السابقة ذات الصلة *',
-                    style: TextStyle(color: AppColors.textDarkPrimary, fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Tajawal'),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildGlassInputField(
-                    controller: _skillsController,
-                    focusNode: _skillsFocusNode,
-                    hintText: 'مثال: طالبة هندسة برمجيات، مهارة ممتازة في لغة Dart وFlutter، القدرة على تبسيط الشرح...',
-                    maxLines: 3,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'يرجى كتابة المهارات لمساعدة المشرفين على تقييم طلبكِ';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: 26),
-
-                  // 📁 القسم الثالث: منطقة رفع السيرة الذاتية التفاعلية المجسمة الفخمة
-                  const Text(
-                    'السيرة الذاتية أو إثبات الهوية البرمجية (اختياري)',
-                    style: TextStyle(color: AppColors.textDarkPrimary, fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Tajawal'),
-                  ),
-                  const SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isFileUploaded = !_isFileUploaded;
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: _isFileUploaded ? const Color(0x0CE25E14) : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: _isFileUploaded ? AppColors.brandOrange : AppColors.innerBorder,
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: _isFileUploaded ? AppColors.brandOrange.withOpacity(0.05) : Colors.black.withOpacity(0.01),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          )
-                        ]
-                      ),
-                      child: Column(
-                        children: [
-                          // أيقونة مرفقات بتأثير مجسم أنيق ثلاثي أبعاد
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: _isFileUploaded ? AppColors.brandOrange.withOpacity(0.1) : AppColors.scaffoldBackground,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: _isFileUploaded ? AppColors.brandOrange.withOpacity(0.1) : Colors.transparent,
-                                  blurRadius: 8,
-                                )
-                              ]
-                            ),
-                            child: Icon(
-                              _isFileUploaded ? Icons.file_present_rounded : Icons.cloud_upload_outlined,
-                              color: _isFileUploaded ? AppColors.brandOrange : AppColors.textDarkMuted,
-                              size: 34,
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          Text(
-                            _isFileUploaded ? 'تم إرفاق ملفكِ بنجاح: CV_Amany_Ahmed.pdf' : 'اضغطي هنا لرفع السيرة الذاتية أو وثيقة التخصص',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: _isFileUploaded ? AppColors.brandOrangeDark : AppColors.textDarkSecondary,
-                              fontSize: 13.5,
-                              fontWeight: _isFileUploaded ? FontWeight.bold : FontWeight.normal,
-                              fontFamily: 'Tajawal',
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          if (!_isFileUploaded)
-                            const Text(
-                              'الصيغ المقبولة: PDF, DOCX (الحد الأقصى 5 ميجابايت)',
-                              style: TextStyle(color: AppColors.textDarkMuted, fontSize: 11, fontFamily: 'Tajawal'),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 38),
-
-                  // 🚀 زر تأكيد وإرسال طلب التطوع النيوني المتوهج والخلاب عالي التفاعل
-                  Container(
-                    width: double.infinity,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: AppColors.orangeGradient,
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                      ),
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.brandOrange.withOpacity(0.35),
-                          blurRadius: 18,
-                          offset: const Offset(0, 6),
-                        )
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                      ),
-                      onPressed: _isSubmitting ? null : () async {
-                        if (_formKey.currentState!.validate()) {
-                          setState(() => _isSubmitting = true);
-                          // محاكاة استجابة السيرفر بشكل احترافي وسلس
-                          await Future.delayed(const Duration(milliseconds: 800));
-                          if (mounted) {
-                            setState(() => _isSubmitting = false);
-                            _showSuccessDialog();
-                          }
-                        }
-                      },
-                      child: _isSubmitting
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                            )
-                          : const Text(
-                              'تأكيد وإرسال طلب التطوع الآن',
-                              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                    ),
-                  ),
-                ],
-              ),
+            padding: const EdgeInsets.fromLTRB(
+              volunteerHorizontalPadding,
+              10,
+              volunteerHorizontalPadding,
+              28,
             ),
+            children: [
+              const _OpportunitySummary(),
+              const SizedBox(height: 18),
+              const VolunteerSectionTitle(
+                title: 'ما الدافع الذي ترغب بمشاركته؟',
+              ),
+              const SizedBox(height: 8),
+              _InputField(
+                controller: _reasonController,
+                hint: 'اكتب كيف يمكن لوقتك أو خبرتك أن تخدم هذه الفرصة.',
+                maxLines: 4,
+                validatorMessage: 'اكتب دافعك للتطوع في هذه الفرصة.',
+              ),
+              const SizedBox(height: 18),
+              const VolunteerSectionTitle(
+                title: 'المهارات أو الخبرات المناسبة',
+              ),
+              const SizedBox(height: 8),
+              _InputField(
+                controller: _skillsController,
+                hint: 'مثال: تعليم، حاسوب، تنظيم، أنشطة أطفال.',
+                maxLines: 3,
+                validatorMessage: 'اكتب مهارة واحدة على الأقل.',
+              ),
+              const SizedBox(height: 18),
+              _AttachmentTile(
+                selected: _hasAttachment,
+                onTap: () => setState(() => _hasAttachment = !_hasAttachment),
+              ),
+              const SizedBox(height: 26),
+              VolunteerPrimaryButton(
+                label: _isSubmitting ? 'جار إرسال الطلب' : 'إرسال الطلب',
+                icon: Icons.send_rounded,
+                loading: _isSubmitting,
+                onPressed: _submit,
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+}
 
-  // دالة مساعدة لإنشاء حقول الإدخال بهندسة معاصرة متناسقة مع الأنيميشن وتغيير الـ Focus
-  Widget _buildGlassInputField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String hintText,
-    required int maxLines,
-    required FormFieldValidator<String> validator,
-  }) {
-    final bool isFocused = focusNode.hasFocus;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isFocused ? AppColors.brandOrange : AppColors.innerBorder,
-          width: isFocused ? 1.6 : 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isFocused ? AppColors.brandOrange.withOpacity(0.04) : Colors.black.withOpacity(0.005),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
+class _OpportunitySummary extends StatelessWidget {
+  const _OpportunitySummary();
+
+  @override
+  Widget build(BuildContext context) {
+    return const VolunteerCard(
+      child: Row(
+        children: [
+          VolunteerIconBox(icon: Icons.volunteer_activism_rounded),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('الفرصة التي ستتقدم لها', style: volunteerMutedStyle),
+                SizedBox(height: 3),
+                Text(
+                  'دعم تعليمي في أساسيات الحاسوب',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    color: AppColors.textDarkPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
-      child: TextFormField(
-        controller: controller,
-        focusNode: focusNode,
-        maxLines: maxLines,
-        validator: validator,
-        cursorColor: AppColors.brandOrange,
-        style: const TextStyle(fontFamily: 'Tajawal', fontSize: 14, color: AppColors.textDarkPrimary, height: 1.4),
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: const TextStyle(color: AppColors.textDarkMuted, fontSize: 13, fontFamily: 'Tajawal'),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.all(16),
-          errorStyle: const TextStyle(fontFamily: 'Tajawal', fontSize: 11.5, height: 0.8),
-        ),
+    );
+  }
+}
+
+class _InputField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hint;
+  final int maxLines;
+  final String validatorMessage;
+
+  const _InputField({
+    required this.controller,
+    required this.hint,
+    required this.maxLines,
+    required this.validatorMessage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      style: const TextStyle(
+        fontFamily: 'Tajawal',
+        color: AppColors.textDarkPrimary,
+        fontSize: 14,
+        height: 1.5,
+        fontWeight: FontWeight.w700,
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) return validatorMessage;
+        return null;
+      },
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: volunteerMutedStyle,
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.all(16),
+        border: _border(AppColors.innerBorder),
+        enabledBorder: _border(AppColors.innerBorder),
+        focusedBorder: _border(AppColors.brandOrange),
+        errorBorder: _border(AppColors.errorRed),
+        focusedErrorBorder: _border(AppColors.errorRed),
+      ),
+    );
+  }
+
+  OutlineInputBorder _border(Color color) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide(color: color),
+    );
+  }
+}
+
+class _AttachmentTile extends StatelessWidget {
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _AttachmentTile({required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return VolunteerCard(
+      onTap: onTap,
+      color: selected ? AppColors.brandOrangeLight : Colors.white,
+      borderColor: selected ? AppColors.brandOrange : AppColors.innerBorder,
+      child: Row(
+        children: [
+          VolunteerIconBox(
+            icon: selected ? Icons.task_alt_rounded : Icons.attach_file_rounded,
+            color:
+                selected ? AppColors.brandOrange : AppColors.textDarkSecondary,
+            backgroundColor: Colors.white,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              selected
+                  ? 'تم إرفاق ملف تعريفي مؤقت'
+                  : 'إرفاق سيرة أو ملف تعريفي اختياري',
+              style: TextStyle(
+                fontFamily: 'Tajawal',
+                color: selected
+                    ? AppColors.brandOrangeDark
+                    : AppColors.textDarkSecondary,
+                fontWeight: FontWeight.w900,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 160),
+            child: selected
+                ? const Icon(
+                    Icons.check_circle_rounded,
+                    key: ValueKey('selected'),
+                    color: AppColors.brandOrange,
+                    size: 22,
+                  )
+                : const Icon(
+                    Icons.add_circle_outline_rounded,
+                    key: ValueKey('empty'),
+                    color: AppColors.textDarkMuted,
+                    size: 22,
+                  ),
+          ),
+        ],
       ),
     );
   }

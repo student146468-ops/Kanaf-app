@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import 'care_home_light_widgets.dart';
 
-/// [NeedDetailsScreen] - الواجهة رقم 30: تفاصيل احتياج + تتبع حالته لدار الرعاية لعام 2026.
-/// تحتوي على شريط تتبع انسيابي للمراحل اللوجستية وبطاقة تفصيلية عن حالة الكفالة.
+/// [NeedDetailsScreen] - ط§ظ„ظˆط§ط¬ظ‡ط© ط±ظ‚ظ… 30: طھظپط§طµظٹظ„ ط§ط­طھظٹط§ط¬ + طھطھط¨ط¹ ط­ط§ظ„طھظ‡ ظ„ط¯ط§ط± ط§ظ„ط±ط¹ط§ظٹط© ظ„ط¹ط§ظ… 2026.
+/// طھط­طھظˆظٹ ط¹ظ„ظ‰ ط´ط±ظٹط· طھطھط¨ط¹ ط§ظ†ط³ظٹط§ط¨ظٹ ظ„ظ„ظ…ط±ط§ط­ظ„ ط§ظ„ظ„ظˆط¬ط³طھظٹط© ظˆط¨ط·ط§ظ‚ط© طھظپطµظٹظ„ظٹط© ط¹ظ† ط­ط§ظ„ط© ط§ظ„ظƒظپط§ظ„ط©.
 class NeedDetailsScreen extends StatefulWidget {
   const NeedDetailsScreen({super.key});
 
@@ -11,21 +11,21 @@ class NeedDetailsScreen extends StatefulWidget {
   State<NeedDetailsScreen> createState() => _NeedDetailsScreenState();
 }
 
-// تم تصحيح السطر هنا ليكون متوافقاً تماماً مع اسم الواجهة الأساسية
+// طھظ… طھطµط­ظٹط­ ط§ظ„ط³ط·ط± ظ‡ظ†ط§ ظ„ظٹظƒظˆظ† ظ…طھظˆط§ظپظ‚ط§ظ‹ طھظ…ط§ظ…ط§ظ‹ ظ…ط¹ ط§ط³ظ… ط§ظ„ظˆط§ط¬ظ‡ط© ط§ظ„ط£ط³ط§ط³ظٹط©
 class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
-  // بيانات محاكاة تفصيلية للطلب المختار لعرضها داخل التطبيق
+  // TODO: Replace mock need details with selected AppProvider/backend need data.
   final Map<String, dynamic> _needDetails = {
     'id': '1',
-    'title': 'حليب أطفال ومكملات غذائية (عمر 1-3)',
+    'title': 'حليب أطفال ومكملات غذائية',
     'category': 'غذائي',
-    'quantity': '40 صندوق متكامل',
-    'priority': 'حرج جداً',
+    'quantity': '40 صندوق',
+    'priority': 'عاجل',
     'current_step':
-        2, // الخطوة الحالية: 0 = تم النشر، 1 = تم التكفل، 2 = قيد التوصيل، 3 = تم الاستلام
+        2, // ط§ظ„ط®ط·ظˆط© ط§ظ„ط­ط§ظ„ظٹط©: 0 = طھظ… ط§ظ„ظ†ط´ط±طŒ 1 = طھظ… ط§ظ„طھظƒظپظ„طŒ 2 = ظ‚ظٹط¯ ط§ظ„طھظˆطµظٹظ„طŒ 3 = طھظ… ط§ظ„ط§ط³طھظ„ط§ظ…
     'date_published': '2026-06-01',
     'details':
-        'نظراً لزيادة عدد الأطفال الرضع المسجلين حديثاً بالدار بفرع غريان، نحتاج بشكل عاجل لتوفير حليب من الأصناف المدعمة طبياً لتغطية النقص الحالي.',
-    'sponsor_name': 'المهندس عبد الرحمن محمد (متبرع دائم)',
+        'نحتاج إلى توفير كمية مناسبة من حليب الأطفال لتغطية النقص الحالي داخل الدار، مع إعطاء الأولوية للأعمار الصغيرة.',
+    'sponsor_name': 'فاعل خير دائم',
     'sponsor_phone': '091-XXXXXXX',
   };
 
@@ -33,7 +33,7 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isWebOrDesktop = size.width > 600;
-    final containerWidth = isWebOrDesktop ? 420.0 : double.infinity;
+    final containerWidth = isWebOrDesktop ? 430.0 : double.infinity;
     final routeNeedId = ModalRoute.of(context)?.settings.arguments;
     final needDetails = {
       ..._needDetails,
@@ -55,14 +55,14 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
                   ? [
                       BoxShadow(
                           color: AppColors.innerShadow,
-                          blurRadius: 45,
-                          spreadRadius: 8)
+                          blurRadius: 24,
+                          spreadRadius: 0)
                     ]
                   : [],
             ),
             child: Stack(
               children: [
-                // خلفية بيضاء هادئة للتطبيق
+                // ط®ظ„ظپظٹط© ط¨ظٹط¶ط§ط، ظ‡ط§ط¯ط¦ط© ظ„ظ„طھط·ط¨ظٹظ‚
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -94,7 +94,7 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
                   ),
                 ),
 
-                // محتوى تفاصيل الطلب والتتبع اللوجستي
+                // ظ…ط­طھظˆظ‰ طھظپط§طµظٹظ„ ط§ظ„ط·ظ„ط¨ ظˆط§ظ„طھطھط¨ط¹ ط§ظ„ظ„ظˆط¬ط³طھظٹ
                 SafeArea(
                   child: Column(
                     children: [
@@ -109,11 +109,11 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
                             children: [
                               _buildMainInfoCard(needDetails),
                               const SizedBox(height: 24),
-                              _buildSectionTitle('مسار تتبع حالة الاحتياج'),
+                              _buildSectionTitle('مسار تلبية الاحتياج'),
                               const SizedBox(height: 14),
                               _buildTrackingTimeline(needDetails),
                               const SizedBox(height: 24),
-                              _buildSectionTitle('بيانات جهة الكفالة والدعم'),
+                              _buildSectionTitle('بيانات جهة الدعم'),
                               const SizedBox(height: 14),
                               _buildSponsorCard(needDetails),
                               const SizedBox(height: 35),
@@ -155,7 +155,7 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
             ),
           ),
           const Text(
-            'تفاصيل الاحتياج والتتبع',
+            'تفاصيل الاحتياج',
             style: TextStyle(
               fontFamily: 'Cairo',
               fontSize: 18,
@@ -237,7 +237,7 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
   }
 
   Widget _buildTrackingTimeline(Map<String, dynamic> needDetails) {
-    final steps = ['تم النشر', 'تم التكفل به', 'قيد التوصيل', 'تم الاستلام'];
+    final steps = ['تم النشر', 'تم التكفل', 'قيد التوصيل', 'تم الاستلام'];
     int currentStep = needDetails['current_step'];
 
     return CareHomeCard(
@@ -250,7 +250,7 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // عمود الرسم البياني اللوجستي للتتبع
+              // ط¹ظ…ظˆط¯ ط§ظ„ط±ط³ظ… ط§ظ„ط¨ظٹط§ظ†ظٹ ط§ظ„ظ„ظˆط¬ط³طھظٹ ظ„ظ„طھطھط¨ط¹
               Column(
                 children: [
                   AnimatedContainer(
@@ -293,7 +293,7 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
                 ],
               ),
               const SizedBox(width: 16),
-              // نصوص المراحل التتبعية للعمليات الخيرية
+              // ظ†طµظˆطµ ط§ظ„ظ…ط±ط§ط­ظ„ ط§ظ„طھطھط¨ط¹ظٹط© ظ„ظ„ط¹ظ…ظ„ظٹط§طھ ط§ظ„ط®ظٹط±ظٹط©
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.only(top: 2),
@@ -316,7 +316,7 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
                           child: Text(
-                            'يجري تحديث الحالة حالياً بواسطة الكفيل والمندوب.',
+                            'تتم متابعة الحالة مع جهة الدعم والمندوب.',
                             style: TextStyle(
                                 fontFamily: 'Cairo',
                                 fontSize: 11,
@@ -380,7 +380,7 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
   Widget _buildActionButtons(Map<String, dynamic> needDetails) {
     return Row(
       children: [
-        // زر التعديل المربوط برمجياً بالواجهة رقم 31
+        // ط²ط± ط§ظ„طھط¹ط¯ظٹظ„ ط§ظ„ظ…ط±ط¨ظˆط· ط¨ط±ظ…ط¬ظٹط§ظ‹ ط¨ط§ظ„ظˆط§ط¬ظ‡ط© ط±ظ‚ظ… 31
         Expanded(
           child: GestureDetector(
             onTap: () => Navigator.of(context).pushNamed('/care_home_edit_need',
@@ -410,7 +410,7 @@ class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
           ),
         ),
         const SizedBox(width: 12),
-        // زر تأكيد الاستلام النهائي وإغلاق الطلب
+        // ط²ط± طھط£ظƒظٹط¯ ط§ظ„ط§ط³طھظ„ط§ظ… ط§ظ„ظ†ظ‡ط§ط¦ظٹ ظˆط¥ط؛ظ„ط§ظ‚ ط§ظ„ط·ظ„ط¨
         Expanded(
           child: GestureDetector(
             onTap: () {

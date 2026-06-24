@@ -1,5 +1,24 @@
 import 'package:flutter/material.dart';
+
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
+import 'volunteer_ui.dart';
+
+const String _fallbackVolunteerName = 'ياسمين عادل';
+const String _homeSubtitle = 'ساهم بوقتك ومهاراتك لصنع أثر حقيقي';
+const String _opportunitiesTitle = 'فرص مناسبة لك';
+const String _filterActionLabel = 'تصفية';
+const String _homeTabLabel = 'الرئيسية';
+const String _scheduleTabLabel = 'مواعيدي';
+const String _profileTabLabel = 'حسابي';
+const String _searchTooltip = 'البحث عن فرصة';
+const String _notificationsTooltip = 'الإشعارات';
+const String _chooseOpportunityText = 'اختر فرصة تطوع تناسب وقتك ومهاراتك';
+const String _impactDescription =
+    'تابع احتياجات دور الرعاية وابدأ مساهمة منظمة تصل لمن يحتاجها.';
+const String _nearStatus = 'قريبة';
+
+String _volunteerHoursLabel(int hours) => 'لديك $hours ساعة تطوعية موثقة';
 
 class HomeVolunteerView extends StatefulWidget {
   const HomeVolunteerView({super.key});
@@ -11,246 +30,382 @@ class HomeVolunteerView extends StatefulWidget {
 class _HomeVolunteerViewState extends State<HomeVolunteerView> {
   int _currentIndex = 0;
 
-  final List<Map<String, String>> _opportunities = const [
+  // TODO: Replace with AppProvider opportunities when the backend exposes them.
+  static const List<Map<String, String>> _opportunities = [
     {
-      'title': 'تدريس أساسيات الحاسوب والبرمجة للأيتام',
-      'location': 'دار رعاية الأيتام المركزية - غريان',
-      'duration': '4 ساعات / أسبوعياً',
-      'tag': 'تعليم وتطوير',
-      'seats': 'متبقي مقعدان فقط ⚠️'
+      'title': 'دعم تعليمي في أساسيات الحاسوب',
+      'city': 'غريان',
+      'skill': 'تعليم وتقنية',
+      'date': 'الإثنين 1 يوليو',
+      'seats': 'مقعدان',
+      'status': 'متاحة',
+      'location': 'دار الأمان لرعاية الأيتام',
+      'summary': 'جلسات قصيرة تساعد الأطفال على فهم الحاسوب بثقة وبأسلوب بسيط.',
     },
     {
-      'title': 'تنظيم يوم ترفيهي ودعم نفسي للأطفال',
-      'location': 'جمعية كَنَفْ لرعاية الطفل - غريان',
-      'duration': 'الجمعة القادمة (يوم كامل)',
-      'tag': 'أنشطة وترفيه',
-      'seats': 'متبقي 5 مقاعد'
-    }
+      'title': 'تنظيم يوم أنشطة للأطفال',
+      'city': 'غريان',
+      'skill': 'أنشطة ودعم نفسي',
+      'date': 'الجمعة 5 يوليو',
+      'seats': '5 مقاعد',
+      'status': 'قريبة',
+      'location': 'قاعة الأنشطة بدار الرعاية',
+      'summary':
+          'مساندة الفريق في تنظيم ألعاب هادفة ومساحة ترفيه آمنة للأطفال.',
+    },
+    {
+      'title': 'فرز التبرعات وتجهيز السلال',
+      'city': 'طرابلس',
+      'skill': 'تنظيم ومتابعة',
+      'date': 'الأحد 7 يوليو',
+      'seats': '8 مقاعد',
+      'status': 'متاحة',
+      'location': 'مركز كنف المجتمعي',
+      'summary': 'ترتيب المواد العينية وتجهيزها لتصل إلى دور الرعاية المحتاجة.',
+    },
   ];
+
+  // TODO: Replace with AppProvider opportunities when the backend exposes them.
+  static const List<Map<String, String>> _displayOpportunities = [
+    {
+      'title': 'دعم تعليمي في أساسيات الحاسوب',
+      'city': 'غريان',
+      'skill': 'تعليم وتقنية',
+      'date': 'الإثنين 1 يوليو',
+      'seats': 'مقعدان',
+      'status': 'متاحة',
+      'location': 'دار الأمان لرعاية الأيتام',
+      'summary': 'جلسات قصيرة تساعد الأطفال على فهم الحاسوب بثقة وبأسلوب بسيط.',
+    },
+    {
+      'title': 'تنظيم يوم أنشطة للأطفال',
+      'city': 'غريان',
+      'skill': 'أنشطة ودعم نفسي',
+      'date': 'الجمعة 5 يوليو',
+      'seats': '5 مقاعد',
+      'status': 'قريبة',
+      'location': 'قاعة الأنشطة بدار الرعاية',
+      'summary':
+          'مساندة الفريق في تنظيم ألعاب هادفة ومساحة ترفيه آمنة للأطفال.',
+    },
+    {
+      'title': 'فرز التبرعات وتجهيز السلال',
+      'city': 'طرابلس',
+      'skill': 'تنظيم ومتابعة',
+      'date': 'الأحد 7 يوليو',
+      'seats': '8 مقاعد',
+      'status': 'متاحة',
+      'location': 'مركز كنف المجتمعي',
+      'summary': 'ترتيب المواد العينية وتجهيزها لتصل إلى دور الرعاية المحتاجة.',
+    },
+  ];
+  @override
+  Widget build(BuildContext context) {
+    final provider = AppProviderScope.of(context);
+    final volunteer =
+        provider.volunteers.isNotEmpty ? provider.volunteers.first : null;
+    final displayName = volunteer?.name.isNotEmpty == true
+        ? volunteer!.name
+        : _fallbackVolunteerName;
+    final hours = volunteer?.hoursWorked ?? 0;
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: VolunteerMobileFrame(
+        child: Scaffold(
+          backgroundColor: AppColors.scaffoldBackground,
+          body: SafeArea(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      volunteerHorizontalPadding,
+                      16,
+                      volunteerHorizontalPadding,
+                      10,
+                    ),
+                    child: _HomeHeader(
+                      name: displayName,
+                      onSearch: () =>
+                          Navigator.of(context).pushNamed('/volunteer_search'),
+                      onNotifications: () => Navigator.of(context).pushNamed(
+                        '/volunteer_notifications',
+                      ),
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      volunteerHorizontalPadding,
+                      0,
+                      volunteerHorizontalPadding,
+                      14,
+                    ),
+                    child: _ImpactCard(hours: hours),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      volunteerHorizontalPadding,
+                      14,
+                      volunteerHorizontalPadding,
+                      10,
+                    ),
+                    child: VolunteerSectionTitle(
+                      title: _opportunitiesTitle,
+                      actionLabel: _filterActionLabel,
+                      onAction: () =>
+                          Navigator.of(context).pushNamed('/volunteer_search'),
+                    ),
+                  ),
+                ),
+                SliverList.separated(
+                  itemCount: _opportunities.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: volunteerHorizontalPadding,
+                      ),
+                      child: _OpportunityCard(
+                        opportunity: _displayOpportunities[index],
+                        onTap: () => Navigator.of(context).pushNamed(
+                          '/volunteer_opportunity_details',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              ],
+            ),
+          ),
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _currentIndex,
+            height: 72,
+            backgroundColor: Colors.white,
+            indicatorColor: AppColors.brandOrangeLight,
+            onDestinationSelected: (index) {
+              setState(() => _currentIndex = index);
+              if (index == 1) {
+                Navigator.of(context).pushNamed('/my_schedule');
+              } else if (index == 2) {
+                Navigator.of(context).pushNamed('/volunteer_profile');
+              }
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home_rounded),
+                label: _homeTabLabel,
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.event_note_outlined),
+                selectedIcon: Icon(Icons.event_note_rounded),
+                label: _scheduleTabLabel,
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.person_outline_rounded),
+                selectedIcon: Icon(Icons.person_rounded),
+                label: _profileTabLabel,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeHeader extends StatelessWidget {
+  final String name;
+  final VoidCallback onSearch;
+  final VoidCallback onNotifications;
+
+  const _HomeHeader({
+    required this.name,
+    required this.onSearch,
+    required this.onNotifications,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
-        body: Stack(
-          children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 250,
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                    colors: AppColors.orangeGradient,
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                _homeSubtitle,
+                style: volunteerMutedStyle,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontFamily: 'Cairo',
+                  color: AppColors.textDarkPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+        ),
+        VolunteerIconButton(
+          icon: Icons.manage_search_rounded,
+          tooltip: _searchTooltip,
+          onTap: onSearch,
+        ),
+        const SizedBox(width: 8),
+        VolunteerIconButton(
+          icon: Icons.notifications_active_outlined,
+          tooltip: _notificationsTooltip,
+          onTap: onNotifications,
+        ),
+      ],
+    );
+  }
+}
+
+class _ImpactCard extends StatelessWidget {
+  final int hours;
+
+  const _ImpactCard({required this.hours});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasHours = hours > 0;
+    return VolunteerCard(
+      padding: const EdgeInsets.all(18),
+      color: AppColors.brandOrangeLight,
+      borderColor: Colors.white,
+      child: Row(
+        children: [
+          const VolunteerIconBox(
+            icon: Icons.volunteer_activism_rounded,
+            color: AppColors.brandOrange,
+            backgroundColor: Colors.white,
+            size: 50,
+            iconSize: 26,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  hasHours
+                      ? _volunteerHoursLabel(hours)
+                      : _chooseOpportunityText,
+                  style: const TextStyle(
+                    fontFamily: 'Cairo',
+                    color: AppColors.textDarkPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
                   ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(40),
-                    bottomRight: Radius.circular(40),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  _impactDescription,
+                  style: volunteerBodyStyle,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OpportunityCard extends StatelessWidget {
+  final Map<String, String> opportunity;
+  final VoidCallback onTap;
+
+  const _OpportunityCard({required this.opportunity, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final status = opportunity['status']!;
+    final statusColor = status == _nearStatus
+        ? const Color(0xFF4A90E2)
+        : AppColors.successGreen;
+
+    return VolunteerCard(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const VolunteerIconBox(
+                icon: Icons.volunteer_activism_outlined,
+                size: 42,
+                iconSize: 22,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  opportunity['title']!,
+                  style: const TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 15.5,
+                    height: 1.35,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textDarkPrimary,
                   ),
                 ),
               ),
-            ),
-            SafeArea(
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0, vertical: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text('مرحباً بكِ في كَنَفْ،',
-                                  style: TextStyle(
-                                      color: AppColors.glassTextSecondary,
-                                      fontSize: 13,
-                                      fontFamily: 'Tajawal',
-                                      fontWeight: FontWeight.w500)),
-                              SizedBox(height: 5),
-                              Text('أماني عادل أحمد 👋',
-                                  style: TextStyle(
-                                      color: AppColors.glassTextPrimary,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Tajawal')),
-                            ],
-                          ),
-                          GestureDetector(
-                            onTap: () => Navigator.of(context)
-                                .pushNamed('/volunteer_notifications'),
-                            child: Container(
-                              padding: const EdgeInsets.all(11),
-                              decoration: BoxDecoration(
-                                  color: AppColors.glassBgNormal,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: AppColors.glassBorderNormal,
-                                      width: 1.2)),
-                              child: const Icon(
-                                  Icons.notifications_none_rounded,
-                                  color: Colors.white,
-                                  size: 24),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0, vertical: 6.0),
-                      child: Container(
-                        padding: const EdgeInsets.all(22),
-                        decoration: BoxDecoration(
-                            color: AppColors.glassBgSelected.withOpacity(0.35),
-                            borderRadius: BorderRadius.circular(26),
-                            border: Border.all(
-                                color: AppColors.glassBorderSelected
-                                    .withOpacity(0.4),
-                                width: 1.5)),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
-                                  Text('صنّاع الأثر في غريان 🌟',
-                                      style: TextStyle(
-                                          color: AppColors.glassTextPrimary,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Tajawal')),
-                                  SizedBox(height: 8),
-                                  Text(
-                                      'لقد أكملتِ 24 ساعة تطوعية هذا الشهر! رصيدكِ الإنساني ينمو.',
-                                      style: TextStyle(
-                                          color: AppColors.glassTextSecondary,
-                                          fontSize: 12.5,
-                                          height: 1.6,
-                                          fontFamily: 'Tajawal')),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: const BoxDecoration(
-                                  color: Colors.white, shape: BoxShape.circle),
-                              child: const Icon(
-                                  Icons.volunteer_activism_rounded,
-                                  color: AppColors.brandOrange,
-                                  size: 30),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding:
-                          const EdgeInsets.only(top: 24.0, left: 20, right: 20),
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context)
-                            .pushNamed('/volunteer_search'),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 18, vertical: 15),
-                          decoration: BoxDecoration(
-                              color: AppColors.cardBackground,
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                  color: AppColors.innerBorder, width: 1)),
-                          child: Row(
-                            children: const [
-                              Icon(Icons.search_rounded,
-                                  color: AppColors.textDarkMuted, size: 22),
-                              SizedBox(width: 12),
-                              Text('ابحث عن فرص تطوعية...',
-                                  style: TextStyle(
-                                      color: AppColors.textDarkMuted,
-                                      fontSize: 13.5,
-                                      fontFamily: 'Tajawal')),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final item = _opportunities[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 9),
-                          child: GestureDetector(
-                            onTap: () => Navigator.of(context)
-                                .pushNamed('/volunteer_opportunity_details'),
-                            child: Container(
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                  color: AppColors.cardBackground,
-                                  borderRadius: BorderRadius.circular(24),
-                                  border: Border.all(
-                                      color: AppColors.innerBorder, width: 1)),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(item['title']!,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Tajawal')),
-                                  const SizedBox(height: 10),
-                                  Text(item['location']!,
-                                      style: const TextStyle(
-                                          color: AppColors.textDarkSecondary,
-                                          fontSize: 13,
-                                          fontFamily: 'Tajawal')),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      childCount: _opportunities.length,
-                    ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 110)),
-                ],
+              VolunteerStatusBadge(
+                label: status,
+                color: statusColor,
+                icon: status == _nearStatus
+                    ? Icons.timer_outlined
+                    : Icons.check_circle_outline_rounded,
               ),
-            ),
-          ],
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() => _currentIndex = index);
-            if (index == 1) {
-              Navigator.of(context).pushNamed('/my_schedule');
-            } else if (index == 2) {
-              Navigator.of(context).pushNamed('/volunteer_profile');
-            }
-          },
-          items: const [
-            BottomNavigationBarItem(
-                icon: Icon(Icons.explore_rounded), label: 'الرئيسية'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.calendar_today_rounded), label: 'مواعيدي'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.person_rounded), label: 'حسابي'),
-          ],
-        ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(opportunity['summary']!, style: volunteerBodyStyle),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              VolunteerMetaChip(
+                icon: Icons.location_on_outlined,
+                label: opportunity['city']!,
+                color: AppColors.brandOrange,
+                prominent: true,
+              ),
+              VolunteerMetaChip(
+                icon: Icons.calendar_month_outlined,
+                label: opportunity['date']!,
+                color: const Color(0xFF4A90E2),
+                prominent: true,
+              ),
+              VolunteerMetaChip(
+                icon: Icons.psychology_alt_outlined,
+                label: opportunity['skill']!,
+              ),
+              VolunteerMetaChip(
+                icon: Icons.event_seat_outlined,
+                label: opportunity['seats']!,
+                color: AppColors.successGreen,
+                prominent: true,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -16,22 +16,23 @@ class _ManageVolunteersScreenState extends State<ManageVolunteersScreen> {
   String _selectedFilter = 'الكل';
   final Map<String, String> _localStatuses = {};
 
+  // TODO: Replace fallback applications with AppProvider/backend applications when available.
   final List<_VolunteerApplication> _fallbackApplications = const [
     _VolunteerApplication(
       id: 'local-1',
       name: 'أحمد علي الساعدي',
       skill: 'دعم تعليمي',
-      summary: 'مدرس لغة إنجليزية، متاح يومي الإثنين والأربعاء بعد العصر.',
-      status: 'معلق',
+      summary: 'مدرس لغة إنجليزية، متاح يومي الاثنين والأربعاء بعد العصر.',
+      status: 'قيد التنفيذ',
       hours: 24,
       phone: '+218 91 111 2222',
     ),
     _VolunteerApplication(
       id: 'local-2',
       name: 'فاطمة عمر الخويلدي',
-      skill: 'دعم نفسي وأنشطة أطفال',
+      skill: 'أنشطة أطفال ودعم نفسي',
       summary: 'خبرة في تنظيم أنشطة آمنة للأطفال ومتابعة الحالات الحساسة.',
-      status: 'معلق',
+      status: 'قيد التنفيذ',
       hours: 18,
       phone: '+218 91 333 4444',
     ),
@@ -64,7 +65,7 @@ class _ManageVolunteersScreenState extends State<ManageVolunteersScreen> {
             constraints: const BoxConstraints(maxWidth: 430),
             child: Stack(
               children: [
-                const Positioned.fill(child: _VolunteersBackground()),
+                const Positioned.fill(child: _CareHomeBackground()),
                 SafeArea(
                   child: Column(
                     children: [
@@ -147,7 +148,7 @@ class _ManageVolunteersScreenState extends State<ManageVolunteersScreen> {
       case 'مرفوض':
         return 'مرفوض';
       default:
-        return 'معلق';
+        return 'قيد التنفيذ';
     }
   }
 
@@ -192,34 +193,17 @@ class _VolunteerApplication {
   }
 }
 
-class _VolunteersBackground extends StatelessWidget {
-  const _VolunteersBackground();
+class _CareHomeBackground extends StatelessWidget {
+  const _CareHomeBackground();
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    return const DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
-          colors: [
-            Colors.white,
-            AppColors.scaffoldBackground,
-            AppColors.scaffoldBackground,
-          ],
-          stops: const [0, 0.58, 1],
-        ),
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.white,
-              Colors.white,
-            ],
-          ),
+          colors: [Colors.white, AppColors.scaffoldBackground],
         ),
       ),
     );
@@ -254,7 +238,7 @@ class _Header extends StatelessWidget {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'مراجعة الطلبات واتخاذ القرار',
+                  'راجع الطلبات واتخذ القرار المناسب',
                   style: TextStyle(
                     fontFamily: 'Tajawal',
                     fontSize: 12,
@@ -303,7 +287,8 @@ class _SummaryStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pending = applications.where((item) => item.status == 'معلق').length;
+    final pending =
+        applications.where((item) => item.status == 'قيد التنفيذ').length;
     final accepted =
         applications.where((item) => item.status == 'مقبول').length;
 
@@ -315,7 +300,7 @@ class _SummaryStrip extends StatelessWidget {
             child: _SmallStat(
               label: 'قيد المراجعة',
               value: '$pending',
-              icon: Icons.pending_actions_rounded,
+              icon: Icons.pending_actions_outlined,
               color: AppColors.brandOrange,
             ),
           ),
@@ -395,7 +380,7 @@ class _FilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const filters = ['الكل', 'معلق', 'مقبول', 'مرفوض'];
+    const filters = ['الكل', 'قيد التنفيذ', 'مقبول', 'مرفوض'];
 
     return SizedBox(
       height: 48,
@@ -417,7 +402,7 @@ class _FilterBar extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.brandOrange.withOpacity(0.22)
+                    ? AppColors.brandOrange.withOpacity(0.18)
                     : AppColors.surfaceLight,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
@@ -465,7 +450,7 @@ class _VolunteerApplicationCard extends StatelessWidget {
       'مرفوض' => AppColors.errorRed,
       _ => AppColors.brandOrange,
     };
-    final isPending = status == 'معلق';
+    final isPending = status == 'قيد التنفيذ';
 
     return CareHomeCard(
       padding: const EdgeInsets.all(16),
@@ -479,7 +464,7 @@ class _VolunteerApplicationCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.brandOrange.withOpacity(0.13),
+                  color: AppColors.brandOrange.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.innerBorder),
                 ),
@@ -543,7 +528,9 @@ class _VolunteerApplicationCard extends StatelessWidget {
               ),
               if (application.phone != null && application.phone!.isNotEmpty)
                 _MetaChip(
-                    icon: Icons.phone_outlined, label: application.phone!),
+                  icon: Icons.phone_outlined,
+                  label: application.phone!,
+                ),
             ],
           ),
           const SizedBox(height: 14),
@@ -585,9 +572,9 @@ class _StatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.14),
+        color: color.withOpacity(0.13),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withOpacity(0.45)),
+        border: Border.all(color: color.withOpacity(0.40)),
       ),
       child: Text(
         label,
@@ -615,7 +602,7 @@ class _MetaChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surfaceLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.cardBackground),
+        border: Border.all(color: AppColors.innerBorder),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -663,9 +650,9 @@ class _DecisionButton extends StatelessWidget {
         child: Container(
           height: 44,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.14),
+            color: color.withOpacity(0.13),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: color.withOpacity(0.45)),
+            border: Border.all(color: color.withOpacity(0.40)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -714,7 +701,7 @@ class _EmptyState extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Cairo',
                   fontSize: 15,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w900,
                   color: AppColors.textDarkPrimary,
                 ),
               ),

@@ -1,355 +1,343 @@
 import 'package:flutter/material.dart';
+
 import '../../utils/app_colors.dart';
-// الربط المباشر مع الواجهة رقم 20
+import 'volunteer_ui.dart';
 
 class VolunteerOpportunityDetailsView extends StatelessWidget {
   const VolunteerOpportunityDetailsView({super.key});
 
+  // TODO: Receive the selected opportunity from AppProvider or route arguments.
+  static const Map<String, String> _opportunity = {
+    'title': 'دعم تعليمي في أساسيات الحاسوب',
+    'organization': 'دار الأمان لرعاية الأيتام',
+    'city': 'غريان',
+    'skill': 'تعليم وتقنية',
+    'date': 'الإثنين 1 يوليو',
+    'time': '16:00 - 18:00',
+    'duration': '4 ساعات أسبوعيًا',
+    'seats': 'مقعدان متاحان',
+    'status': 'متاحة',
+    'summary':
+        'فرصة قصيرة ومنظمة لمساعدة الأطفال على فهم مبادئ الحاسوب بطريقة بسيطة وآمنة، مع متابعة من مشرف الدار.',
+  };
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      body: Stack(
-        children: [
-          // 1. الخلفية السينمائية العلوية (تدرج دافئ يعوض الصورة ويعطي فخامة وهوية بصرية مستقرة)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 300,
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppColors.brandOrange,
-                    AppColors.brandOrangeDark,
-                  ],
+    return VolunteerAppScaffold(
+      title: 'تفاصيل الفرصة',
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(
+            volunteerHorizontalPadding,
+            10,
+            volunteerHorizontalPadding,
+            110,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _HeroDetailsCard(opportunity: _opportunity),
+              const SizedBox(height: 12),
+              const _ImportantInfoGrid(opportunity: _opportunity),
+              const SizedBox(height: 18),
+              const VolunteerSectionTitle(title: 'وصف الفرصة'),
+              const SizedBox(height: 10),
+              VolunteerCard(
+                child: Text(
+                  _opportunity['summary']!,
+                  style: volunteerBodyStyle,
                 ),
               ),
-              child: Stack(
-                children: [
-                  // لمسة فنية دافئة لمحاكاة الإضاءة السينمائية
-                  Positioned(
-                    right: -50,
-                    top: -50,
-                    child: Container(
-                      width: 200,
-                      height: 200,
-                      decoration: const BoxDecoration(
-                        color: Color(0x1AE25E14),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
+              const SizedBox(height: 18),
+              const VolunteerSectionTitle(title: 'المهام المطلوبة'),
+              const SizedBox(height: 10),
+              const _BulletCard(
+                items: [
+                  'شرح مبادئ استخدام الحاسوب للأطفال بأسلوب مبسط.',
+                  'متابعة التمارين القصيرة داخل القاعة التعليمية.',
+                  'التنسيق مع مشرف الدار قبل وبعد كل جلسة.',
                 ],
               ),
+              const SizedBox(height: 18),
+              const VolunteerSectionTitle(title: 'المهارات المناسبة'),
+              const SizedBox(height: 10),
+              const _BulletCard(
+                items: [
+                  'الصبر والقدرة على تبسيط المعلومة.',
+                  'خبرة أساسية في الحاسوب أو التعليم.',
+                  'الالتزام بالموعد واحترام خصوصية الأطفال.',
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: _ApplyBar(
+        seats: _opportunity['seats']!,
+        onApply: () => Navigator.of(context).pushNamed('/apply_opportunity'),
+      ),
+    );
+  }
+}
+
+class _HeroDetailsCard extends StatelessWidget {
+  final Map<String, String> opportunity;
+
+  const _HeroDetailsCard({required this.opportunity});
+
+  @override
+  Widget build(BuildContext context) {
+    return VolunteerCard(
+      padding: const EdgeInsets.all(18),
+      color: AppColors.brandOrangeLight,
+      borderColor: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              const VolunteerStatusBadge(
+                label: 'متاحة',
+                color: AppColors.successGreen,
+                icon: Icons.check_circle_outline_rounded,
+              ),
+              VolunteerMetaChip(
+                icon: Icons.location_on_outlined,
+                label: opportunity['city']!,
+                color: AppColors.brandOrange,
+                prominent: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            opportunity['title']!,
+            style: const TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: 21,
+              fontWeight: FontWeight.w900,
+              color: AppColors.textDarkPrimary,
+              height: 1.35,
             ),
           ),
-
-          // 2. المحتوى التفصيلي المنساب فوق الخلفية
-          SafeArea(
-            child: Column(
-              children: [
-                // شريط علوي شفاف مريح للتنقل والرجوع
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppColors.glassBgNormal,
-                            shape: BoxShape.circle,
-                            border:
-                                Border.all(color: AppColors.glassBorderNormal),
-                          ),
-                          child: const Icon(Icons.arrow_back_ios_new_rounded,
-                              color: Colors.white, size: 20),
-                        ),
-                      ),
-                      const Text(
-                        'تفاصيل الفرصة التطوعية',
-                        style: TextStyle(
-                          color: AppColors.glassTextPrimary,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Tajawal',
-                        ),
-                      ),
-                      const SizedBox(
-                          width: 44), // لموازنة السهم في الطرف الآخر هندسياً
-                    ],
-                  ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const VolunteerIconBox(
+                icon: Icons.apartment_rounded,
+                size: 36,
+                iconSize: 19,
+                backgroundColor: Colors.white,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  opportunity['organization']!,
+                  style: volunteerBodyStyle,
                 ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(
-                        top: 120, left: 20, right: 20, bottom: 100),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // كرت العنوان الرئيسي والجهة الحاضنة (Solid & Sharp)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: AppColors.cardBackground,
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: AppColors.innerBorder),
-                            boxShadow: const [
-                              BoxShadow(
-                                  color: AppColors.innerShadow,
-                                  blurRadius: 15,
-                                  offset: Offset(0, 8))
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppColors.brandOrangeLight,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  'تعليم وتطوير',
-                                  style: TextStyle(
-                                      color: AppColors.brandOrange,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'تدريس أساسيات الحاسوب والبرمجة للأيتام',
-                                style: TextStyle(
-                                    color: AppColors.textDarkPrimary,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    height: 1.4),
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: const [
-                                  Icon(Icons.location_on_outlined,
-                                      color: AppColors.brandOrange, size: 18),
-                                  SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      'دار رعاية الأيتام المركزية - غريان، ليبيا',
-                                      style: TextStyle(
-                                          color: AppColors.textDarkSecondary,
-                                          fontSize: 13),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
+class _ImportantInfoGrid extends StatelessWidget {
+  final Map<String, String> opportunity;
 
-                        const SizedBox(height: 20),
+  const _ImportantInfoGrid({required this.opportunity});
 
-                        // كرت الوقت والدقيق والجدولة (المحددات الزمنية)
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.cardBackground,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppColors.innerBorder),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              _buildInfoTimeline(Icons.calendar_today_rounded,
-                                  'الأيام', 'السبت والإثنين'),
-                              Container(
-                                  width: 1,
-                                  height: 40,
-                                  color: AppColors.innerBorder),
-                              _buildInfoTimeline(Icons.access_time_rounded,
-                                  'الوقت', '16:00 - 18:00'),
-                              Container(
-                                  width: 1,
-                                  height: 40,
-                                  color: AppColors.innerBorder),
-                              _buildInfoTimeline(Icons.hourglass_top_rounded,
-                                  'المدة', '4 ساعات / أسبوع'),
-                            ],
-                          ),
-                        ),
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      _InfoItem(
+        icon: Icons.calendar_month_outlined,
+        label: 'التاريخ',
+        value: opportunity['date']!,
+        color: const Color(0xFF4A90E2),
+      ),
+      _InfoItem(
+        icon: Icons.schedule_rounded,
+        label: 'الوقت',
+        value: opportunity['time']!,
+        color: AppColors.brandOrange,
+      ),
+      _InfoItem(
+        icon: Icons.psychology_alt_outlined,
+        label: 'المهارة',
+        value: opportunity['skill']!,
+        color: const Color(0xFF7E57C2),
+      ),
+      _InfoItem(
+        icon: Icons.event_seat_outlined,
+        label: 'المقاعد',
+        value: opportunity['seats']!,
+        color: AppColors.successGreen,
+      ),
+    ];
 
-                        const SizedBox(height: 24),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 360;
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: items.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: compact ? 1 : 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: compact ? 3.8 : 1.85,
+          ),
+          itemBuilder: (context, index) => _InfoTile(item: items[index]),
+        );
+      },
+    );
+  }
+}
 
-                        // قسم المهام المطلوبة (شرح تتابعي عالي القراءة والنقاء)
-                        const Text(
-                          '📋 المهام والمسؤوليات المطلوبة:',
-                          style: TextStyle(
-                              color: AppColors.textDarkPrimary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildBulletPoint(
-                            'شرح المبادئ الأساسية لأنظمة التشغيل وملفات الحاسوب للأطفال.'),
-                        _buildBulletPoint(
-                            'تقديم مقدمة مبسطة وممتعة ومحفزة عن المنطق البرمجي وكيف تفكر الآلة.'),
-                        _buildBulletPoint(
-                            'متابعة التطبيقات العملية للأطفال داخل معمل الحاسوب الخاص بالدار وتوجيههم.'),
+class _InfoItem {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
 
-                        const SizedBox(height: 24),
+  const _InfoItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+}
 
-                        // قسم الشروط والمؤهلات (لضمان كفاءة التجربة الإنسانية)
-                        const Text(
-                          '⚡ الشروط والمؤهلات:',
-                          style: TextStyle(
-                              color: AppColors.textDarkPrimary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildBulletPoint(
-                            'أن يكون المتقدم طالباً أو خريجاً في تخصص هندسة البرمجيات أو تقنية المعلومات.'),
-                        _buildBulletPoint(
-                            'القدرة العالية على تبسيط المعلومات والتعامل الصبور والراقي مع فئة الأطفال الأيتام.'),
-                        _buildBulletPoint(
-                            'الالتزام التام بالمواعيد المحددة بالتنسيق مع المشرفين في مدينة غريان.'),
-                      ],
-                    ),
+class _InfoTile extends StatelessWidget {
+  final _InfoItem item;
+
+  const _InfoTile({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return VolunteerCard(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          VolunteerIconBox(
+            icon: item.icon,
+            color: item.color,
+            size: 38,
+            iconSize: 20,
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(item.label, style: volunteerMutedStyle),
+                const SizedBox(height: 2),
+                Text(
+                  item.value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Tajawal',
+                    color: AppColors.textDarkPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
-            ),
-          ),
-
-          // 3. شريط التقديم السفلي العائم والمثبت بلمسة فخمة جداً (Interactive Bottom Bar)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(28),
-                    topLeft: Radius.circular(28)),
-                boxShadow: [
-                  BoxShadow(
-                      color: AppColors.innerShadow,
-                      blurRadius: 20,
-                      offset: Offset(0, -4))
-                ],
-              ),
-              child: Row(
-                children: [
-                  // كرت المقاعد المتبقية السريع
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Text('المقاعد المتاحة',
-                          style: TextStyle(
-                              color: AppColors.textDarkMuted, fontSize: 12)),
-                      SizedBox(height: 4),
-                      Text('2 متطوعين فقط',
-                          style: TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  const SizedBox(width: 24),
-                  // الزر المتوهج الرئيسي للانتقال الفوري للواجهة رقم 20
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.brandOrange,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
-                        elevation: 2,
-                        shadowColor: AppColors.brandOrange.withOpacity(0.3),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pushNamed('/apply_opportunity');
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Text('تقديم طلب تطوع الآن',
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white)),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward_rounded,
-                              size: 18, color: Colors.white),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  // الـ Widgets المساعدة لبناء عناصر الصفحة بدقة واحترافية قابلة لإعادة الاستخدام داخل الشاشة
-  static Widget _buildInfoTimeline(IconData icon, String label, String value) {
-    return Column(
-      children: [
-        Icon(icon, color: AppColors.brandOrange, size: 20),
-        const SizedBox(height: 6),
-        Text(label,
-            style:
-                const TextStyle(color: AppColors.textDarkMuted, fontSize: 11)),
-        const SizedBox(height: 2),
-        Text(value,
-            style: const TextStyle(
-                color: AppColors.textDarkPrimary,
-                fontSize: 12,
-                fontWeight: FontWeight.bold)),
-      ],
+class _BulletCard extends StatelessWidget {
+  final List<String> items;
+
+  const _BulletCard({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return VolunteerCard(
+      child: Column(
+        children: [
+          for (int i = 0; i < items.length; i++) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: AppColors.successGreen,
+                  size: 19,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(items[i], style: volunteerBodyStyle),
+                ),
+              ],
+            ),
+            if (i != items.length - 1) const SizedBox(height: 10),
+          ],
+        ],
+      ),
     );
   }
+}
 
-  static Widget _buildBulletPoint(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 6, left: 8, right: 4),
-            width: 6,
-            height: 6,
-            decoration: const BoxDecoration(
-                color: AppColors.brandOrange, shape: BoxShape.circle),
-          ),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                  color: AppColors.textDarkSecondary,
-                  fontSize: 13,
-                  height: 1.5),
+class _ApplyBar extends StatelessWidget {
+  final String seats;
+  final VoidCallback onApply;
+
+  const _ApplyBar({required this.seats, required this.onApply});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: const Border(top: BorderSide(color: AppColors.innerBorder)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 16,
+              offset: const Offset(0, -6),
             ),
-          ),
-        ],
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: VolunteerMetaChip(
+                icon: Icons.event_seat_outlined,
+                label: seats,
+                color: AppColors.successGreen,
+                prominent: true,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
+              child: VolunteerPrimaryButton(
+                label: 'تقديم طلب تطوع',
+                icon: Icons.send_rounded,
+                onPressed: onApply,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

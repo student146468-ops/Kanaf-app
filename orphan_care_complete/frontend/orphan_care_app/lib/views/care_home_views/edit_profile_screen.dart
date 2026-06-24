@@ -36,10 +36,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-          'تم حفظ بيانات الملف محليًا وجاهزة للربط الحقيقي',
+          'تم حفظ بيانات الملف محليًا وهي جاهزة للربط الحقيقي لاحقًا.',
           style: TextStyle(fontFamily: 'Tajawal'),
         ),
-        backgroundColor: AppColors.brandOrange,
+        backgroundColor: Color(0xFF10B981),
       ),
     );
     Navigator.of(context).pop();
@@ -56,50 +56,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             constraints: const BoxConstraints(maxWidth: 430),
             child: Stack(
               children: [
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                        colors: [
-                          Colors.white,
-                          AppColors.scaffoldBackground,
-                          AppColors.scaffoldBackground,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                const Positioned.fill(child: _CareHomeBackground()),
                 SafeArea(
                   child: Column(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                        child: Row(
-                          children: [
-                            _RoundIconButton(
-                              icon: Icons.arrow_back_ios_new_rounded,
-                              onTap: () => Navigator.of(context).pop(),
-                            ),
-                            const Expanded(
-                              child: Text(
-                                'تعديل ملف الدار',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: 'Cairo',
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textDarkPrimary,
-                                ),
-                              ),
-                            ),
-                            _RoundIconButton(
-                              icon: Icons.check_rounded,
-                              onTap: _saveProfile,
-                            ),
-                          ],
-                        ),
+                      _HeaderBar(
+                        title: 'تعديل ملف الدار',
+                        onBack: () => Navigator.of(context).pop(),
+                        onSave: _saveProfile,
                       ),
                       Expanded(
                         child: SingleChildScrollView(
@@ -175,6 +139,61 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return 'هذا الحقل مطلوب';
     }
     return null;
+  }
+}
+
+class _CareHomeBackground extends StatelessWidget {
+  const _CareHomeBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return const DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [Colors.white, AppColors.scaffoldBackground],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderBar extends StatelessWidget {
+  final String title;
+  final VoidCallback onBack;
+  final VoidCallback onSave;
+
+  const _HeaderBar({
+    required this.title,
+    required this.onBack,
+    required this.onSave,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Row(
+        children: [
+          _RoundIconButton(
+              icon: Icons.arrow_back_ios_new_rounded, onTap: onBack),
+          Expanded(
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: AppColors.textDarkPrimary,
+              ),
+            ),
+          ),
+          _RoundIconButton(icon: Icons.check_rounded, onTap: onSave),
+        ],
+      ),
+    );
   }
 }
 
@@ -274,6 +293,13 @@ class _SaveButton extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: AppColors.orangeGradient),
           borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.brandOrange.withOpacity(0.18),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,

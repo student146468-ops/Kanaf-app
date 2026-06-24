@@ -1,51 +1,58 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+
 import '../../utils/app_colors.dart';
+import '../settings/shared_mobile_ui.dart';
 
 class NotificationsCenterScreen extends StatefulWidget {
   const NotificationsCenterScreen({super.key});
 
   @override
-  State<NotificationsCenterScreen> createState() => _NotificationsCenterScreenState();
+  State<NotificationsCenterScreen> createState() =>
+      _NotificationsCenterScreenState();
 }
 
-class _NotificationsCenterScreenState extends State<NotificationsCenterScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _NotificationsCenterScreenState extends State<NotificationsCenterScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
 
+  // TODO: Replace with AppProvider notification center data when available.
   final List<Map<String, dynamic>> _notifications = [
     {
       'id': '1',
-      'title': 'تم تأمين الكسوة الشتوية! 🎉',
-      'body': 'بفضل دعمكم الكريم، اكتملت حملة الكسوة الشتوية لـ 25 طفلاً بدار أيتام غريان وبدأ التجهيز.',
+      'title': 'تم تأمين الكسوة الشتوية',
+      'body':
+          'اكتملت حملة الكسوة الشتوية لـ 25 طفلًا وبدأت دار الرعاية مرحلة التجهيز.',
       'time': 'منذ دقيقتين',
       'type': 'donation',
       'isRead': false,
-      'icon': '📦',
+      'priority': 'مكتمل',
     },
     {
       'id': '2',
-      'title': 'موافقة على طلب التطوع 🤝',
-      'body': 'تم قبول انضمامك لفرصة "الدعم التعليمي للأطفال". يمكنك الآن تصفح جدولك الزمني.',
+      'title': 'موافقة على طلب التطوع',
+      'body':
+          'تم قبول انضمامك لفرصة الدعم التعليمي. يمكنك الآن متابعة جدولك الزمني.',
       'time': 'منذ ساعة',
       'type': 'volunteer',
       'isRead': false,
-      'icon': '📝',
+      'priority': 'مهم',
     },
     {
       'id': '3',
-      'title': 'حالة الاحتياج تحدثت 🚀',
-      'body': 'انتقلت شحنة الأغطية الدافئة إلى مرحلة "التوصيل والتسليم" الآن، تابع خطوة بخطوة.',
+      'title': 'تحديث حالة الاحتياج',
+      'body':
+          'انتقلت شحنة الأغطية الدافئة إلى مرحلة الفرز والتغليف داخل دار الرعاية.',
       'time': 'منذ 5 ساعات',
       'type': 'track',
       'isRead': true,
-      'icon': '🚚',
+      'priority': 'متابعة',
     },
   ];
 
   @override
   void initState() {
     super.initState();
-    _tabController = _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -54,162 +61,227 @@ class _NotificationsCenterScreenState extends State<NotificationsCenterScreen> w
     super.dispose();
   }
 
+  void _markAllRead() {
+    setState(() {
+      for (final item in _notifications) {
+        item['isRead'] = true;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: const Color(0xFF121212),
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          title: const Text(
-            'مركز الإشعارات',
-            style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: Colors.white, fontSize: 20),
-          ),
-          centerTitle: true,
-          bottom: TabBar(
-            controller: _tabController,
-            indicatorColor: AppColors.brandOrange,
-            labelColor: AppColors.brandOrange,
-            unselectedLabelColor: Colors.white60,
-            labelStyle: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 14),
-            tabs: const [
-              Tab(text: 'الكل'),
-              Tab(text: 'التبرعات'),
-              Tab(text: 'التطوع'),
-            ],
+    return KanafPage(
+      title: 'مركز الإشعارات',
+      actions: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(end: 12),
+          child: KanafCircleButton(
+            icon: Icons.done_all_rounded,
+            onTap: _markAllRead,
+            color: AppColors.brandOrange,
           ),
         ),
-        body: TabBarView(
-          controller: _tabController,
+      ],
+      body: SafeArea(
+        top: false,
+        child: Column(
           children: [
-            _buildNotificationList('all'),
-            _buildNotificationList('donation'),
-            _buildNotificationList('volunteer'),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
+              child: KanafCard(
+                padding: const EdgeInsets.all(6),
+                color: AppColors.surfaceLight,
+                child: TabBar(
+                  controller: _tabController,
+                  indicator: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  dividerColor: Colors.transparent,
+                  labelColor: AppColors.brandOrange,
+                  unselectedLabelColor: AppColors.textDarkSecondary,
+                  labelStyle: const TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12.5,
+                  ),
+                  tabs: const [
+                    Tab(text: 'الكل'),
+                    Tab(text: 'التبرعات'),
+                    Tab(text: 'التطوع'),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _NotificationList(items: _notifications),
+                  _NotificationList(
+                    items: _notifications
+                        .where((item) => item['type'] == 'donation')
+                        .toList(),
+                  ),
+                  _NotificationList(
+                    items: _notifications
+                        .where((item) => item['type'] == 'volunteer')
+                        .toList(),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildNotificationList(String category) {
-    final filtered = category == 'all' 
-        ? _notifications 
-        : _notifications.where((n) => n['type'] == category).toList();
+class _NotificationList extends StatelessWidget {
+  final List<Map<String, dynamic>> items;
 
-    if (filtered.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('🔔', style: TextStyle(fontSize: 64, color: Colors.white.withOpacity(0.2))),
-            const SizedBox(height: 16),
-            const Text(
-              'لا توجد إشعارات في هذا القسم حالياً',
-              style: TextStyle(fontFamily: 'Cairo', color: Colors.white60, fontSize: 16),
-            ),
-          ],
-        ),
+  const _NotificationList({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return const KanafEmptyState(
+        icon: Icons.notifications_none_rounded,
+        title: 'لا توجد إشعارات',
+        message:
+            'ستظهر هنا تحديثات التبرعات والتطوع وحالة الاحتياجات عند توفرها.',
       );
     }
 
-    return ListView.builder(
+    return ListView.separated(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      itemCount: filtered.length,
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+      itemCount: items.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final item = filtered[index];
-        return GestureDetector(
-          onTap: () {
-            Navigator.of(context).pushNamed('/notification_detail', arguments: item);
-          },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(item['isRead'] ? 0.03 : 0.07),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: item['isRead'] ? Colors.white.withOpacity(0.08) : AppColors.brandOrange.withOpacity(0.3),
-                width: 1.2,
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: AppColors.brandOrangeDark.withOpacity(0.15),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.brandOrange.withOpacity(0.2), width: 1),
-                        ),
-                        child: Center(
-                          child: Text(
-                            item['icon'],
-                            style: const TextStyle(fontSize: 24),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  item['title'],
-                                  style: const TextStyle(
-                                    fontFamily: 'Cairo',
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                if (!item['isRead'])
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(color: AppColors.brandOrange, shape: BoxShape.circle),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              item['body'],
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontFamily: 'Cairo', color: Colors.white70, fontSize: 13, height: 1.4),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              item['time'],
-                              style: const TextStyle(fontFamily: 'Cairo', color: Colors.white38, fontSize: 11),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
+        return _NotificationCard(item: items[index]);
       },
     );
   }
+}
+
+class _NotificationCard extends StatelessWidget {
+  final Map<String, dynamic> item;
+
+  const _NotificationCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final meta = _metaFor(item['type'] as String);
+    final isRead = item['isRead'] == true;
+
+    return KanafCard(
+      onTap: () => Navigator.of(context).pushNamed(
+        '/notification_detail',
+        arguments: item,
+      ),
+      color: isRead ? Colors.white : meta.color.withOpacity(0.065),
+      borderColor:
+          isRead ? AppColors.innerBorder : meta.color.withOpacity(0.28),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          KanafIconBox(icon: meta.icon, color: meta.color),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item['title'] as String,
+                        style: const TextStyle(
+                          fontFamily: 'Cairo',
+                          color: AppColors.textDarkPrimary,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    if (!isRead)
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: meta.color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  item['body'] as String,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: kanafBodyStyle,
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    KanafBadge(label: meta.label, color: meta.color),
+                    KanafMetaChip(
+                      icon: Icons.access_time_rounded,
+                      label: item['time'] as String,
+                    ),
+                    KanafBadge(
+                      label: item['priority'] as String,
+                      color: kanafStatusColor(item['priority'] as String),
+                      icon: Icons.flag_outlined,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  _NotificationMeta _metaFor(String type) {
+    switch (type) {
+      case 'donation':
+        return const _NotificationMeta(
+          label: 'تبرع',
+          icon: Icons.inventory_2_outlined,
+          color: AppColors.brandOrange,
+        );
+      case 'volunteer':
+        return const _NotificationMeta(
+          label: 'تطوع',
+          icon: Icons.volunteer_activism_outlined,
+          color: AppColors.successGreen,
+        );
+      default:
+        return const _NotificationMeta(
+          label: 'متابعة',
+          icon: Icons.local_shipping_outlined,
+          color: AppColors.skyBlueDark,
+        );
+    }
+  }
+}
+
+class _NotificationMeta {
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  const _NotificationMeta({
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
 }

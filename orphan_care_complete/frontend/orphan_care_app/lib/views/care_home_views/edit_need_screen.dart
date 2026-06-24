@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 
-/// [EditNeedScreen] - الواجهة رقم 31: تعديل بيانات احتياج منشور مسبقاً لدار الرعاية.
-/// تم بناؤها بنقاء برمجي كامل وتأثيرات بصرية تمنع طھط´طھطھ عين المستخدم وتضمن استقرار الأداء.
+/// [EditNeedScreen] - ط§ظ„ظˆط§ط¬ظ‡ط© ط±ظ‚ظ… 31: طھط¹ط¯ظٹظ„ ط¨ظٹط§ظ†ط§طھ ط§ط­طھظٹط§ط¬ ظ…ظ†ط´ظˆط± ظ…ط³ط¨ظ‚ط§ظ‹ ظ„ط¯ط§ط± ط§ظ„ط±ط¹ط§ظٹط©.
+/// طھظ… ط¨ظ†ط§ط¤ظ‡ط§ ط¨ظ†ظ‚ط§ط، ط¨ط±ظ…ط¬ظٹ ظƒط§ظ…ظ„ ظˆطھط£ط«ظٹط±ط§طھ ط¨طµط±ظٹط© طھظ…ظ†ط¹ ط·ع¾ط·آ´ط·ع¾ط·ع¾ ط¹ظٹظ† ط§ظ„ظ…ط³طھط®ط¯ظ… ظˆطھط¶ظ…ظ† ط§ط³طھظ‚ط±ط§ط± ط§ظ„ط£ط¯ط§ط،.
 class EditNeedScreen extends StatefulWidget {
   const EditNeedScreen({super.key});
 
@@ -11,6 +11,7 @@ class EditNeedScreen extends StatefulWidget {
 }
 
 class _EditNeedScreenState extends State<EditNeedScreen> {
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _quantityController;
   late TextEditingController _detailsController;
@@ -20,7 +21,7 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
   final FocusNode _detailsFocusNode = FocusNode();
 
   String _selectedCategory = 'غذائي';
-  String _priorityLevel = 'حرج جداً';
+  String _priorityLevel = 'عاجل';
   bool _isUpdating = false;
 
   final List<Map<String, dynamic>> _categories = [
@@ -49,13 +50,12 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
   @override
   void initState() {
     super.initState();
-    // جلب البيانات القديمة ومحاكاتها تلقائياً لتكون جاهزة للمناقشة
-    _titleController =
-        TextEditingController(text: 'حليب أطفال ومكملات غذائية (عمر 1-3)');
-    _quantityController = TextEditingController(text: '40 صندوق متكامل');
+    // ط¬ظ„ط¨ ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ‚ط¯ظٹظ…ط© ظˆظ…ط­ط§ظƒط§طھظ‡ط§ طھظ„ظ‚ط§ط¦ظٹط§ظ‹ ظ„طھظƒظˆظ† ط¬ط§ظ‡ط²ط© ظ„ظ„ظ…ظ†ط§ظ‚ط´ط©
+    _titleController = TextEditingController(text: 'حليب أطفال ومكملات غذائية');
+    _quantityController = TextEditingController(text: '40 صندوق');
     _detailsController = TextEditingController(
       text:
-          'نظراً لزيادة عدد الأطفال الرضع المسجلين حديثاً بالدار بفرع غريان، نحتاج بشكل عاجل لتوفير حليب من الأصناف المدعمة طبياً لتغطية النقص الحالي.',
+          'نحتاج إلى توفير حليب أطفال مناسب للأعمار الصغيرة لتغطية النقص الحالي في فرع غريان.',
     );
 
     _titleFocusNode.addListener(() => setState(() {}));
@@ -75,10 +75,10 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
   }
 
   Future<void> _updateNeed() async {
-    if (_titleController.text.isEmpty || _quantityController.text.isEmpty) {
+    if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('الرجاء التأكد من عدم ترك الحقول الأساسية فارغة',
+          content: Text('يرجى التأكد من إكمال الحقول الأساسية',
               style: TextStyle(fontFamily: 'Cairo')),
           backgroundColor: AppColors.brandOrange,
         ),
@@ -88,19 +88,21 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
 
     setState(() => _isUpdating = true);
     await Future.delayed(const Duration(
-        milliseconds: 1200)); // محاكاة الاتصال بالسيرفر لتحديث البيانات
+        milliseconds:
+            1200)); // ظ…ط­ط§ظƒط§ط© ط§ظ„ط§طھطµط§ظ„ ط¨ط§ظ„ط³ظٹط±ظپط± ظ„طھط­ط¯ظٹط« ط§ظ„ط¨ظٹط§ظ†ط§طھ
 
     if (mounted) {
       setState(() => _isUpdating = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('تم تحديث بيانات الاحتياج بنجاح وحفظ التغييرات',
+          content: Text('تم تحديث بيانات الاحتياج بنجاح',
               style: TextStyle(fontFamily: 'Cairo')),
           backgroundColor: Color(
-              0xFF10B981), // تم استبدال اللون المفقود وتصحيح الكونسطنت هنا
+              0xFF10B981), // طھظ… ط§ط³طھط¨ط¯ط§ظ„ ط§ظ„ظ„ظˆظ† ط§ظ„ظ…ظپظ‚ظˆط¯ ظˆطھطµط­ظٹط­ ط§ظ„ظƒظˆظ†ط³ط·ظ†طھ ظ‡ظ†ط§
         ),
       );
-      Navigator.of(context).pop(); // العودة التلقائية لواجهة التفاصيل
+      Navigator.of(context)
+          .pop(); // ط§ظ„ط¹ظˆط¯ط© ط§ظ„طھظ„ظ‚ط§ط¦ظٹط© ظ„ظˆط§ط¬ظ‡ط© ط§ظ„طھظپط§طµظٹظ„
     }
   }
 
@@ -108,7 +110,7 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isWebOrDesktop = size.width > 600;
-    final containerWidth = isWebOrDesktop ? 420.0 : double.infinity;
+    final containerWidth = isWebOrDesktop ? 430.0 : double.infinity;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -125,14 +127,14 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
                   ? [
                       BoxShadow(
                           color: AppColors.innerShadow,
-                          blurRadius: 45,
-                          spreadRadius: 8)
+                          blurRadius: 24,
+                          spreadRadius: 0)
                     ]
                   : [],
             ),
             child: Stack(
               children: [
-                // الخلفية البصرية الأنيقة لـ "تطبيق كَنَفْ"
+                // ط§ظ„ط®ظ„ظپظٹط© ط§ظ„ط¨طµط±ظٹط© ط§ظ„ط£ظ†ظٹظ‚ط© ظ„ظ€ "طھط·ط¨ظٹظ‚ ظƒظژظ†ظژظپظ’"
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -164,7 +166,7 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
                   ),
                 ),
 
-                // محتوى حقول التعديل والتحكم الهيكلي
+                // ظ…ط­طھظˆظ‰ ط­ظ‚ظˆظ„ ط§ظ„طھط¹ط¯ظٹظ„ ظˆط§ظ„طھط­ظƒظ… ط§ظ„ظ‡ظٹظƒظ„ظٹ
                 SafeArea(
                   child: Column(
                     children: [
@@ -174,47 +176,48 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
                           physics: const BouncingScrollPhysics(),
                           padding: const EdgeInsets.symmetric(
                               horizontal: 24.0, vertical: 10.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 10),
-                              _buildSectionLabel('تعديل تصنيف الاحتياج'),
-                              const SizedBox(height: 12),
-                              _buildCategorySelector(),
-                              const SizedBox(height: 24),
-                              _buildSectionLabel(
-                                  'البيانات الأساسية المراد تحديثها'),
-                              const SizedBox(height: 14),
-                              _buildInputField(
-                                controller: _titleController,
-                                focusNode: _titleFocusNode,
-                                hint: 'عنوان الاحتياج',
-                                icon: Icons.title_rounded,
-                              ),
-                              const SizedBox(height: 16),
-                              _buildInputField(
-                                controller: _quantityController,
-                                focusNode: _quantityFocusNode,
-                                hint: 'الكمية والعدد المطلوب',
-                                icon: Icons.production_quantity_limits_rounded,
-                              ),
-                              const SizedBox(height: 16),
-                              _buildInputField(
-                                controller: _detailsController,
-                                focusNode: _detailsFocusNode,
-                                hint: 'شرح تفصيلي للمتطلبات الإضافية...',
-                                icon: Icons.description_rounded,
-                                maxLines: 4,
-                              ),
-                              const SizedBox(height: 24),
-                              _buildSectionLabel(
-                                  'تحديث مستوى الأولوية الدلالي'),
-                              const SizedBox(height: 12),
-                              _buildPrioritySelector(),
-                              const SizedBox(height: 40),
-                              _buildSubmitButton(),
-                              const SizedBox(height: 24),
-                            ],
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 10),
+                                _buildSectionLabel('تعديل تصنيف الاحتياج'),
+                                const SizedBox(height: 12),
+                                _buildCategorySelector(),
+                                const SizedBox(height: 24),
+                                _buildSectionLabel('البيانات الأساسية'),
+                                const SizedBox(height: 14),
+                                _buildInputField(
+                                  controller: _titleController,
+                                  focusNode: _titleFocusNode,
+                                  hint: 'عنوان الاحتياج',
+                                  icon: Icons.title_rounded,
+                                ),
+                                const SizedBox(height: 16),
+                                _buildInputField(
+                                  controller: _quantityController,
+                                  focusNode: _quantityFocusNode,
+                                  hint: 'الكمية أو العدد المطلوب',
+                                  icon: Icons.numbers_rounded,
+                                ),
+                                const SizedBox(height: 16),
+                                _buildInputField(
+                                  controller: _detailsController,
+                                  focusNode: _detailsFocusNode,
+                                  hint: 'شرح مختصر للتفاصيل الإضافية...',
+                                  icon: Icons.description_rounded,
+                                  maxLines: 4,
+                                ),
+                                const SizedBox(height: 24),
+                                _buildSectionLabel('تحديث مستوى الأولوية'),
+                                const SizedBox(height: 12),
+                                _buildPrioritySelector(),
+                                const SizedBox(height: 40),
+                                _buildSubmitButton(),
+                                const SizedBox(height: 24),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -354,11 +357,18 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
           width: isFocused ? 1.5 : 1.0,
         ),
       ),
-      child: TextField(
+      child: TextFormField(
         controller: controller,
         focusNode: focusNode,
         maxLines: maxLines,
         cursorColor: AppColors.brandOrange,
+        validator: (value) {
+          if (controller == _detailsController) return null;
+          if (value == null || value.trim().isEmpty) {
+            return 'هذا الحقل مطلوب';
+          }
+          return null;
+        },
         style: const TextStyle(
             fontFamily: 'Cairo',
             fontSize: 14,
@@ -386,7 +396,7 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
   }
 
   Widget _buildPrioritySelector() {
-    final priorities = ['منخفض', 'متوسط', 'حرج جداً'];
+    final priorities = ['منخفض', 'متوسط', 'عاجل'];
     return Row(
       children: priorities.map((p) {
         final isSelected = _priorityLevel == p;
@@ -394,7 +404,7 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
         if (isSelected) {
           if (p == 'منخفض') pColor = const Color(0xFF10B981);
           if (p == 'متوسط') pColor = Colors.orange;
-          if (p == 'حرج جداً') pColor = Colors.red;
+          if (p == 'عاجل') pColor = Colors.red;
         }
 
         return Expanded(
@@ -452,7 +462,7 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
                 )
               : const Text(
-                  'حفظ وتحديث التغييرات',
+                  'حفظ التعديلات',
                   style: TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 15.5,

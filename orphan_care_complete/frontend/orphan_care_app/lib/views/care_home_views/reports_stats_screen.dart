@@ -3,8 +3,6 @@ import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'care_home_light_widgets.dart';
 
-/// [ReportsStatsScreen] - الواجهة رقم 35: لوحة التقارير والتحليلات الذكية لدار الرعاية لعام 2026.
-/// تعرض إحصائيات التبرعات المستلمة، ونسب تلبية الاحتياجات، ومستوى تفاعل المتطوعين برسوم بيانية وبطاقات واضحة واضحة.
 class ReportsStatsScreen extends StatefulWidget {
   const ReportsStatsScreen({super.key});
 
@@ -13,29 +11,27 @@ class ReportsStatsScreen extends StatefulWidget {
 }
 
 class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
-  String _selectedPeriod = 'هذا الشهر'; // هذا الشهر، هذا العام، الكلي
+  String _selectedPeriod = 'هذا الشهر';
 
-  // بيانات دقيقة ومحاكاة قوية لـ "تطبيق كَنَفْ" لعرض لوحة إحصائية مقنعة.
+  // TODO: Replace fallback report stats with AppProvider/backend reporting data.
   final Map<String, dynamic> _statsData = {
     'total_donations': '45,230 د.ل',
-    'needs_fulfilled_rate': 88, // نسبة مئوية لطلب مخصص
+    'needs_fulfilled_rate': 88,
     'active_volunteers': '34 متطوع',
     'children_sponsored': '112 طفل',
   };
 
-  // توزيع نسب الاحتياجات الملبّاة لبناء رسم بياني شريطي منظم.
   final List<Map<String, dynamic>> _chartData = [
-    {'label': 'غذائية', 'percentage': 0.95, 'color': const Color(0xFF10B981)},
-    {'label': 'طبية', 'percentage': 0.82, 'color': const Color(0xFF3B82F6)},
+    {'label': 'غذائي', 'percentage': 0.95, 'color': const Color(0xFF10B981)},
+    {'label': 'طبي', 'percentage': 0.82, 'color': const Color(0xFF3B82F6)},
     {'label': 'كسوة', 'percentage': 0.70, 'color': AppColors.brandOrange},
-    {'label': 'تعليمية', 'percentage': 0.90, 'color': const Color(0xFF8B5CF6)},
+    {'label': 'تعليمي', 'percentage': 0.90, 'color': const Color(0xFF8B5CF6)},
   ];
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isWebOrDesktop = size.width > 600;
-    final containerWidth = isWebOrDesktop ? 420.0 : double.infinity;
     final providerStats = AppProviderScope.of(context).dashboardStats;
 
     return Directionality(
@@ -44,7 +40,7 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
         backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Container(
-            width: containerWidth,
+            width: isWebOrDesktop ? 430 : double.infinity,
             height: double.infinity,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
@@ -52,79 +48,64 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
               boxShadow: isWebOrDesktop
                   ? [
                       BoxShadow(
-                          color: AppColors.innerShadow,
-                          blurRadius: 45,
-                          spreadRadius: 8)
+                        color: AppColors.innerShadow,
+                        blurRadius: 24,
+                        spreadRadius: 0,
+                      )
                     ]
                   : [],
             ),
             child: Stack(
               children: [
-                // خلفية بيضاء هادئة لتعزيز الهوية البصرية الموحدة
-                Positioned.fill(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                        colors: [
-                          Colors.white,
-                          AppColors.scaffoldBackground,
-                          AppColors.scaffoldBackground,
-                        ],
-                        stops: [0.0, 0.52, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.white,
-                          Colors.white,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // محتوى الإحصائيات والتقارير المنظم باحترافية
+                const Positioned.fill(child: _CareHomeBackground()),
                 SafeArea(
                   child: Column(
                     children: [
-                      _buildAppBar(),
-                      _buildPeriodFilter(),
+                      _HeaderBar(
+                        title: 'التقارير والإحصائيات',
+                        onBack: () => Navigator.of(context).pop(),
+                      ),
+                      _PeriodFilter(
+                        selected: _selectedPeriod,
+                        onChanged: (value) =>
+                            setState(() => _selectedPeriod = value),
+                      ),
                       Expanded(
                         child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 10.0),
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildMainGridCards(providerStats),
-                              const SizedBox(height: 24),
-                              _buildSectionTitle(
-                                  'نسبة تلبية الاحتياجات حسب الفئة'),
-                              const SizedBox(height: 14),
-                              _buildNeonProgressBarChart(),
-                              const SizedBox(height: 24),
-                              _buildSectionTitle(
-                                  'تحميل التقارير الرسمية المعتمدة'),
-                              const SizedBox(height: 14),
-                              _buildDownloadReportCard(
-                                  'تقرير التبرعات الربع سنوي لعام 2026.pdf',
-                                  'تم التحديث منذ يومين'),
-                              _buildDownloadReportCard(
-                                  'تقرير المستودع والاحتياجات اللوجستية.pdf',
-                                  'تم التحديث اليوم'),
-                              const SizedBox(height: 25),
-                              _buildNavigateToDashboardButton(),
-                              const SizedBox(height: 20),
+                              _StatsGrid(
+                                providerStats: providerStats,
+                                fallback: _statsData,
+                              ),
+                              const SizedBox(height: 22),
+                              const _SectionTitle('نسبة تلبية الاحتياجات'),
+                              const SizedBox(height: 12),
+                              _ProgressChart(items: _chartData),
+                              const SizedBox(height: 22),
+                              const _SectionTitle('التقارير المتاحة'),
+                              const SizedBox(height: 12),
+                              _ReportCard(
+                                name: 'تقرير التبرعات الربع سنوي',
+                                time: 'تم التحديث منذ يومين',
+                                onTap: _showDownloadMessage,
+                              ),
+                              const SizedBox(height: 10),
+                              _ReportCard(
+                                name: 'تقرير الاحتياجات والمخزون',
+                                time: 'تم التحديث اليوم',
+                                onTap: _showDownloadMessage,
+                              ),
+                              const SizedBox(height: 18),
+                              _SecondaryAction(
+                                label: 'العودة للوحة الدار',
+                                icon: Icons.dashboard_customize_outlined,
+                                onTap: () => Navigator.of(context)
+                                    .pushNamed('/care_home_dashboard'),
+                              ),
                             ],
                           ),
                         ),
@@ -140,78 +121,136 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
     );
   }
 
-  Widget _buildAppBar() {
+  void _showDownloadMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'سيتم تفعيل تحميل التقارير عند ربط خدمة الملفات.',
+          style: TextStyle(fontFamily: 'Tajawal'),
+        ),
+        backgroundColor: Color(0xFF10B981),
+      ),
+    );
+  }
+}
+
+class _CareHomeBackground extends StatelessWidget {
+  const _CareHomeBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return const DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [Colors.white, AppColors.scaffoldBackground],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderBar extends StatelessWidget {
+  final String title;
+  final VoidCallback onBack;
+
+  const _HeaderBar({required this.title, required this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.innerBorder),
+          _CircleButton(icon: Icons.arrow_back_ios_new_rounded, onTap: onBack),
+          Expanded(
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: AppColors.textDarkPrimary,
               ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: AppColors.textDarkPrimary, size: 18),
             ),
           ),
-          const Text(
-            'التقارير والإحصائيات الحية',
-            style: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDarkPrimary,
-            ),
-          ),
-          const SizedBox(width: 40),
+          const SizedBox(width: 42),
         ],
       ),
     );
   }
+}
 
-  Widget _buildPeriodFilter() {
-    final periods = ['هذا الشهر', 'هذا العام', 'الكلي'];
+class _CircleButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _CircleButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.innerBorder),
+        ),
+        child: Icon(icon, color: AppColors.textDarkPrimary, size: 19),
+      ),
+    );
+  }
+}
+
+class _PeriodFilter extends StatelessWidget {
+  final String selected;
+  final ValueChanged<String> onChanged;
+
+  const _PeriodFilter({required this.selected, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    const periods = ['هذا الشهر', 'هذا العام', 'الكل'];
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 6.0),
+      padding: const EdgeInsets.fromLTRB(20, 6, 20, 8),
       child: Container(
         height: 42,
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
           color: AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.surfaceLight),
+          border: Border.all(color: AppColors.innerBorder),
         ),
         child: Row(
-          children: periods.map((per) {
-            final isSelected = _selectedPeriod == per;
+          children: periods.map((period) {
+            final isSelected = selected == period;
             return Expanded(
-              child: GestureDetector(
-                onTap: () => setState(() => _selectedPeriod = per),
+              child: InkWell(
+                onTap: () => onChanged(period),
+                borderRadius: BorderRadius.circular(10),
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 180),
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color:
-                        isSelected ? AppColors.innerBorder : Colors.transparent,
+                    color: isSelected ? Colors.white : Colors.transparent,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Center(
-                    child: Text(
-                      per,
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 12.5,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.w600,
-                        color: isSelected
-                            ? AppColors.brandOrange
-                            : AppColors.textDarkSecondary,
-                      ),
+                  child: Text(
+                    period,
+                    style: TextStyle(
+                      fontFamily: 'Tajawal',
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w800,
+                      color: isSelected
+                          ? AppColors.brandOrange
+                          : AppColors.textDarkSecondary,
                     ),
                   ),
                 ),
@@ -222,64 +261,89 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
       ),
     );
   }
+}
 
-  Widget _buildMainGridCards(Map<String, dynamic> providerStats) {
-    final String totalDonations =
-        providerStats['total_donations']?.toString() ??
-            providerStats['monthly_support']?.toString() ??
-            _statsData['total_donations'].toString();
-    final String fulfilledRate =
-        providerStats['needs_fulfilled_rate']?.toString() ??
-            _statsData['needs_fulfilled_rate'].toString();
-    final String volunteers = providerStats['volunteers']?.toString() ??
+class _StatsGrid extends StatelessWidget {
+  final Map<String, dynamic> providerStats;
+  final Map<String, dynamic> fallback;
+
+  const _StatsGrid({required this.providerStats, required this.fallback});
+
+  @override
+  Widget build(BuildContext context) {
+    final totalDonations = providerStats['total_donations']?.toString() ??
+        providerStats['monthly_support']?.toString() ??
+        fallback['total_donations'].toString();
+    final fulfilledRate = providerStats['needs_fulfilled_rate']?.toString() ??
+        fallback['needs_fulfilled_rate'].toString();
+    final volunteers = providerStats['volunteers']?.toString() ??
         providerStats['active_volunteers']?.toString() ??
-        _statsData['active_volunteers'].toString();
-    final String sponsoredChildren =
-        providerStats['children_sponsored']?.toString() ??
-            _statsData['children_sponsored'].toString();
+        fallback['active_volunteers'].toString();
+    final children = providerStats['children_sponsored']?.toString() ??
+        fallback['children_sponsored'].toString();
 
-    return GridView.count(
+    final cards = [
+      _StatData('إجمالي التبرعات', totalDonations,
+          Icons.account_balance_wallet_outlined, AppColors.brandOrange),
+      _StatData('تلبية الاحتياجات', '$fulfilledRate%', Icons.analytics_outlined,
+          const Color(0xFF10B981)),
+      _StatData('متطوعون نشطون', volunteers, Icons.groups_2_outlined,
+          const Color(0xFF3B82F6)),
+      _StatData('أطفال مكفولون', children, Icons.child_friendly_outlined,
+          const Color(0xFF8B5CF6)),
+    ];
+
+    return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.35,
-      children: [
-        _buildStatCard('إجمالي التبرعات', totalDonations,
-            Icons.account_balance_wallet_rounded, AppColors.brandOrange),
-        _buildStatCard('تلبية الاحتياجات', '$fulfilledRate%',
-            Icons.analytics_rounded, const Color(0xFF10B981)),
-        _buildStatCard('المتطوعين النشطين', volunteers,
-            Icons.people_alt_rounded, const Color(0xFF3B82F6)),
-        _buildStatCard('الأطفال المكفولين', sponsoredChildren,
-            Icons.child_friendly_rounded, const Color(0xFF8B5CF6)),
-      ],
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.45,
+      ),
+      itemCount: cards.length,
+      itemBuilder: (context, index) => _StatCard(data: cards[index]),
     );
   }
+}
 
-  Widget _buildStatCard(
-      String title, String value, IconData icon, Color color) {
+class _StatData {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  const _StatData(this.title, this.value, this.icon, this.color);
+}
+
+class _StatCard extends StatelessWidget {
+  final _StatData data;
+
+  const _StatCard({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
     return CareHomeCard(
-      padding: const EdgeInsets.all(14.0),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: color, size: 22),
-              Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              )
-            ],
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: data.color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(data.icon, color: data.color, size: 22),
           ),
           const SizedBox(height: 12),
           Text(
-            value,
+            data.value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontFamily: 'Cairo',
               fontSize: 18,
@@ -289,10 +353,12 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
           ),
           const SizedBox(height: 2),
           Text(
-            title,
+            data.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 11.5,
+              fontFamily: 'Tajawal',
+              fontSize: 12,
               color: AppColors.textDarkSecondary,
             ),
           ),
@@ -300,14 +366,41 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
       ),
     );
   }
+}
 
-  Widget _buildNeonProgressBarChart() {
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const _SectionTitle(this.title);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontFamily: 'Cairo',
+        fontSize: 14,
+        fontWeight: FontWeight.w900,
+        color: AppColors.textDarkPrimary,
+      ),
+    );
+  }
+}
+
+class _ProgressChart extends StatelessWidget {
+  final List<Map<String, dynamic>> items;
+
+  const _ProgressChart({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
     return CareHomeCard(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       child: Column(
-        children: _chartData.map((item) {
+        children: items.map((item) {
+          final color = item['color'] as Color;
           return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -317,48 +410,32 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
                     Text(
                       item['label'],
                       style: const TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textDarkPrimary),
+                        fontFamily: 'Cairo',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textDarkPrimary,
+                      ),
                     ),
                     Text(
                       '${(item['percentage'] * 100).toInt()}%',
                       style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: item['color']),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Stack(
-                  children: [
-                    Container(
-                      height: 7,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                          color: AppColors.surfaceLight,
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                    FractionallySizedBox(
-                      widthFactor: item['percentage'],
-                      child: Container(
-                        height: 7,
-                        decoration: BoxDecoration(
-                          color: item['color'],
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                                color: item['color'].withOpacity(0.4),
-                                blurRadius: 6,
-                                spreadRadius: 1),
-                          ],
-                        ),
+                        fontFamily: 'Cairo',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        color: color,
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 7),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: LinearProgressIndicator(
+                    value: item['percentage'],
+                    minHeight: 7,
+                    backgroundColor: AppColors.surfaceLight,
+                    valueColor: AlwaysStoppedAnimation<Color>(color),
+                  ),
                 ),
               ],
             ),
@@ -367,74 +444,89 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
       ),
     );
   }
+}
 
-  Widget _buildDownloadReportCard(String reportName, String updateTime) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: CareHomeCard(
-        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.surfaceLight,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.picture_as_pdf_rounded,
-                  color: Colors.redAccent, size: 20),
+class _ReportCard extends StatelessWidget {
+  final String name;
+  final String time;
+  final VoidCallback onTap;
+
+  const _ReportCard({
+    required this.name,
+    required this.time,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CareHomeCard(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceLight,
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    reportName,
-                    style: const TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textDarkPrimary),
-                    overflow: TextOverflow.ellipsis,
+            child: const Icon(Icons.description_outlined,
+                color: AppColors.brandOrange, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textDarkPrimary,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    updateTime,
-                    style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 10.5,
-                        color: AppColors.textDarkSecondary.withOpacity(0.6)),
+                ),
+                Text(
+                  time,
+                  style: TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 11,
+                    color: AppColors.textDarkSecondary,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            IconButton(
-              icon: const Icon(Icons.file_download_rounded,
-                  color: AppColors.brandOrange, size: 22),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('جاري تحميل $reportName لفرع غريان...',
-                        style: const TextStyle(fontFamily: 'Cairo')),
-                    backgroundColor: const Color(0xFF10B981),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+          ),
+          IconButton(
+            onPressed: onTap,
+            icon: const Icon(Icons.file_download_outlined,
+                color: AppColors.brandOrange, size: 22),
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildNavigateToDashboardButton() {
-    return GestureDetector(
-      onTap: () {
-        // الربط المباشر مع واجهة الـ Dashboard الرئيسية لتسهيل التصفح اللوجستي الفوري
-        Navigator.of(context).pushNamed('/care_home_dashboard');
-      },
+class _SecondaryAction extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _SecondaryAction({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         height: 50,
         width: double.infinity,
@@ -443,37 +535,22 @@ class _ReportsStatsScreenState extends State<ReportsStatsScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.innerBorder),
         ),
-        child: const Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.dashboard_customize_rounded,
-                  color: AppColors.textDarkPrimary, size: 18),
-              SizedBox(width: 8),
-              Text(
-                'العودة للوحة التحكم الرئيسية',
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDarkPrimary,
-                ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: AppColors.textDarkPrimary, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDarkPrimary,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontFamily: 'Cairo',
-        fontSize: 14,
-        fontWeight: FontWeight.w800,
-        color: AppColors.textDarkPrimary,
       ),
     );
   }

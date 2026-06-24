@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../utils/app_colors.dart';
+import 'volunteer_ui.dart';
 
 class MyScheduleView extends StatefulWidget {
   const MyScheduleView({super.key});
@@ -9,161 +11,224 @@ class MyScheduleView extends StatefulWidget {
 }
 
 class _MyScheduleViewState extends State<MyScheduleView> {
-  int _selectedDayIndex = 2; // الإثنين كبداية نشطة
+  int _selectedDayIndex = 1;
 
-  final List<Map<String, String>> _weeklyDays = const [
-    {'day': 'السبت', 'date': '30'},
-    {'day': 'الأحد', 'date': '31'},
+  static const List<Map<String, String>> _days = [
+    {'day': 'الأحد', 'date': '30'},
     {'day': 'الإثنين', 'date': '01'},
     {'day': 'الثلاثاء', 'date': '02'},
     {'day': 'الأربعاء', 'date': '03'},
     {'day': 'الخميس', 'date': '04'},
   ];
 
+  // TODO: Replace with AppProvider schedule data when available.
+  static const List<Map<String, String>> _items = [
+    {
+      'time': '16:00 - 18:00',
+      'title': 'جلسة أساسيات الحاسوب',
+      'location': 'دار الأمان لرعاية الأيتام - غريان',
+      'status': 'قادمة',
+      'skill': 'تعليم وتقنية',
+    },
+    {
+      'time': '18:15 - 19:15',
+      'title': 'نشاط ألعاب ذهنية للأطفال',
+      'location': 'قاعة الأنشطة',
+      'status': 'مؤكدة',
+      'skill': 'أنشطة',
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textDarkPrimary, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'جدول مواعيدي التطوعية',
-          style: TextStyle(color: AppColors.textDarkPrimary, fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Tajawal'),
-        ),
-      ),
+    return VolunteerAppScaffold(
+      title: 'مواعيدي التطوعية',
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            // 1. شريط التقويم الذكي المحدث
-            Container(
-              height: 110,
-              padding: const EdgeInsets.symmetric(vertical: 12),
+            SizedBox(
+              height: 90,
               child: ListView.separated(
-                scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: _weeklyDays.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: volunteerHorizontalPadding,
+                  vertical: 8,
+                ),
+                itemCount: _days.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
                 itemBuilder: (context, index) {
-                  final isSelected = index == _selectedDayIndex;
-                  return GestureDetector(
+                  final selected = index == _selectedDayIndex;
+                  return _DayPill(
+                    item: _days[index],
+                    selected: selected,
                     onTap: () => setState(() => _selectedDayIndex = index),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      width: 65,
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.brandOrange : AppColors.cardBackground,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: isSelected ? AppColors.brandOrangeDark : AppColors.innerBorder),
-                        boxShadow: isSelected 
-                          ? [BoxShadow(color: AppColors.brandOrange.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))]
-                          : [],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(_weeklyDays[index]['day']!, style: TextStyle(color: isSelected ? Colors.white : AppColors.textDarkMuted, fontSize: 11, fontWeight: FontWeight.w600, fontFamily: 'Tajawal')),
-                          const SizedBox(height: 4),
-                          Text(_weeklyDays[index]['date']!, style: TextStyle(color: isSelected ? Colors.white : AppColors.textDarkPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
                   );
                 },
               ),
             ),
-
-            // 2. القائمة الرئيسية للمواعيد
             Expanded(
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                children: [
-                  _buildScheduleCard(
-                    time: '16:00 - 18:00',
-                    title: 'تدريس أساسيات البرمجة ومنطق الحاسوب',
-                    location: 'دار رعاية الأيتام المركزية - غريان',
-                    statusLabel: 'قادمة اليوم',
-                    statusColor: AppColors.brandOrange,
-                    icon: Icons.computer_rounded,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildScheduleCard(
-                    time: '18:15 - 19:15',
-                    title: 'ورشة ألعاب ذهنية تفاعلية للأطفال',
-                    location: 'قاعة الأنشطة الذكية بدار غريان',
-                    statusLabel: 'مجدولة',
-                    statusColor: const Color(0xFF2196F3),
-                    icon: Icons.lightbulb_outline_rounded,
-                  ),
-                ],
-              ),
+              child: _items.isEmpty
+                  ? VolunteerEmptyState(
+                      icon: Icons.event_busy_outlined,
+                      title: 'لا توجد مواعيد لهذا اليوم',
+                      message:
+                          'بعد قبولك في فرصة تطوعية سيظهر موعدها هنا بوضوح.',
+                      actionLabel: 'استكشاف الفرص',
+                      onAction: () =>
+                          Navigator.of(context).pushNamed('/volunteer_search'),
+                    )
+                  : ListView.separated(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(
+                        volunteerHorizontalPadding,
+                        8,
+                        volunteerHorizontalPadding,
+                        24,
+                      ),
+                      itemCount: _items.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) =>
+                          _ScheduleCard(item: _items[index]),
+                    ),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildScheduleCard({
-    required String time,
-    required String title,
-    required String location,
-    required String statusLabel,
-    required Color statusColor,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.innerBorder),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+class _DayPill extends StatelessWidget {
+  final Map<String, String> item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _DayPill({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        hoverColor: AppColors.brandOrangeLight.withOpacity(0.32),
+        borderRadius: BorderRadius.circular(18),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: 70,
+          decoration: BoxDecoration(
+            color: selected ? AppColors.brandOrange : Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: selected ? AppColors.brandOrange : AppColors.innerBorder,
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: AppColors.brandOrange.withOpacity(0.16),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                item['day']!,
+                style: TextStyle(
+                  fontFamily: 'Tajawal',
+                  color: selected ? Colors.white : AppColors.textDarkMuted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                item['date']!,
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  color: selected ? Colors.white : AppColors.textDarkPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+}
+
+class _ScheduleCard extends StatelessWidget {
+  final Map<String, String> item;
+
+  const _ScheduleCard({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return VolunteerCard(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(Icons.access_time_rounded, color: statusColor, size: 16),
-                  const SizedBox(width: 6),
-                  Text(time, style: TextStyle(color: statusColor, fontSize: 13, fontWeight: FontWeight.bold)),
-                ],
+              const VolunteerIconBox(
+                icon: Icons.schedule_rounded,
+                color: AppColors.brandOrange,
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                child: Text(statusLabel, style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'Tajawal')),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  item['time']!,
+                  style: const TextStyle(
+                    fontFamily: 'Cairo',
+                    color: AppColors.brandOrange,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const VolunteerStatusBadge(
+                label: 'قادمة',
+                color: AppColors.successGreen,
+                icon: Icons.check_circle_outline_rounded,
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.scaffoldBackground, borderRadius: BorderRadius.circular(16)),
-                child: Icon(icon, color: AppColors.textDarkPrimary, size: 22),
-              ),
-              const SizedBox(width: 14),
-              Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, fontFamily: 'Tajawal', height: 1.4))),
-            ],
+          const SizedBox(height: 12),
+          Text(
+            item['title']!,
+            style: const TextStyle(
+              fontFamily: 'Cairo',
+              color: AppColors.textDarkPrimary,
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+            ),
           ),
-          const Divider(height: 30),
-          Row(
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              const Icon(Icons.location_on_rounded, color: AppColors.textDarkMuted, size: 16),
-              const SizedBox(width: 6),
-              Expanded(child: Text(location, style: const TextStyle(color: AppColors.textDarkSecondary, fontSize: 12, fontFamily: 'Tajawal'))),
+              VolunteerMetaChip(
+                icon: Icons.psychology_alt_outlined,
+                label: item['skill']!,
+              ),
+              VolunteerMetaChip(
+                icon: Icons.location_on_outlined,
+                label: item['location']!,
+                color: AppColors.brandOrange,
+                prominent: true,
+              ),
             ],
           ),
         ],

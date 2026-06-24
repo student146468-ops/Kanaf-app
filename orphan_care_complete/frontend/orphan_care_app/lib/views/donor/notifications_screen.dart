@@ -13,16 +13,17 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   bool _isLoading = true;
 
+  // TODO: Replace mock donor notifications with AppProvider/backend notifications.
   final List<Map<String, dynamic>> _notifications = [
     {
       'title': 'تم تحديث حالة تبرعك',
       'body':
-          'استلمت دار رعاية الأيتام السلة التموينية، وتم تسجيلها ضمن احتياجات المطبخ.',
+          'استلمت دار الرعاية السلة التموينية، وتم تسجيلها ضمن احتياجات المطبخ.',
       'time': 'منذ ساعتين',
       'isNew': true,
       'isRead': false,
       'type': 'donation',
-      'icon': Icons.inventory_2_rounded,
+      'icon': Icons.inventory_2_outlined,
     },
     {
       'title': 'اكتمل احتياج تعليمي',
@@ -31,25 +32,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       'isNew': false,
       'isRead': true,
       'type': 'completed',
-      'icon': Icons.school_rounded,
+      'icon': Icons.school_outlined,
     },
     {
-      'title': 'حالة جديدة قريبة منك',
+      'title': 'احتياج صحي عاجل قريب منك',
       'body': 'تم نشر احتياج صحي عاجل من إحدى دور الرعاية في غريان.',
       'time': 'منذ 3 أيام',
       'isNew': false,
       'isRead': true,
-      'type': 'health',
-      'icon': Icons.health_and_safety_rounded,
+      'type': 'urgent',
+      'icon': Icons.health_and_safety_outlined,
     },
     {
-      'title': 'احتياج تعليمي جديد',
+      'title': 'احتياج جديد',
       'body': 'أضيف طلب دعم للقرطاسية والحقائب المدرسية لأطفال إحدى الدور.',
       'time': 'منذ 4 أيام',
       'isNew': false,
       'isRead': true,
-      'type': 'education',
-      'icon': Icons.menu_book_rounded,
+      'type': 'new',
+      'icon': Icons.fiber_new_outlined,
     },
   ];
 
@@ -57,9 +58,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void initState() {
     super.initState();
     Future<void>.delayed(const Duration(milliseconds: 450), () {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     });
   }
 
@@ -71,41 +70,45 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         backgroundColor: AppColors.scaffoldBackground,
         appBar: donorMobileAppBar(
           title: 'الإشعارات',
+          leading: donorBackButton(context),
           actions: [
-            TextButton(
-              onPressed: _markAllAsRead,
-              child: const Text(
-                'تحديد الكل كمقروء',
-                style: TextStyle(
-                  fontFamily: 'Tajawal',
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.brandOrangeDark,
+            DonorCircleButton(
+              icon: Icons.done_all_rounded,
+              tooltip: 'تحديد الكل كمقروء',
+              onTap: _markAllAsRead,
+            ),
+            const SizedBox(width: 12),
+          ],
+        ),
+        body: Stack(
+          children: [
+            const Positioned.fill(child: DonorBackground()),
+            SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints:
+                      const BoxConstraints(maxWidth: donorMobileMaxWidth),
+                  child: _buildBody(),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
           ],
-        ),
-        body: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: _buildBody(),
-            ),
-          ),
         ),
       ),
     );
   }
 
   Widget _buildBody() {
-    if (_isLoading) {
-      return const _LoadingNotifications();
-    }
+    if (_isLoading) return const _LoadingNotifications();
 
     if (_notifications.isEmpty) {
-      return const _EmptyNotifications();
+      return DonorEmptyState(
+        icon: Icons.notifications_none_outlined,
+        title: 'لا توجد إشعارات حاليًا',
+        message: 'ستظهر هنا تحديثات مساهماتك والحالات التي تتابعها.',
+        actionLabel: 'استكشف الاحتياجات الآن',
+        onAction: () => Navigator.pushNamed(context, '/supporter_home'),
+      );
     }
 
     return ListView.separated(
@@ -202,6 +205,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         notification['isNew'] = false;
       }
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('تم تحديد جميع الإشعارات كمقروءة',
+            style: TextStyle(fontFamily: 'Tajawal')),
+        backgroundColor: Color(0xFF10B981),
+      ),
+    );
   }
 }
 
@@ -210,17 +220,10 @@ class _HeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.innerBorder),
-      ),
-      child: const Row(
+    return const DonorCard(
+      child: Row(
         children: [
-          Icon(Icons.notifications_active_rounded,
-              color: AppColors.brandOrange),
+          Icon(Icons.notifications_none_outlined, color: AppColors.brandOrange),
           SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -251,119 +254,94 @@ class _NotificationCard extends StatelessWidget {
     final isRead = notification['isRead'] as bool;
     final accentColor = _accentColor(notification['type'] as String);
 
-    return Material(
-      color: isRead ? Colors.white : accentColor.withOpacity(0.10),
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: isNew
-                  ? AppColors.brandOrange.withOpacity(0.35)
-                  : AppColors.innerBorder,
-            ),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return DonorCard(
+      onTap: onTap,
+      color: isRead ? Colors.white : accentColor.withOpacity(0.08),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
             children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
+              DonorIconBox(
+                icon: notification['icon'] as IconData,
+                color: isNew ? accentColor : AppColors.textDarkSecondary,
+              ),
+              if (isNew)
+                Positioned(
+                  top: -2,
+                  left: -2,
+                  child: Container(
+                    width: 10,
+                    height: 10,
                     decoration: BoxDecoration(
-                      color: isNew
-                          ? accentColor.withOpacity(0.14)
-                          : AppColors.surfaceLight,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Icon(
-                      notification['icon'] as IconData,
-                      color: isNew ? accentColor : AppColors.textDarkSecondary,
+                      color: accentColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
                     ),
                   ),
-                  if (isNew)
-                    Positioned(
-                      top: -2,
-                      left: -2,
-                      child: Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: accentColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                ),
+            ],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        notification['title'] as String,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textDarkPrimary,
                         ),
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            notification['title'] as String,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontFamily: 'Cairo',
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textDarkPrimary,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          notification['time'] as String,
-                          style: const TextStyle(
-                            fontFamily: 'Tajawal',
-                            fontSize: 12,
-                            color: Color(0xFF66788A),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
                     Text(
-                      notification['body'] as String,
+                      notification['time'] as String,
                       style: const TextStyle(
                         fontFamily: 'Tajawal',
-                        fontSize: 13.5,
-                        height: 1.5,
-                        color: Color(0xFF526577),
+                        fontSize: 12,
+                        color: AppColors.textDarkMuted,
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 6),
+                Text(
+                  notification['body'] as String,
+                  style: const TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 13.5,
+                    height: 1.5,
+                    color: AppColors.textDarkSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
   Color _accentColor(String type) {
     switch (type) {
-      case 'education':
-        return AppColors.skyBlueDark;
-      case 'health':
-        return AppColors.successGreen;
+      case 'urgent':
+        return AppColors.errorRed;
+      case 'new':
+        return AppColors.brandOrangeDark;
       case 'completed':
-        return const Color(0xFF6F63C7);
+        return AppColors.successGreen;
       case 'donation':
       default:
-        return AppColors.brandOrangeDark;
+        return AppColors.skyBlueDark;
     }
   }
 }
@@ -390,70 +368,6 @@ class _LoadingNotifications extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyNotifications extends StatelessWidget {
-  const _EmptyNotifications();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 34),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.innerBorder),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.notifications_none_rounded,
-                  size: 48, color: AppColors.textDarkMuted),
-              const SizedBox(height: 10),
-              const Text(
-                'لا توجد إشعارات حاليًا',
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textDarkPrimary,
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'ستظهر هنا تحديثات مساهماتك والحالات التي تتابعها.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Tajawal',
-                  fontSize: 14,
-                  height: 1.45,
-                  color: AppColors.textDarkSecondary,
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextButton.icon(
-                onPressed: () =>
-                    Navigator.pushNamed(context, '/supporter_home'),
-                icon: const Icon(Icons.favorite_rounded, size: 17),
-                label: const Text('استكشف الاحتياجات الآن'),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.brandOrangeDark,
-                  textStyle: const TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

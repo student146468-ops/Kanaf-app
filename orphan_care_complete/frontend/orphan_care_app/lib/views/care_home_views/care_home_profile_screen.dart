@@ -7,15 +7,6 @@ import 'care_home_light_widgets.dart';
 class CareHomeProfileScreen extends StatelessWidget {
   const CareHomeProfileScreen({super.key});
 
-  static const _careHome = {
-    'name': 'دار الأمان لرعاية الأيتام',
-    'location': 'غريان - ليبيا',
-    'summary':
-        'نعمل على تنظيم الاحتياجات اليومية للأطفال، وتسهيل وصول المتبرعين والمتطوعين إلى الأولويات الحقيقية داخل الدار.',
-    'manager': 'فريق إدارة كنف الرعائي',
-    'phone': '+218 91 000 0000',
-  };
-
   @override
   Widget build(BuildContext context) {
     final stats = AppProviderScope.of(context).dashboardStats;
@@ -32,7 +23,7 @@ class CareHomeProfileScreen extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 430),
             child: Stack(
               children: [
-                const Positioned.fill(child: _ProfileBackground()),
+                const Positioned.fill(child: _CareHomeBackground()),
                 SafeArea(
                   child: Column(
                     children: [
@@ -47,18 +38,14 @@ class CareHomeProfileScreen extends StatelessWidget {
                           physics: const BouncingScrollPhysics(),
                           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              _HeroProfileCard(
-                                name: _careHome['name']!,
-                                location: _careHome['location']!,
-                              ),
-                              const SizedBox(height: 16),
-                              _InfoCard(
+                              const _ProfileHero(),
+                              const SizedBox(height: 14),
+                              const _InfoCard(
                                 title: 'نبذة عن الدار',
                                 icon: Icons.article_outlined,
                                 child: Text(
-                                  _careHome['summary']!,
+                                  'نعمل على تنظيم الاحتياجات اليومية للأطفال، وتسهيل وصول المتبرعين والمتطوعين إلى الأولويات الحقيقية داخل الدار.',
                                   style: TextStyle(
                                     fontFamily: 'Tajawal',
                                     fontSize: 14,
@@ -98,7 +85,7 @@ class CareHomeProfileScreen extends StatelessWidget {
                                 wide: true,
                               ),
                               const SizedBox(height: 14),
-                              _InfoCard(
+                              const _InfoCard(
                                 title: 'معلومات التواصل',
                                 icon: Icons.contact_phone_outlined,
                                 child: Column(
@@ -106,19 +93,19 @@ class CareHomeProfileScreen extends StatelessWidget {
                                     _DetailRow(
                                       icon: Icons.person_outline_rounded,
                                       label: 'المسؤول',
-                                      value: _careHome['manager']!,
+                                      value: 'فريق إدارة كنف الرعائي',
                                     ),
-                                    const SizedBox(height: 12),
+                                    SizedBox(height: 12),
                                     _DetailRow(
                                       icon: Icons.phone_outlined,
                                       label: 'الهاتف',
-                                      value: _careHome['phone']!,
+                                      value: '+218 91 000 0000',
                                     ),
-                                    const SizedBox(height: 12),
+                                    SizedBox(height: 12),
                                     _DetailRow(
                                       icon: Icons.location_on_outlined,
                                       label: 'الموقع',
-                                      value: _careHome['location']!,
+                                      value: 'غريان - ليبيا',
                                     ),
                                   ],
                                 ),
@@ -146,34 +133,17 @@ class CareHomeProfileScreen extends StatelessWidget {
   }
 }
 
-class _ProfileBackground extends StatelessWidget {
-  const _ProfileBackground();
+class _CareHomeBackground extends StatelessWidget {
+  const _CareHomeBackground();
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    return const DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
-          colors: [
-            Colors.white,
-            AppColors.scaffoldBackground,
-            AppColors.scaffoldBackground,
-          ],
-          stops: const [0, 0.56, 1],
-        ),
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.white,
-              Colors.white,
-            ],
-          ),
+          colors: [Colors.white, AppColors.scaffoldBackground],
         ),
       ),
     );
@@ -205,7 +175,7 @@ class _HeaderBar extends StatelessWidget {
               style: const TextStyle(
                 fontFamily: 'Cairo',
                 fontSize: 18,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w900,
                 color: AppColors.textDarkPrimary,
               ),
             ),
@@ -242,11 +212,8 @@ class _CircleButton extends StatelessWidget {
   }
 }
 
-class _HeroProfileCard extends StatelessWidget {
-  final String name;
-  final String location;
-
-  const _HeroProfileCard({required this.name, required this.location});
+class _ProfileHero extends StatelessWidget {
+  const _ProfileHero();
 
   @override
   Widget build(BuildContext context) {
@@ -254,32 +221,57 @@ class _HeroProfileCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       child: Column(
         children: [
-          Container(
-            width: 92,
-            height: 92,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(colors: AppColors.orangeGradient),
-              border: Border.all(color: AppColors.innerBorder, width: 1.2),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.brandOrange.withOpacity(0.28),
-                  blurRadius: 28,
-                  offset: const Offset(0, 14),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 92,
+                height: 92,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient:
+                      const LinearGradient(colors: AppColors.orangeGradient),
+                  border: Border.all(color: AppColors.innerBorder, width: 1.2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.brandOrange.withOpacity(0.20),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: const Icon(
-              Icons.volunteer_activism_rounded,
-              color: Colors.white,
-              size: 42,
-            ),
+                child: const Icon(
+                  Icons.home_work_outlined,
+                  color: Colors.white,
+                  size: 40,
+                ),
+              ),
+              Positioned(
+                bottom: -2,
+                left: -2,
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.innerBorder),
+                  ),
+                  // TODO: Connect camera action to image upload when profile media is available.
+                  child: const Icon(
+                    Icons.photo_camera_outlined,
+                    color: AppColors.brandOrange,
+                    size: 17,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
-          Text(
-            name,
+          const Text(
+            'دار الأمان لرعاية الأيتام',
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Cairo',
               fontSize: 22,
               fontWeight: FontWeight.w900,
@@ -294,7 +286,7 @@ class _HeroProfileCard extends StatelessWidget {
                   color: AppColors.brandOrange, size: 18),
               const SizedBox(width: 6),
               Text(
-                location,
+                'غريان - ليبيا',
                 style: TextStyle(
                   fontFamily: 'Tajawal',
                   fontSize: 14,
@@ -376,7 +368,7 @@ class _MetricCard extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.16),
+              color: color.withOpacity(0.14),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(icon, color: color, size: 22),
@@ -483,9 +475,9 @@ class _PrimaryAction extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.brandOrange.withOpacity(0.24),
-              blurRadius: 22,
-              offset: const Offset(0, 10),
+              color: AppColors.brandOrange.withOpacity(0.18),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
             ),
           ],
         ),

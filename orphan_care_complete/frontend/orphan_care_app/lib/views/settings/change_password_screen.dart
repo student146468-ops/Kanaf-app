@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../utils/app_colors.dart';
+import 'shared_mobile_ui.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -9,161 +11,221 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _currentController = TextEditingController();
+  final _newController = TextEditingController();
+  final _confirmController = TextEditingController();
   bool _obscureCurrent = true;
   bool _obscureNew = true;
   bool _obscureConfirm = true;
 
   @override
+  void dispose() {
+    _currentController.dispose();
+    _newController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+
+    // TODO: Connect password update to AppProvider/backend when available.
+    _showMessage('تم حفظ كلمة المرور بنجاح.', AppColors.successGreen);
+    Navigator.of(context).pop();
+  }
+
+  void _showMessage(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(fontFamily: 'Tajawal')),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: const Color(0xFF121212),
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          title: const Text('تغيير كلمة المرور', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: Colors.white)),
-          centerTitle: true,
-        ),
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 💡 لوحة تلميح علوية كريستالية رقيقة
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.brandOrange.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.brandOrange.withOpacity(0.15), width: 1.2),
-                ),
-                child: Row(
-                  children: [
-                    const Text('🔒', style: TextStyle(fontSize: 24)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'لحماية حسابك ومستندات التبرع، يرجى اختيار كلمة مرور قوية تحتوي على أحرف وأرقام.',
-                        style: TextStyle(fontFamily: 'Cairo', color: Colors.white.withOpacity(0.7), fontSize: 13, height: 1.5),
+    return KanafPage(
+      title: 'تغيير كلمة المرور',
+      body: SafeArea(
+        top: false,
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+              kanafHorizontalPadding,
+              8,
+              kanafHorizontalPadding,
+              28,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const KanafCard(
+                  color: AppColors.brandOrangeLight,
+                  borderColor: Colors.white,
+                  child: Row(
+                    children: [
+                      KanafIconBox(
+                        icon: Icons.enhanced_encryption_outlined,
+                        backgroundColor: Colors.white,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 30),
-
-              // 1. حقل كلمة المرور الحالية
-              _buildInputFieldTitle('كلمة المرور الحالية'),
-              _buildGlassInputField(
-                hint: 'أدخل كلمة المرور الحالية',
-                obscureText: _obscureCurrent,
-                onSuffixPressed: () => setState(() => _obscureCurrent = !_obscureCurrent),
-              ),
-              const SizedBox(height: 20),
-
-              // 2. حقل كلمة المرور الجديدة
-              _buildInputFieldTitle('كلمة المرور الجديدة'),
-              _buildGlassInputField(
-                hint: 'أدخل كلمة المرور الجديدة والقوية',
-                obscureText: _obscureNew,
-                onSuffixPressed: () => setState(() => _obscureNew = !_obscureNew),
-              ),
-              const SizedBox(height: 20),
-
-              // 3. حقل تأكيد كلمة المرور الجديدة
-              _buildInputFieldTitle('تأكيد كلمة المرور الجديدة'),
-              _buildGlassInputField(
-                hint: 'أعد كتابة كلمة المرور الجديدة للتأكيد',
-                obscureText: _obscureConfirm,
-                onSuffixPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
-              ),
-              const SizedBox(height: 40),
-
-              // 🚀 زر الحفظ والتحديث الفخم والمبهر
-              GestureDetector(
-                onTap: () {
-                  // عرض رسالة نجاح منبثقة احترافية لإبهار اللجنة عند الضغط
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('تم تحديث كلمة المرور بنجاح ✅', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
-                      backgroundColor: const Color(0xFF0F9D58),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  );
-                  Navigator.of(context).pop();
-                },
-                child: Container(
-                  width: double.infinity,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    color: AppColors.brandOrange,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.brandOrange.withOpacity(0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 6),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'اختر كلمة مرور قوية لحماية حسابك ومتابعة مساهماتك بأمان.',
+                          style: kanafBodyStyle,
+                        ),
                       ),
                     ],
                   ),
-                  child: const Center(
-                    child: Text(
-                      'حفظ التعديلات الجديدة 💾',
-                      style: TextStyle(fontFamily: 'Cairo', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 22),
+                const _FieldTitle('كلمة المرور الحالية'),
+                _PasswordField(
+                  controller: _currentController,
+                  hint: 'أدخل كلمة المرور الحالية',
+                  obscureText: _obscureCurrent,
+                  onToggle: () =>
+                      setState(() => _obscureCurrent = !_obscureCurrent),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'يرجى إدخال كلمة المرور الحالية';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 18),
+                const _FieldTitle('كلمة المرور الجديدة'),
+                _PasswordField(
+                  controller: _newController,
+                  hint: '8 أحرف على الأقل',
+                  obscureText: _obscureNew,
+                  onToggle: () => setState(() => _obscureNew = !_obscureNew),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'يرجى إدخال كلمة المرور الجديدة';
+                    }
+                    if (value.trim().length < 8) {
+                      return 'كلمة المرور يجب ألا تقل عن 8 أحرف';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 18),
+                const _FieldTitle('تأكيد كلمة المرور الجديدة'),
+                _PasswordField(
+                  controller: _confirmController,
+                  hint: 'أعد كتابة كلمة المرور الجديدة',
+                  obscureText: _obscureConfirm,
+                  onToggle: () =>
+                      setState(() => _obscureConfirm = !_obscureConfirm),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'يرجى تأكيد كلمة المرور الجديدة';
+                    }
+                    if (value.trim() != _newController.text.trim()) {
+                      return 'كلمة المرور والتأكيد غير متطابقين';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 28),
+                KanafPrimaryButton(
+                  label: 'حفظ كلمة المرور',
+                  icon: Icons.save_rounded,
+                  onPressed: _submit,
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildInputFieldTitle(String title) {
+class _FieldTitle extends StatelessWidget {
+  final String title;
+
+  const _FieldTitle(this.title);
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8, right: 4),
+      padding: const EdgeInsetsDirectional.only(bottom: 8, start: 4),
       child: Text(
         title,
-        style: const TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: Colors.white70, fontSize: 13),
+        style: kanafSectionTitleStyle.copyWith(fontSize: 13.5),
+      ),
+    );
+  }
+}
+
+class _PasswordField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hint;
+  final bool obscureText;
+  final VoidCallback onToggle;
+  final String? Function(String?) validator;
+
+  const _PasswordField({
+    required this.controller,
+    required this.hint,
+    required this.obscureText,
+    required this.onToggle,
+    required this.validator,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      validator: validator,
+      textInputAction: TextInputAction.next,
+      style: const TextStyle(
+        fontFamily: 'Tajawal',
+        color: AppColors.textDarkPrimary,
+        fontWeight: FontWeight.w700,
+      ),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: kanafMutedStyle,
+        errorStyle: const TextStyle(fontFamily: 'Tajawal'),
+        prefixIcon: const Icon(
+          Icons.lock_outline_rounded,
+          color: AppColors.brandOrange,
+        ),
+        suffixIcon: IconButton(
+          icon: Icon(
+            obscureText
+                ? Icons.visibility_off_rounded
+                : Icons.visibility_rounded,
+            color: AppColors.textDarkMuted,
+            size: 20,
+          ),
+          onPressed: onToggle,
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        border: _border(AppColors.innerBorder),
+        enabledBorder: _border(AppColors.innerBorder),
+        focusedBorder: _border(AppColors.brandOrange),
+        errorBorder: _border(AppColors.errorRed),
+        focusedErrorBorder: _border(AppColors.errorRed),
       ),
     );
   }
 
-  Widget _buildGlassInputField({
-    required String hint,
-    required bool obscureText,
-    required VoidCallback onSuffixPressed,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.08), width: 1.2),
-      ),
-      child: TextField(
-        obscureText: obscureText,
-        style: const TextStyle(fontFamily: 'Cairo', color: Colors.white),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(fontFamily: 'Cairo', color: Colors.white.withOpacity(0.25), fontSize: 13),
-          prefixIcon: const Icon(Icons.lock_rounded, color: AppColors.brandOrange, size: 20),
-          suffixIcon: IconButton(
-            icon: Icon(obscureText ? Icons.visibility_off_rounded : Icons.visibility_rounded, color: Colors.white38, size: 20),
-            onPressed: onSuffixPressed,
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 15),
-        ),
-      ),
+  OutlineInputBorder _border(Color color) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide(color: color),
     );
   }
 }

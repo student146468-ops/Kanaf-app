@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import 'care_home_light_widgets.dart';
 
-/// [VisitHoursScreen] - الواجهة رقم 36: تنظيم وحجز ساعات الزيارة لدار الرعاية لعام 2026.
-/// تتيح للمشرفين والمتبرعين تنسيق مواعيد الزيارات الميدانية واختيار الفترات الزمنية المتاحة لمنع الازدحام والتشتت.
 class VisitHoursScreen extends StatefulWidget {
   const VisitHoursScreen({super.key});
 
@@ -13,45 +11,45 @@ class VisitHoursScreen extends StatefulWidget {
 
 class _VisitHoursScreenState extends State<VisitHoursScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _visitorNameController = TextEditingController();
-  final TextEditingController _purposeController = TextEditingController();
+  final _visitorNameController = TextEditingController();
+  final _purposeController = TextEditingController();
 
-  String _selectedSlot = '10:00 ص - 12:00 م'; // الفترة المختارة افتراضياً
-  String _visitorType = 'كفيل / متبرع'; // نوع الزائر الافتراضي
+  String _selectedSlot = '10:00 ص - 12:00 م';
+  String _visitorType = 'كفيل / متبرع';
 
-  // فترات الزيارة المتاحة والمحاكية بدقة لعرضها في واجهة منظمة.
+  // TODO: Replace mock slots with backend visit-hour settings when available.
   final List<Map<String, dynamic>> _visitingSlots = [
     {
       'time': '09:00 ص - 11:00 ص',
-      'status': 'ممتلئة',
-      'icon': Icons.block_rounded,
-      'color': Colors.redAccent
+      'status': 'مكتمل',
+      'icon': Icons.block_outlined,
+      'color': AppColors.errorRed,
     },
     {
       'time': '10:00 ص - 12:00 م',
-      'status': 'متاحة',
+      'status': 'متاح',
       'icon': Icons.check_circle_outline_rounded,
-      'color': const Color(0xFF10B981)
+      'color': const Color(0xFF10B981),
     },
     {
       'time': '04:00 م - 06:00 م',
-      'status': 'متاحة',
+      'status': 'متاح',
       'icon': Icons.check_circle_outline_rounded,
-      'color': const Color(0xFF10B981)
+      'color': const Color(0xFF10B981),
     },
     {
       'time': '06:00 م - 08:00 م',
-      'status': 'محجوزة مؤقتاً',
-      'icon': Icons.schedule_rounded,
-      'color': Colors.amber
+      'status': 'قيد التنفيذ',
+      'icon': Icons.schedule_outlined,
+      'color': Colors.amber,
     },
   ];
 
   final List<String> _visitorTypes = [
     'كفيل / متبرع',
     'مؤسسة خيرية',
-    'جهة رقابية ودورية',
-    'عائلة زائرة'
+    'جهة رقابية',
+    'عائلة زائرة',
   ];
 
   @override
@@ -65,7 +63,6 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isWebOrDesktop = size.width > 600;
-    final containerWidth = isWebOrDesktop ? 420.0 : double.infinity;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -73,7 +70,7 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
         backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Container(
-            width: containerWidth,
+            width: isWebOrDesktop ? 430 : double.infinity,
             height: double.infinity,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
@@ -81,115 +78,68 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
               boxShadow: isWebOrDesktop
                   ? [
                       BoxShadow(
-                          color: AppColors.innerShadow,
-                          blurRadius: 45,
-                          spreadRadius: 8)
+                        color: AppColors.innerShadow,
+                        blurRadius: 24,
+                        spreadRadius: 0,
+                      )
                     ]
                   : [],
             ),
             child: Stack(
               children: [
-                // خلفية بيضاء هادئة وموحدة لتطبيق كَنَفْ
-                Positioned.fill(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                        colors: [
-                          Colors.white,
-                          AppColors.scaffoldBackground,
-                          AppColors.scaffoldBackground,
-                        ],
-                        stops: [0.0, 0.52, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.white,
-                          Colors.white,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // محتوى تنظيم الزيارات الموزع باحترافية تامة لإراحة العين ومنع التشتت
+                const Positioned.fill(child: _CareHomeBackground()),
                 SafeArea(
                   child: Column(
                     children: [
-                      _buildAppBar(),
+                      _HeaderBar(
+                        title: 'مواعيد الزيارة',
+                        onBack: () => Navigator.of(context).pop(),
+                      ),
                       Expanded(
                         child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 22.0, vertical: 10.0),
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
                           child: Form(
                             key: _formKey,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildInfoRuleCard(),
-                                const SizedBox(height: 24),
-                                _buildSectionTitle(
-                                    'الفترات الزمنية المتاحة اليوم لفرع غريان'),
+                                const _InfoRuleCard(),
+                                const SizedBox(height: 20),
+                                const _SectionTitle('الفترات المتاحة اليوم'),
                                 const SizedBox(height: 12),
-                                _buildTimeSlotsGrid(),
-                                const SizedBox(height: 24),
-                                _buildSectionTitle(
-                                    'اسم الزائر / الجهة القاصدة'),
-                                const SizedBox(height: 8),
-                                _buildInputField(
+                                _TimeSlotsList(
+                                  slots: _visitingSlots,
+                                  selectedSlot: _selectedSlot,
+                                  onSelect: _selectSlot,
+                                ),
+                                const SizedBox(height: 20),
+                                const _SectionTitle('بيانات الزائر'),
+                                const SizedBox(height: 10),
+                                _InputField(
                                   controller: _visitorNameController,
-                                  hint:
-                                      'اكتبي الاسم الكامل للزائر أو المؤسسة...',
+                                  hint: 'اسم الزائر أو المؤسسة',
                                   icon: Icons.person_outline_rounded,
                                 ),
-                                const SizedBox(height: 20),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          _buildSectionTitle(
-                                              'تصنيف فئة الزائر'),
-                                          const SizedBox(height: 8),
-                                          _buildDropdown(
-                                              _visitorType, _visitorTypes,
-                                              (value) {
-                                            if (value != null) {
-                                              setState(
-                                                  () => _visitorType = value);
-                                            }
-                                          }),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                const SizedBox(height: 14),
+                                _VisitorTypeDropdown(
+                                  value: _visitorType,
+                                  items: _visitorTypes,
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      setState(() => _visitorType = value);
+                                    }
+                                  },
                                 ),
-                                const SizedBox(height: 20),
-                                _buildSectionTitle(
-                                    'الغرض اللوجستي أو التربوي من الزيارة'),
-                                const SizedBox(height: 8),
-                                _buildInputField(
+                                const SizedBox(height: 14),
+                                _InputField(
                                   controller: _purposeController,
-                                  hint:
-                                      'مثال: تقديم هدايا عينية، تفقد حالة صحية، تنسيق مبادرة...',
+                                  hint: 'الغرض من الزيارة',
                                   icon: Icons.assignment_outlined,
                                   maxLines: 3,
                                 ),
-                                const SizedBox(height: 35),
-                                _buildSubmitButton(),
-                                const SizedBox(height: 25),
+                                const SizedBox(height: 28),
+                                _SubmitButton(onTap: _submitVisit),
                               ],
                             ),
                           ),
@@ -206,63 +156,138 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
     );
   }
 
-  Widget _buildAppBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.innerBorder),
-              ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: AppColors.textDarkPrimary, size: 18),
-            ),
-          ),
-          const Text(
-            'جدولة تنظيم الزيارات',
-            style: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDarkPrimary,
-            ),
-          ),
-          const SizedBox(width: 40),
-        ],
+  void _selectSlot(Map<String, dynamic> slot) {
+    if (slot['status'] == 'متاح') {
+      setState(() => _selectedSlot = slot['time']);
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'هذه الفترة ${slot['status']} حاليًا. اختر فترة متاحة.',
+          style: const TextStyle(fontFamily: 'Tajawal'),
+        ),
+        backgroundColor: AppColors.errorRed,
       ),
     );
   }
 
-  Widget _buildInfoRuleCard() {
+  void _submitVisit() {
+    if (!_formKey.currentState!.validate()) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'تم اعتماد موعد الزيارة خلال فترة $_selectedSlot',
+          style: const TextStyle(fontFamily: 'Tajawal'),
+        ),
+        backgroundColor: const Color(0xFF10B981),
+      ),
+    );
+    Navigator.of(context).pop();
+  }
+}
+
+class _CareHomeBackground extends StatelessWidget {
+  const _CareHomeBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return const DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [Colors.white, AppColors.scaffoldBackground],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderBar extends StatelessWidget {
+  final String title;
+  final VoidCallback onBack;
+
+  const _HeaderBar({required this.title, required this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Row(
+        children: [
+          _CircleButton(icon: Icons.arrow_back_ios_new_rounded, onTap: onBack),
+          Expanded(
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: AppColors.textDarkPrimary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 42),
+        ],
+      ),
+    );
+  }
+}
+
+class _CircleButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _CircleButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.innerBorder),
+        ),
+        child: Icon(icon, color: AppColors.textDarkPrimary, size: 19),
+      ),
+    );
+  }
+}
+
+class _InfoRuleCard extends StatelessWidget {
+  const _InfoRuleCard();
+
+  @override
+  Widget build(BuildContext context) {
     return CareHomeCard(
-      padding: const EdgeInsets.all(14.0),
+      padding: const EdgeInsets.all(14),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(9),
             decoration: BoxDecoration(
-                color: AppColors.brandOrange.withOpacity(0.15),
-                shape: BoxShape.circle),
-            child: const Icon(Icons.gavel_rounded,
-                color: AppColors.brandOrange, size: 18),
+              color: AppColors.brandOrange.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.info_outline_rounded,
+                color: AppColors.brandOrange, size: 19),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'الحد الأقصى للزيارة الواحدة هو ساعتان لضمان راحة الأيتام وعدم خرق جدولهم التعليمي والتربوي المعتمد.',
+              'مدة الزيارة الواحدة ساعتان للحفاظ على راحة الأطفال وتنظيم جدول الدار.',
               style: TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: 11.5,
+                fontFamily: 'Tajawal',
+                fontSize: 13,
                 color: AppColors.textDarkSecondary,
-                height: 1.4,
+                height: 1.45,
               ),
             ),
           ),
@@ -270,188 +295,229 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
       ),
     );
   }
+}
 
-  Widget _buildTimeSlotsGrid() {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _visitingSlots.length,
-      itemBuilder: (context, index) {
-        final slot = _visitingSlots[index];
-        final bool isAvailable = slot['status'] == 'متاحة';
-        final bool isSelected = _selectedSlot == slot['time'] && isAvailable;
+class _SectionTitle extends StatelessWidget {
+  final String title;
 
-        return GestureDetector(
-          onTap: () {
-            if (isAvailable) {
-              setState(() => _selectedSlot = slot['time']);
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                      'هذه الفترة ${slot['status']} حالياً، يرجى اختيار فترة متاحة.',
-                      style: const TextStyle(fontFamily: 'Cairo')),
-                  backgroundColor: Colors.redAccent,
-                ),
-              );
-            }
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.only(bottom: 10),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color(0xFF10B981).withOpacity(0.12)
-                  : isAvailable
-                      ? AppColors.surfaceLight
-                      : AppColors.surfaceLight.withOpacity(0.6),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
+  const _SectionTitle(this.title);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontFamily: 'Cairo',
+        fontSize: 14,
+        fontWeight: FontWeight.w900,
+        color: AppColors.textDarkPrimary,
+      ),
+    );
+  }
+}
+
+class _TimeSlotsList extends StatelessWidget {
+  final List<Map<String, dynamic>> slots;
+  final String selectedSlot;
+  final ValueChanged<Map<String, dynamic>> onSelect;
+
+  const _TimeSlotsList({
+    required this.slots,
+    required this.selectedSlot,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: slots.map((slot) {
+        final isAvailable = slot['status'] == 'متاح';
+        final isSelected = selectedSlot == slot['time'] && isAvailable;
+        final color = slot['color'] as Color;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: InkWell(
+            onTap: () => onSelect(slot),
+            borderRadius: BorderRadius.circular(16),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFF10B981)
-                    : isAvailable
-                        ? AppColors.cardBackground
-                        : AppColors.innerBorder.withOpacity(0.5),
-                width: isSelected ? 1.5 : 1,
+                    ? const Color(0xFF10B981).withOpacity(0.12)
+                    : AppColors.surfaceLight,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFF10B981)
+                      : AppColors.innerBorder,
+                  width: isSelected ? 1.4 : 1,
+                ),
               ),
-            ),
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Icon(slot['icon'],
-                          color: isSelected
-                              ? const Color(0xFF10B981)
-                              : slot['color'].withOpacity(0.7),
-                          size: 18),
-                      const SizedBox(width: 12),
-                      Text(
-                        slot['time'],
-                        style: TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: 13,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.w600,
-                          color: isAvailable
-                              ? AppColors.textDarkPrimary
-                              : AppColors.textDarkMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: slot['color'].withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                  Icon(slot['icon'], color: color, size: 19),
+                  const SizedBox(width: 12),
+                  Expanded(
                     child: Text(
-                      slot['status'],
-                      style: TextStyle(
+                      slot['time'],
+                      style: const TextStyle(
                         fontFamily: 'Cairo',
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: slot['color'],
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textDarkPrimary,
                       ),
                     ),
                   ),
+                  _StatusPill(label: slot['status'], color: color),
                 ],
               ),
             ),
           ),
         );
+      }).toList(),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _StatusPill({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withOpacity(0.35)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontFamily: 'Tajawal',
+          fontSize: 11.5,
+          fontWeight: FontWeight.w800,
+          color: color,
+        ),
+      ),
+    );
+  }
+}
+
+class _InputField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hint;
+  final IconData icon;
+  final int maxLines;
+
+  const _InputField({
+    required this.controller,
+    required this.hint,
+    required this.icon,
+    this.maxLines = 1,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      style: const TextStyle(
+        fontFamily: 'Tajawal',
+        fontSize: 14,
+        color: AppColors.textDarkPrimary,
+      ),
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon, color: AppColors.brandOrange, size: 20),
+        hintText: hint,
+        hintStyle: TextStyle(
+          fontFamily: 'Tajawal',
+          fontSize: 13,
+          color: AppColors.textDarkMuted,
+        ),
+        filled: true,
+        fillColor: AppColors.surfaceLight,
+        border: _border(AppColors.innerBorder),
+        enabledBorder: _border(AppColors.innerBorder),
+        focusedBorder: _border(AppColors.brandOrange),
+        errorBorder: _border(AppColors.errorRed),
+        focusedErrorBorder: _border(AppColors.errorRed),
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'هذا الحقل مطلوب';
+        }
+        return null;
       },
     );
   }
 
-  Widget _buildInputField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    int maxLines = 1,
-  }) {
-    return CareHomeCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4.0),
-      child: TextFormField(
-        controller: controller,
-        maxLines: maxLines,
-        style: const TextStyle(
-          fontFamily: 'Cairo',
-          fontSize: 13.5,
-          color: AppColors.textDarkPrimary,
-        ),
-        decoration: InputDecoration(
-          icon: Icon(icon,
-              color: AppColors.brandOrange.withOpacity(0.7), size: 18),
-          hintText: hint,
-          hintStyle: TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: 12.5,
-            color: AppColors.textDarkMuted.withOpacity(0.65),
-          ),
-          border: InputBorder.none,
-        ),
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return 'هذا الحقل ضروري لتنظيم السجلات الأمنية والتربوية';
-          }
-          return null;
-        },
-      ),
+  OutlineInputBorder _border(Color color) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: color),
     );
   }
+}
 
-  Widget _buildDropdown(String currentValue, List<String> items,
-      ValueChanged<String?> onChanged) {
+class _VisitorTypeDropdown extends StatelessWidget {
+  final String value;
+  final List<String> items;
+  final ValueChanged<String?> onChanged;
+
+  const _VisitorTypeDropdown({
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return CareHomeCard(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: currentValue,
-          items: items.map((String value) {
+          value: value,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              color: AppColors.brandOrange, size: 20),
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          items: items.map((item) {
             return DropdownMenuItem<String>(
-              value: value,
+              value: item,
               child: Text(
-                value,
+                item,
                 style: const TextStyle(
-                    fontFamily: 'Cairo', fontSize: 13, color: Colors.black87),
+                  fontFamily: 'Tajawal',
+                  fontSize: 13,
+                  color: AppColors.textDarkPrimary,
+                ),
               ),
             );
           }).toList(),
           onChanged: onChanged,
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded,
-              color: AppColors.brandOrange, size: 20),
-          dropdownColor: Colors.white.withOpacity(0.96),
-          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );
   }
+}
 
-  Widget _buildSubmitButton() {
-    return GestureDetector(
-      onTap: () {
-        if (_formKey.currentState!.validate()) {
-          // محاكاة تأكيد الحجز وإظهار صندوق التأكيد المنظم المبهج والمستقر
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'تم جدولة وحجز موعد الزيارة بنجاح خلال فترة $_selectedSlot 🗓️',
-                  style: const TextStyle(fontFamily: 'Cairo')),
-              backgroundColor:
-                  const Color(0xFF10B981), // الزمردي الخالي من الأخطاء برمجياً
-            ),
-          );
-          Navigator.of(context)
-              .pop(); // العودة التلقائية للوحة التحكم الرئيسية المربوطة بها
-        }
-      },
+class _SubmitButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _SubmitButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         height: 52,
         width: double.infinity,
@@ -460,34 +526,23 @@ class _VisitHoursScreenState extends State<VisitHoursScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: AppColors.brandOrange.withOpacity(0.3),
-                blurRadius: 15,
-                offset: const Offset(0, 4)),
+              color: AppColors.brandOrange.withOpacity(0.18),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
           ],
         ),
         child: const Center(
           child: Text(
-            'تأكيد واعتماد موعد الزيارة',
+            'اعتماد موعد الزيارة',
             style: TextStyle(
               fontFamily: 'Cairo',
               fontSize: 15,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
               color: Colors.white,
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontFamily: 'Cairo',
-        fontSize: 13.5,
-        fontWeight: FontWeight.w800,
-        color: AppColors.textDarkPrimary,
       ),
     );
   }

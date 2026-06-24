@@ -27,51 +27,69 @@ class _DonationHistoryScreenState extends State<DonationHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = AppProviderScope.of(context);
-    final realDonations = provider.myDonations;
-    final hasProviderData = realDonations.isNotEmpty;
+    final donations = provider.myDonations;
+    final hasProviderData = donations.isNotEmpty;
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: AppColors.scaffoldBackground,
-        appBar: donorMobileAppBar(title: 'سجل التبرعات'),
-        body: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: RefreshIndicator(
-                color: AppColors.brandOrange,
-                onRefresh: provider.fetchMyDonations,
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(
-                      parent: BouncingScrollPhysics()),
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                  children: [
-                    _SummaryCard(
-                      count: realDonations.length,
-                      isLive: hasProviderData,
+        appBar: donorMobileAppBar(
+          title: 'سجل التبرعات',
+          leading: donorBackButton(context),
+        ),
+        body: Stack(
+          children: [
+            const Positioned.fill(child: DonorBackground()),
+            SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints:
+                      const BoxConstraints(maxWidth: donorMobileMaxWidth),
+                  child: RefreshIndicator(
+                    color: AppColors.brandOrange,
+                    onRefresh: provider.fetchMyDonations,
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                      children: [
+                        _SummaryCard(
+                            count: donations.length, isLive: hasProviderData),
+                        if (provider.isLoading) ...[
+                          const SizedBox(height: 14),
+                          const LinearProgressIndicator(
+                              color: AppColors.brandOrange),
+                        ],
+                        if (provider.errorMessage != null &&
+                            !hasProviderData) ...[
+                          const SizedBox(height: 14),
+                          const _NoticeCard(
+                            message:
+                                'تعذر جلب السجل من الخادم حاليًا. اسحب للأسفل للمحاولة مرة أخرى.',
+                          ),
+                        ],
+                        const SizedBox(height: 18),
+                        if (hasProviderData)
+                          ...donations.map(_buildProviderDonation)
+                        else
+                          DonorEmptyState(
+                            icon: Icons.receipt_long_outlined,
+                            title: 'لا توجد تبرعات بعد',
+                            message:
+                                'عند إتمام أول مساهمة ستظهر هنا مع حالتها وتفاصيلها.',
+                            actionLabel: 'استكشف الاحتياجات الآن',
+                            onAction: () =>
+                                Navigator.pushNamed(context, '/supporter_home'),
+                          ),
+                      ],
                     ),
-                    if (provider.isLoading) ...[
-                      const SizedBox(height: 14),
-                      const LinearProgressIndicator(
-                          color: AppColors.brandOrange),
-                    ],
-                    if (provider.errorMessage != null && !hasProviderData) ...[
-                      const SizedBox(height: 14),
-                      const _NoticeCard(
-                          message:
-                              'تعذر جلب السجل من الخادم حاليًا. اسحب للأسفل للمحاولة مرة أخرى.'),
-                    ],
-                    const SizedBox(height: 18),
-                    if (hasProviderData)
-                      ...realDonations.map(_buildProviderDonation)
-                    else
-                      const _EmptyHistory(),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -85,36 +103,50 @@ class _DonationHistoryScreenState extends State<DonationHistoryScreen> {
     final target =
         _safeText(donation.description, donation.category ?? 'مساهمة إنسانية');
     final date = _formatDate(donation.donationDate ?? donation.createdAt);
-    final progress = _progressForStatus(donation.status);
+    final status = _normalizeStatus(donation.status);
+    final progress = _progressForStatus(status);
 
-    return _DonationCard(
-      type: isFinancial ? 'مالي' : 'عيني',
-      amount: amount,
-      target: target,
-      date: date,
-      status: _safeText(donation.status, 'قيد المتابعة'),
-      progress: progress,
-      onTap: () => _showDonationDetails(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: _DonationCard(
         type: isFinancial ? 'مالي' : 'عيني',
         amount: amount,
         target: target,
         date: date,
-        status: _safeText(donation.status, 'قيد المتابعة'),
-        description: _safeText(donation.description, 'لا توجد تفاصيل إضافية.'),
+        status: status,
+        progress: progress,
+        onTap: () => _showDonationDetails(
+          type: isFinancial ? 'مالي' : 'عيني',
+          amount: amount,
+          target: target,
+          date: date,
+          status: status,
+          description:
+              _safeText(donation.description, 'لا توجد تفاصيل إضافية.'),
+        ),
       ),
     );
   }
 
   double _progressForStatus(String status) {
+    if (status == 'مكتمل' || status == 'تم الاستلام') return 1;
+    if (status == 'مرفوض') return 0;
+    return 0.55;
+  }
+
+  String _normalizeStatus(String status) {
+    final lower = status.toLowerCase();
     if (status.contains('مكتمل') ||
         status.contains('استلام') ||
-        status.toLowerCase().contains('completed')) {
-      return 1;
+        lower.contains('completed')) {
+      return 'مكتمل';
     }
-    if (status.contains('رفض') || status.contains('فشل')) {
-      return 0;
+    if (status.contains('رفض') ||
+        status.contains('فشل') ||
+        lower.contains('rejected')) {
+      return 'مرفوض';
     }
-    return 0.55;
+    return 'قيد التنفيذ';
   }
 
   void _showDonationDetails({
@@ -198,25 +230,11 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.innerBorder),
-      ),
+    return DonorCard(
       child: Row(
         children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: AppColors.brandOrangeLight,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(Icons.receipt_long_rounded,
-                color: AppColors.brandOrange),
-          ),
+          const DonorIconBox(
+              icon: Icons.receipt_long_outlined, color: AppColors.brandOrange),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -227,7 +245,7 @@ class _SummaryCard extends StatelessWidget {
                   style: const TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 16,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
                     color: AppColors.textDarkPrimary,
                   ),
                 ),
@@ -258,12 +276,9 @@ class _NoticeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DonorCard(
+      color: AppColors.brandOrangeLight,
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.brandOrangeLight,
-        borderRadius: BorderRadius.circular(14),
-      ),
       child: Row(
         children: [
           const Icon(Icons.info_outline_rounded,
@@ -307,221 +322,99 @@ class _DonationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isFinancial = type == 'مالي';
-    final statusColor = _statusColor(status);
+    final statusColor = donorStatusColor(status);
     final percentage = (progress * 100).round();
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppColors.innerBorder),
-            ),
-            child: Row(
+    return DonorCard(
+      onTap: onTap,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DonorIconBox(
+            icon: isFinancial
+                ? Icons.savings_outlined
+                : Icons.inventory_2_outlined,
+            color: isFinancial ? AppColors.brandOrange : AppColors.successGreen,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: isFinancial
-                        ? AppColors.brandOrangeLight
-                        : AppColors.successGreenLight,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Icon(
-                    isFinancial
-                        ? Icons.savings_rounded
-                        : Icons.inventory_2_rounded,
-                    color: isFinancial
-                        ? AppColors.brandOrange
-                        : AppColors.successGreen,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              amount,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontFamily: 'Cairo',
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textDarkPrimary,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 9, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              status,
-                              style: TextStyle(
-                                fontFamily: 'Tajawal',
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w800,
-                                color: statusColor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        target,
-                        maxLines: 2,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        amount,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontFamily: 'Tajawal',
-                          fontSize: 13.5,
-                          height: 1.4,
-                          color: Color(0xFF526577),
+                          fontFamily: 'Cairo',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textDarkPrimary,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.calendar_today_rounded,
-                              size: 14, color: AppColors.textDarkMuted),
-                          const SizedBox(width: 5),
-                          Text(
-                            date,
-                            style: const TextStyle(
-                              fontFamily: 'Tajawal',
-                              fontSize: 12.5,
-                              color: Color(0xFF66788A),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(99),
-                              child: LinearProgressIndicator(
-                                value: progress,
-                                minHeight: 5,
-                                backgroundColor: AppColors.surfaceLight,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(statusColor),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '$percentage% مكتمل',
-                            style: TextStyle(
-                              fontFamily: 'Tajawal',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: statusColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
+                    DonorBadge(label: status, color: statusColor),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  target,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 13.5,
+                    height: 1.4,
+                    color: AppColors.textDarkSecondary,
                   ),
                 ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today_outlined,
+                        size: 14, color: AppColors.textDarkMuted),
+                    const SizedBox(width: 5),
+                    Text(
+                      date,
+                      style: const TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontSize: 12.5,
+                        color: AppColors.textDarkSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(99),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 6,
+                          backgroundColor: AppColors.surfaceLight,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(statusColor),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '$percentage%',
+                      style: TextStyle(
+                        fontFamily: 'Tajawal',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        color: statusColor,
+                      ),
+                    ),
+                  ],
+                ),
               ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Color _statusColor(String status) {
-    if (status.contains('مكتمل') || status.contains('استلام')) {
-      return AppColors.successGreen;
-    }
-    if (status.contains('رفض') || status.contains('فشل')) {
-      return AppColors.errorRed;
-    }
-    return AppColors.brandOrange;
-  }
-}
-
-class _EmptyHistory extends StatelessWidget {
-  const _EmptyHistory();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 34),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.innerBorder),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 62,
-            height: 62,
-            decoration: BoxDecoration(
-              color: AppColors.brandOrangeLight,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(
-              Icons.volunteer_activism_rounded,
-              color: AppColors.brandOrange,
-              size: 32,
-            ),
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'لا توجد تبرعات بعد',
-            style: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textDarkPrimary,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'عند إتمام أول مساهمة ستظهر هنا مع حالتها وتفاصيلها.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'Tajawal',
-              fontSize: 14,
-              height: 1.45,
-              color: Color(0xFF526577),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextButton.icon(
-            onPressed: () => Navigator.pushNamed(context, '/supporter_home'),
-            icon: const Icon(Icons.search_rounded, size: 17),
-            label: const Text('استكشف الاحتياجات الآن'),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.brandOrangeDark,
-              textStyle: const TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: 12.5,
-                fontWeight: FontWeight.w800,
-              ),
             ),
           ),
         ],
@@ -544,7 +437,7 @@ class _DetailRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 72,
+            width: 74,
             child: Text(
               label,
               style: const TextStyle(

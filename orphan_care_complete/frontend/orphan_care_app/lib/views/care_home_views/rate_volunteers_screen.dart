@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import 'care_home_light_widgets.dart';
 
-/// [RateVolunteersScreen] - الواجهة رقم 34: تقييم وتكريم المتطوعين لدار الرعاية لعام 2026.
-/// تتيح للمشرفين تقييم أداء المتطوعين بنظام النجوم المتوهجة وإسناد أوسمة تميز تفاعلية وواضحة.
 class RateVolunteersScreen extends StatefulWidget {
   const RateVolunteersScreen({super.key});
 
@@ -12,40 +10,38 @@ class RateVolunteersScreen extends StatefulWidget {
 }
 
 class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
-  int _ratingScore = 5; // التقييم الافتراضي بالنجوم
-  String _selectedBadge = 'متميز لغوياً'; // الوسام المختار افتراضياً
+  int _ratingScore = 5;
+  String _selectedBadge = 'متميز تعليميًا';
   final TextEditingController _notesController = TextEditingController();
 
-  // بيانات المتطوع المستهدف بالتقييم إلى حين تمرير بيانات حقيقية من شاشة الإدارة.
+  // TODO: Receive selected volunteer from manage volunteers when backend flow is ready.
   final Map<String, dynamic> _targetVolunteer = {
-    'id': 'v1',
     'name': 'أحمد علي الساعدي',
-    'role': 'تعليمي',
-    'sub_role': 'مدرس لغة إنجليزية ودعم دراسي للأطفال',
+    'role': 'دعم تعليمي',
+    'summary': 'مدرس لغة إنجليزية ودعم دراسي للأطفال',
     'duration': '3 أشهر تطوع مستمر',
   };
 
-  // قائمة الأوسمة التقديرية واضحة والمناسبة لطبيعة دور الرعاية
-  final List<Map<String, dynamic>> _appreciationBadges = [
+  final List<Map<String, dynamic>> _badges = [
     {
-      'name': 'متميز لغوياً',
-      'icon': Icons.g_translate_rounded,
-      'color': const Color(0xFF3B82F6)
+      'name': 'متميز تعليميًا',
+      'icon': Icons.school_outlined,
+      'color': const Color(0xFF3B82F6),
     },
     {
       'name': 'قائد مؤثر',
-      'icon': Icons.auto_awesome_rounded,
-      'color': Colors.amber
+      'icon': Icons.auto_awesome_outlined,
+      'color': Colors.amber,
     },
     {
       'name': 'صديق الطفولة',
-      'icon': Icons.child_care_rounded,
-      'color': const Color(0xFF10B981)
+      'icon': Icons.child_care_outlined,
+      'color': const Color(0xFF10B981),
     },
     {
       'name': 'ملتزم ومثالي',
-      'icon': Icons.verified_user_rounded,
-      'color': const Color(0xFF8B5CF6)
+      'icon': Icons.verified_user_outlined,
+      'color': const Color(0xFF8B5CF6),
     },
   ];
 
@@ -59,7 +55,6 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isWebOrDesktop = size.width > 600;
-    final containerWidth = isWebOrDesktop ? 420.0 : double.infinity;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -67,7 +62,7 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
         backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Container(
-            width: containerWidth,
+            width: isWebOrDesktop ? 430 : double.infinity,
             height: double.infinity,
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
@@ -75,77 +70,54 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
               boxShadow: isWebOrDesktop
                   ? [
                       BoxShadow(
-                          color: AppColors.innerShadow,
-                          blurRadius: 45,
-                          spreadRadius: 8)
+                        color: AppColors.innerShadow,
+                        blurRadius: 24,
+                        spreadRadius: 0,
+                      )
                     ]
                   : [],
             ),
             child: Stack(
               children: [
-                // خلفية بيضاء هادئة الموحدة لتطبيق كَنَفْ
-                Positioned.fill(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                        colors: [
-                          Colors.white,
-                          AppColors.scaffoldBackground,
-                          AppColors.scaffoldBackground,
-                        ],
-                        stops: [0.0, 0.52, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.white,
-                          Colors.white,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // محتوى صفحة التقييم الموزع باحترافية لإراحة العين
+                const Positioned.fill(child: _CareHomeBackground()),
                 SafeArea(
                   child: Column(
                     children: [
-                      _buildAppBar(),
+                      _HeaderBar(
+                        title: 'تقييم المتطوع',
+                        onBack: () => Navigator.of(context).pop(),
+                      ),
                       Expanded(
                         child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 22.0, vertical: 10.0),
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildVolunteerHeaderCard(),
-                              const SizedBox(height: 24),
-                              _buildSectionTitle(
-                                  'التقييم العام بالأداء الميداني'),
-                              const SizedBox(height: 14),
-                              _buildStarsRatingBar(),
-                              const SizedBox(height: 24),
-                              _buildSectionTitle('منح وسام التميز السنوي'),
-                              const SizedBox(height: 14),
-                              _buildBadgesGrid(),
-                              const SizedBox(height: 24),
-                              _buildSectionTitle(
-                                  'ملاحظات وتوصيات إضافية لوثيقته'),
-                              const SizedBox(height: 14),
-                              _buildNotesInputField(),
-                              const SizedBox(height: 35),
-                              _buildSubmitButton(),
+                              _VolunteerCard(volunteer: _targetVolunteer),
                               const SizedBox(height: 20),
+                              const _SectionTitle('التقييم العام'),
+                              const SizedBox(height: 12),
+                              _StarsRating(
+                                rating: _ratingScore,
+                                onChanged: (value) =>
+                                    setState(() => _ratingScore = value),
+                              ),
+                              const SizedBox(height: 20),
+                              const _SectionTitle('وسام التقدير'),
+                              const SizedBox(height: 12),
+                              _BadgesGrid(
+                                badges: _badges,
+                                selected: _selectedBadge,
+                                onChanged: (value) =>
+                                    setState(() => _selectedBadge = value),
+                              ),
+                              const SizedBox(height: 20),
+                              const _SectionTitle('ملاحظات إضافية'),
+                              const SizedBox(height: 12),
+                              _NotesField(controller: _notesController),
+                              const SizedBox(height: 28),
+                              _SubmitButton(onTap: _submitRating),
                             ],
                           ),
                         ),
@@ -161,54 +133,113 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
     );
   }
 
-  Widget _buildAppBar() {
+  void _submitRating() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'تم اعتماد تقييم المتطوع بنجاح',
+          style: TextStyle(fontFamily: 'Tajawal'),
+        ),
+        backgroundColor: Color(0xFF10B981),
+      ),
+    );
+    Navigator.of(context).pop();
+  }
+}
+
+class _CareHomeBackground extends StatelessWidget {
+  const _CareHomeBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return const DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [Colors.white, AppColors.scaffoldBackground],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderBar extends StatelessWidget {
+  final String title;
+  final VoidCallback onBack;
+
+  const _HeaderBar({required this.title, required this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.innerBorder),
+          _CircleButton(icon: Icons.arrow_back_ios_new_rounded, onTap: onBack),
+          Expanded(
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: AppColors.textDarkPrimary,
               ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: AppColors.textDarkPrimary, size: 18),
             ),
           ),
-          const Text(
-            'تقييم أداء المتطوع',
-            style: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDarkPrimary,
-            ),
-          ),
-          const SizedBox(width: 40), // لضمان التوازن البصري التام في الـ AppBar
+          const SizedBox(width: 42),
         ],
       ),
     );
   }
+}
 
-  Widget _buildVolunteerHeaderCard() {
+class _CircleButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _CircleButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.innerBorder),
+        ),
+        child: Icon(icon, color: AppColors.textDarkPrimary, size: 19),
+      ),
+    );
+  }
+}
+
+class _VolunteerCard extends StatelessWidget {
+  final Map<String, dynamic> volunteer;
+
+  const _VolunteerCard({required this.volunteer});
+
+  @override
+  Widget build(BuildContext context) {
     return CareHomeCard(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Container(
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: AppColors.brandOrange.withOpacity(0.15),
+              color: AppColors.brandOrange.withOpacity(0.12),
               shape: BoxShape.circle,
-              border: Border.all(
-                  color: AppColors.brandOrange.withOpacity(0.3), width: 1.5),
+              border:
+                  Border.all(color: AppColors.brandOrange.withOpacity(0.28)),
             ),
             child: const Icon(Icons.person_outline_rounded,
                 color: AppColors.brandOrange, size: 26),
@@ -219,20 +250,20 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _targetVolunteer['name'],
+                  volunteer['name'],
                   style: const TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 15,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                     color: AppColors.textDarkPrimary,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
-                  '${_targetVolunteer['sub_role']} • ${_targetVolunteer['duration']}',
+                  '${volunteer['summary']} • ${volunteer['duration']}',
                   style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 12,
+                    fontFamily: 'Tajawal',
+                    fontSize: 12.5,
                     color: AppColors.textDarkSecondary,
                   ),
                 ),
@@ -243,43 +274,73 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
       ),
     );
   }
+}
 
-  Widget _buildStarsRatingBar() {
-    return CareHomeCard(
-      padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 12.0),
-      child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(5, (index) {
-            int starValue = 5 -
-                index; // ليعمل نظام النجوم من اليمين إلى اليسار بشكل لائق مع لغتنا العربية
-            bool isSelected = starValue <= _ratingScore;
+class _SectionTitle extends StatelessWidget {
+  final String title;
 
-            return GestureDetector(
-              onTap: () => setState(() => _ratingScore = starValue),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.symmetric(horizontal: 6),
-                transform: isSelected
-                    ? Matrix4.identity().scaled(1.1)
-                    : Matrix4.identity(),
-                child: Icon(
-                  isSelected ? Icons.star_rounded : Icons.star_border_rounded,
-                  color: isSelected ? Colors.amber : AppColors.innerBorder,
-                  size: 38,
-                  shadows: isSelected
-                      ? [const Shadow(color: Colors.amber, blurRadius: 10)]
-                      : [],
-                ),
-              ),
-            );
-          }),
-        ),
+  const _SectionTitle(this.title);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontFamily: 'Cairo',
+        fontSize: 14,
+        fontWeight: FontWeight.w900,
+        color: AppColors.textDarkPrimary,
       ),
     );
   }
+}
 
-  Widget _buildBadgesGrid() {
+class _StarsRating extends StatelessWidget {
+  final int rating;
+  final ValueChanged<int> onChanged;
+
+  const _StarsRating({required this.rating, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return CareHomeCard(
+      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(5, (index) {
+          final starValue = 5 - index;
+          final isSelected = starValue <= rating;
+          return InkWell(
+            onTap: () => onChanged(starValue),
+            borderRadius: BorderRadius.circular(18),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              child: Icon(
+                isSelected ? Icons.star_rounded : Icons.star_border_rounded,
+                color: isSelected ? Colors.amber : AppColors.innerBorder,
+                size: 36,
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _BadgesGrid extends StatelessWidget {
+  final List<Map<String, dynamic>> badges;
+  final String selected;
+  final ValueChanged<String> onChanged;
+
+  const _BadgesGrid({
+    required this.badges,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -287,48 +348,43 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
         crossAxisCount: 2,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
-        childAspectRatio: 2.3,
+        childAspectRatio: 2.35,
       ),
-      itemCount: _appreciationBadges.length,
+      itemCount: badges.length,
       itemBuilder: (context, index) {
-        final badge = _appreciationBadges[index];
-        final bool isSelected = _selectedBadge == badge['name'];
+        final badge = badges[index];
+        final isSelected = selected == badge['name'];
+        final color = badge['color'] as Color;
 
-        return GestureDetector(
-          onTap: () => setState(() => _selectedBadge = badge['name']),
+        return InkWell(
+          onTap: () => onChanged(badge['name']),
+          borderRadius: BorderRadius.circular(16),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 180),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? badge['color'].withOpacity(0.18)
-                  : AppColors.surfaceLight,
+              color:
+                  isSelected ? color.withOpacity(0.14) : AppColors.surfaceLight,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isSelected ? badge['color'] : AppColors.cardBackground,
-                width: isSelected ? 1.5 : 1,
+                color: isSelected ? color : AppColors.innerBorder,
+                width: isSelected ? 1.4 : 1,
               ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                          color: badge['color'].withOpacity(0.1), blurRadius: 8)
-                    ]
-                  : [],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(badge['icon'],
-                    color: isSelected
-                        ? badge['color']
-                        : AppColors.textDarkSecondary,
-                    size: 20),
+                Icon(
+                  badge['icon'],
+                  color: isSelected ? color : AppColors.textDarkSecondary,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   badge['name'],
                   style: TextStyle(
-                    fontFamily: 'Cairo',
+                    fontFamily: 'Tajawal',
                     fontSize: 12.5,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    fontWeight: FontWeight.w800,
                     color: isSelected
                         ? AppColors.textDarkPrimary
                         : AppColors.textDarkSecondary,
@@ -341,44 +397,49 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
       },
     );
   }
+}
 
-  Widget _buildNotesInputField() {
+class _NotesField extends StatelessWidget {
+  final TextEditingController controller;
+
+  const _NotesField({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
     return CareHomeCard(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: TextField(
-        controller: _notesController,
+        controller: controller,
         maxLines: 3,
         style: const TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: 13.5,
-            color: AppColors.textDarkPrimary),
+          fontFamily: 'Tajawal',
+          fontSize: 14,
+          color: AppColors.textDarkPrimary,
+        ),
         decoration: InputDecoration(
-          hintText: 'اكتبي هنا ثناءً خاصاً أو ملاحظات تضاف لملفه الشخصي...',
+          hintText: 'أضف ملاحظة قصيرة تساعد في تطوير تجربة المتطوع...',
           hintStyle: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 12.5,
-              color: AppColors.textDarkMuted),
+            fontFamily: 'Tajawal',
+            fontSize: 13,
+            color: AppColors.textDarkMuted,
+          ),
           border: InputBorder.none,
         ),
       ),
     );
   }
+}
 
-  Widget _buildSubmitButton() {
-    return GestureDetector(
-      onTap: () {
-        // تفاعل الحفظ الفوري وبناء الـ SnackBar المتناسق وخالي الأخطاء
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم اعتماد التقييم ومنح وسام التميز بنجاح ✅',
-                style: TextStyle(fontFamily: 'Cairo')),
-            backgroundColor:
-                Color(0xFF10B981), // الزمردي الصريح والآمن للكومبايلر
-          ),
-        );
-        Navigator.of(context)
-            .pop(); // العودة التلقائية لواجهة إدارة المتطوعين المربوطة بها
-      },
+class _SubmitButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _SubmitButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         height: 52,
         width: double.infinity,
@@ -387,34 +448,23 @@ class _RateVolunteersScreenState extends State<RateVolunteersScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-                color: AppColors.brandOrange.withOpacity(0.3),
-                blurRadius: 15,
-                offset: const Offset(0, 4)),
+              color: AppColors.brandOrange.withOpacity(0.18),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
           ],
         ),
         child: const Center(
           child: Text(
-            'حفظ واعتماد التقييم التكريمي',
+            'حفظ التقييم',
             style: TextStyle(
               fontFamily: 'Cairo',
               fontSize: 15,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
               color: Colors.white,
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontFamily: 'Cairo',
-        fontSize: 14,
-        fontWeight: FontWeight.w800,
-        color: AppColors.textDarkPrimary,
       ),
     );
   }

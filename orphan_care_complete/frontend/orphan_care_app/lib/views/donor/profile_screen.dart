@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/donation_model.dart';
 import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
+import 'donor_mobile_chrome.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -11,12 +12,12 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = AppProviderScope.of(context);
     final donations = provider.myDonations;
-    final completedCount = donations
-        .where((donation) =>
-            donation.status.contains('مكتمل') ||
-            donation.status.contains('استلام') ||
-            donation.status.toLowerCase().contains('completed'))
-        .length;
+    final completedCount = donations.where((donation) {
+      final status = donation.status.toLowerCase();
+      return donation.status.contains('مكتمل') ||
+          donation.status.contains('استلام') ||
+          status.contains('completed');
+    }).length;
     final pendingCount =
         donations.isEmpty ? 0 : donations.length - completedCount;
 
@@ -24,114 +25,139 @@ class ProfileScreen extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: AppColors.scaffoldBackground,
-        body: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
-                children: [
-                  _buildProfileHeader(),
-                  const SizedBox(height: 16),
-                  _buildImpactRow(
-                    total: donations.length,
-                    completed: completedCount,
-                    pending: pendingCount,
-                  ),
-                  if (donations.isEmpty) ...[
-                    const SizedBox(height: 12),
-                    _StartContributionCard(
-                      onTap: () =>
-                          Navigator.pushNamed(context, '/supporter_home'),
-                    ),
-                  ],
-                  const SizedBox(height: 18),
-                  _MenuGroup(
+        body: Stack(
+          children: [
+            const Positioned.fill(child: DonorBackground()),
+            SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints:
+                      const BoxConstraints(maxWidth: donorMobileMaxWidth),
+                  child: ListView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
                     children: [
-                      _MenuTile(
-                        icon: Icons.person_rounded,
-                        title: 'ملخص الحساب',
-                        subtitle: 'عرض بيانات المتبرع الحالية',
-                        onTap: () => _showAccountSummary(context, donations),
+                      _buildProfileHeader(),
+                      const SizedBox(height: 16),
+                      _buildImpactRow(
+                        total: donations.length,
+                        completed: completedCount,
+                        pending: pendingCount,
                       ),
-                      _MenuTile(
-                        icon: Icons.receipt_long_rounded,
-                        title: 'سجل التبرعات',
-                        subtitle: 'متابعة مساهماتك وحالاتها',
-                        onTap: () =>
-                            Navigator.pushNamed(context, '/donation_history'),
+                      if (donations.isEmpty) ...[
+                        const SizedBox(height: 12),
+                        DonorEmptyState(
+                          icon: Icons.volunteer_activism_outlined,
+                          title: 'ابدئي أول مساهمة لك',
+                          message:
+                              'لم يتم تسجيل أي مساهمة بعد. يمكنك استكشاف الاحتياجات المتاحة والبدء بخطوة بسيطة.',
+                          actionLabel: 'استكشاف الاحتياجات',
+                          onAction: () =>
+                              Navigator.pushNamed(context, '/supporter_home'),
+                        ),
+                      ],
+                      const SizedBox(height: 18),
+                      _MenuGroup(
+                        children: [
+                          _MenuTile(
+                            icon: Icons.person_outline_rounded,
+                            title: 'ملخص الحساب',
+                            subtitle: 'عرض بيانات المتبرع الحالية',
+                            onTap: () =>
+                                _showAccountSummary(context, donations),
+                          ),
+                          _MenuTile(
+                            icon: Icons.receipt_long_outlined,
+                            title: 'سجل التبرعات',
+                            subtitle: 'متابعة مساهماتك وحالاتها',
+                            onTap: () => Navigator.pushNamed(
+                                context, '/donation_history'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _MenuGroup(
+                        children: [
+                          _MenuTile(
+                            icon: Icons.lock_outline_rounded,
+                            title: 'الأمان وكلمة المرور',
+                            subtitle: 'إدارة حماية الحساب',
+                            onTap: () => Navigator.pushNamed(
+                                context, '/change_password'),
+                          ),
+                          _MenuTile(
+                            icon: Icons.settings_outlined,
+                            title: 'إعدادات التطبيق',
+                            subtitle: 'الإشعارات واللغة والمظهر',
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/settings'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+                      DonorSecondaryButton(
+                        label: 'تسجيل الخروج',
+                        icon: Icons.logout_rounded,
+                        color: AppColors.errorRed,
+                        onTap: () => Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/login',
+                          (route) => false,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  _MenuGroup(
-                    children: [
-                      _MenuTile(
-                        icon: Icons.lock_rounded,
-                        title: 'الأمان وكلمة المرور',
-                        subtitle: 'إدارة حماية الحساب',
-                        onTap: () =>
-                            Navigator.pushNamed(context, '/change_password'),
-                      ),
-                      _MenuTile(
-                        icon: Icons.settings_rounded,
-                        title: 'إعدادات التطبيق',
-                        subtitle: 'الإشعارات واللغة والمظهر',
-                        onTap: () => Navigator.pushNamed(context, '/settings'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/login',
-                      (route) => false,
-                    ),
-                    icon: const Icon(Icons.logout_rounded, size: 18),
-                    label: const Text('تسجيل الخروج'),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(52),
-                      foregroundColor: AppColors.errorRed,
-                      side: const BorderSide(color: AppColors.errorRed),
-                      textStyle: const TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                      ),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildProfileHeader() {
-    return Container(
+    return DonorCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.innerBorder),
-      ),
       child: Row(
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: AppColors.brandOrangeLight,
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: const Icon(Icons.person_rounded,
-                size: 34, color: AppColors.brandOrange),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: AppColors.brandOrangeLight,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppColors.innerBorder),
+                ),
+                child: const Icon(
+                  Icons.person_rounded,
+                  size: 36,
+                  color: AppColors.brandOrange,
+                ),
+              ),
+              Positioned(
+                bottom: -3,
+                left: -3,
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.innerBorder),
+                  ),
+                  // TODO: Connect camera action to profile image upload when API is available.
+                  child: const Icon(
+                    Icons.photo_camera_outlined,
+                    size: 16,
+                    color: AppColors.brandOrange,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(width: 14),
           const Expanded(
@@ -139,17 +165,17 @@ class ProfileScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'الداعم الكريم',
+                  'رؤى علي',
                   style: TextStyle(
                     fontFamily: 'Cairo',
-                    fontSize: 18,
+                    fontSize: 19,
                     fontWeight: FontWeight.w900,
                     color: AppColors.textDarkPrimary,
                   ),
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'عضو في مجتمع كنف للعطاء',
+                  'عضوة في مجتمع كنف للعطاء',
                   style: TextStyle(
                     fontFamily: 'Tajawal',
                     fontSize: 13.5,
@@ -181,9 +207,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showAccountSummary(
-    BuildContext context,
-    List<DonationModel> donations,
-  ) {
+      BuildContext context, List<DonationModel> donations) {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.white,
@@ -222,7 +246,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    'لا توجد بيانات ملف شخصي منفصلة في مزود التطبيق الحالي، لذلك يتم عرض ملخص آمن من سجل مساهماتك المتاح.',
+                    'يعرض التطبيق حاليًا ملخصًا آمنًا من سجل المساهمات المتاح.',
                     style: TextStyle(
                       fontFamily: 'Tajawal',
                       fontSize: 14,
@@ -232,13 +256,13 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   _SummaryRow(
-                    icon: Icons.receipt_long_rounded,
+                    icon: Icons.receipt_long_outlined,
                     label: 'عدد المساهمات المسجلة',
                     value: '${donations.length}',
                   ),
                   const SizedBox(height: 10),
                   const _SummaryRow(
-                    icon: Icons.verified_user_rounded,
+                    icon: Icons.verified_user_outlined,
                     label: 'حالة الحساب',
                     value: 'نشط',
                   ),
@@ -265,13 +289,9 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DonorCard(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.scaffoldBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.innerBorder),
-      ),
+      color: AppColors.scaffoldBackground,
       child: Row(
         children: [
           Icon(icon, color: AppColors.brandOrange, size: 20),
@@ -291,7 +311,7 @@ class _SummaryRow extends StatelessWidget {
             style: const TextStyle(
               fontFamily: 'Cairo',
               fontSize: 13.5,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
               color: AppColors.textDarkPrimary,
             ),
           ),
@@ -309,13 +329,8 @@ class _ImpactCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DonorCard(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.innerBorder),
-      ),
       child: Column(
         children: [
           Text(
@@ -335,7 +350,7 @@ class _ImpactCard extends StatelessWidget {
             style: const TextStyle(
               fontFamily: 'Tajawal',
               fontSize: 12,
-              color: Color(0xFF526577),
+              color: AppColors.textDarkSecondary,
             ),
           ),
         ],
@@ -351,12 +366,8 @@ class _MenuGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.innerBorder),
-      ),
+    return DonorCard(
+      padding: EdgeInsets.zero,
       child: Column(children: children),
     );
   }
@@ -380,21 +391,13 @@ class _MenuTile extends StatelessWidget {
     return ListTile(
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      leading: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          color: AppColors.brandOrangeLight,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Icon(icon, color: AppColors.brandOrange, size: 21),
-      ),
+      leading: DonorIconBox(icon: icon, color: AppColors.brandOrange, size: 42),
       title: Text(
         title,
         style: const TextStyle(
           fontFamily: 'Cairo',
           fontSize: 14,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w900,
           color: AppColors.textDarkPrimary,
         ),
       ),
@@ -403,90 +406,11 @@ class _MenuTile extends StatelessWidget {
         style: const TextStyle(
           fontFamily: 'Tajawal',
           fontSize: 12.5,
-          color: Color(0xFF66788A),
+          color: AppColors.textDarkSecondary,
         ),
       ),
       trailing: const Icon(Icons.chevron_left_rounded,
           color: AppColors.textDarkMuted),
-    );
-  }
-}
-
-class _StartContributionCard extends StatelessWidget {
-  const _StartContributionCard({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.brandOrangeLight,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.brandOrange.withOpacity(0.18)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: const Icon(
-              Icons.volunteer_activism_rounded,
-              color: AppColors.brandOrange,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'ابدأ أول مساهمة لك',
-                  style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.textDarkPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'لم يتم تسجيل أي مساهمة بعد. يمكنك استكشاف الاحتياجات المتاحة والبدء بخطوة بسيطة.',
-                  style: TextStyle(
-                    fontFamily: 'Tajawal',
-                    fontSize: 13.5,
-                    height: 1.45,
-                    color: Color(0xFF526577),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: onTap,
-                    icon: const Icon(Icons.search_rounded, size: 17),
-                    label: const Text('استكشف الاحتياجات الآن'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.brandOrangeDark,
-                      textStyle: const TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -1,6 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+
 import '../../utils/app_colors.dart';
+import 'shared_mobile_ui.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -12,190 +13,130 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
 
+  void _showSoonMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(fontFamily: 'Tajawal'),
+        ),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.brandOrange,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: const Color(0xFF121212),
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          title: const Text(
-            'الإعدادات العامة',
-            style: TextStyle(
-                fontFamily: 'Cairo',
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: 20),
-          ),
-          centerTitle: true,
-        ),
-        body: SingleChildScrollView(
+    return KanafPage(
+      title: 'الإعدادات',
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(
+            kanafHorizontalPadding,
+            8,
+            kanafHorizontalPadding,
+            28,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 👤 بطاقة الملف الشخصي المصغرة بنمط زجاجي فخم
-              _buildGlassCard(
-                child: Row(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: AppColors.brandOrange.withOpacity(0.15),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                            color: AppColors.brandOrange, width: 1.5),
-                      ),
-                      child: const Center(
-                        child: Text('👩‍💻', style: TextStyle(fontSize: 28)),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'أماني عادل أحمد',
-                            style: TextStyle(
-                                fontFamily: 'Cairo',
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                fontSize: 16),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'amani@example.com',
-                            style: TextStyle(
-                                fontFamily: 'Cairo',
-                                color: Colors.white.withOpacity(0.4),
-                                fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 25),
-
-              // ⚙️ المجموعة الأولى: إعدادات الحساب والأمان
-              const Text(
-                '🔐 الحساب والأمان',
-                style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontSize: 15),
-              ),
-              const SizedBox(height: 12),
-              _buildGlassCard(
+              const _ProfileSummary(),
+              const SizedBox(height: 22),
+              const _SectionLabel('الحساب والأمان'),
+              const SizedBox(height: 10),
+              KanafCard(
+                padding: EdgeInsets.zero,
                 child: Column(
                   children: [
-                    _buildSettingTile(
-                      icon: Icons.lock_outline_rounded,
+                    _SettingTile(
+                      icon: Icons.lock_reset_rounded,
                       title: 'تغيير كلمة المرور',
-                      iconColor: AppColors.brandOrange,
+                      subtitle: 'حدّث كلمة المرور للحفاظ على أمان حسابك.',
+                      color: AppColors.brandOrange,
                       onTap: () =>
                           Navigator.of(context).pushNamed('/change_password'),
                     ),
-                    _buildDivider(),
-                    _buildSettingTile(
-                      icon: Icons.shield_outlined,
-                      title: 'الخصوصية ومشاركة البيانات',
-                      iconColor: const Color(0xFF0F9D58),
-                      onTap: () =>
-                          Navigator.of(context).pushNamed('/change_password'),
+                    const Divider(height: 1, color: AppColors.divider),
+                    _SettingTile(
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'الخصوصية والبيانات',
+                      subtitle:
+                          'إعدادات مشاركة البيانات ستتوفر عند ربط النظام.',
+                      color: AppColors.successGreen,
+                      onTap: () => _showSoonMessage(
+                        'سيتم تفعيل إعدادات الخصوصية عند ربطها بالنظام.',
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 25),
-
-              // 🔔 المجموعة الثانية: التفضيلات والتطبيق
-              const Text(
-                '🎨 تفضيلات التطبيق',
-                style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    fontSize: 15),
-              ),
-              const SizedBox(height: 12),
-              _buildGlassCard(
+              const SizedBox(height: 22),
+              const _SectionLabel('تفضيلات التطبيق'),
+              const SizedBox(height: 10),
+              KanafCard(
+                padding: EdgeInsets.zero,
                 child: Column(
                   children: [
-                    _buildSettingTile(
-                      icon: Icons.notifications_none_rounded,
-                      title: 'إشعارات النظام اللوجستية',
-                      iconColor: Colors.blueAccent,
+                    _SettingTile(
+                      icon: Icons.notifications_active_outlined,
+                      title: 'إشعارات المتابعة',
+                      subtitle:
+                          'تنبيهات التبرعات والتطوع وحالة الاحتياجات المهمة.',
+                      color: AppColors.skyBlueDark,
                       trailing: Switch(
                         value: _notificationsEnabled,
                         activeColor: AppColors.brandOrange,
-                        onChanged: (val) =>
-                            setState(() => _notificationsEnabled = val),
+                        onChanged: (value) =>
+                            setState(() => _notificationsEnabled = value),
                       ),
                     ),
-                    _buildDivider(),
-                    _buildSettingTile(
-                      icon: Icons.g_translate_rounded,
+                    const Divider(height: 1, color: AppColors.divider),
+                    const _SettingTile(
+                      icon: Icons.language_rounded,
                       title: 'لغة التطبيق',
-                      iconColor: Colors.purpleAccent,
-                      trailing: const Text(
-                        'العربية (أمريكا)',
-                        style: TextStyle(
-                            fontFamily: 'Cairo',
-                            color: Colors.white38,
-                            fontSize: 12),
+                      subtitle: 'العربية',
+                      color: Color(0xFF7E57C2),
+                      trailing: KanafBadge(
+                        label: 'مفعّلة',
+                        color: AppColors.successGreen,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 25),
-
-              // ℹ️ المجموعة الثالثة: الدعم والمغادرة
-              _buildGlassCard(
+              const SizedBox(height: 22),
+              KanafCard(
+                padding: EdgeInsets.zero,
                 child: Column(
                   children: [
-                    _buildSettingTile(
-                      icon: Icons.help_outline_rounded,
-                      title: 'مركز الدعم والمساعدة',
-                      iconColor: Colors.teal,
+                    _SettingTile(
+                      icon: Icons.info_outline_rounded,
+                      title: 'عن تطبيق كنف',
+                      subtitle: 'فكرة المنصة وطريقة تنظيم الدعم.',
+                      color: AppColors.brandOrange,
                       onTap: () =>
                           Navigator.of(context).pushNamed('/about_app'),
                     ),
-                    _buildDivider(),
-                    _buildSettingTile(
+                    const Divider(height: 1, color: AppColors.divider),
+                    _SettingTile(
                       icon: Icons.logout_rounded,
-                      title: 'تسجيل الخروج من الحساب',
-                      iconColor: Colors.redAccent,
-                      textColor: Colors.redAccent,
-                      onTap: () {
-                        Navigator.of(context).pushReplacementNamed('/login');
-                      },
+                      title: 'تسجيل الخروج',
+                      subtitle: 'إنهاء الجلسة الحالية والعودة لتسجيل الدخول.',
+                      color: AppColors.errorRed,
+                      textColor: AppColors.errorRed,
+                      onTap: () =>
+                          Navigator.of(context).pushReplacementNamed('/login'),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 30),
-
-              // رقم الإصدار فخم في الأسفل ليوحي باكتمال النظام للمناقشين
+              const SizedBox(height: 26),
               const Center(
-                child: Text(
-                  'تطبيق كَنَفْ الإنساني v1.0.0 © 2026',
-                  style: TextStyle(
-                      fontFamily: 'Cairo', color: Colors.white24, fontSize: 11),
-                ),
+                child: Text('كنف v1.0.0', style: kanafMutedStyle),
               ),
             ],
           ),
@@ -203,73 +144,125 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
+}
 
-  // ويدجيت مساعد لبناء الكروت الزجاجية الشفافة
-  Widget _buildGlassCard({required Widget child}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.04),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.06), width: 1.2),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: child,
-        ),
-      ),
-    );
-  }
+class _ProfileSummary extends StatelessWidget {
+  const _ProfileSummary();
 
-  // ويدجيت مساعد لبناء أسطر الإعدادات التفاعلية السلسة
-  Widget _buildSettingTile({
-    required IconData icon,
-    required String title,
-    required Color iconColor,
-    Color textColor = Colors.white,
-    Widget? trailing,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: iconColor, size: 22),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
+  @override
+  Widget build(BuildContext context) {
+    return const KanafCard(
+      color: AppColors.brandOrangeLight,
+      borderColor: Colors.white,
+      child: Row(
+        children: [
+          KanafIconBox(
+            icon: Icons.person_rounded,
+            backgroundColor: Colors.white,
+            size: 56,
+            iconSize: 29,
+          ),
+          SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'إعدادات حساب كنف',
+                  style: TextStyle(
                     fontFamily: 'Cairo',
-                    color: textColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14),
-              ),
+                    color: AppColors.textDarkPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'تحكم في أمان الحساب والتنبيهات من مكان واحد.',
+                  style: kanafBodyStyle,
+                ),
+              ],
             ),
-            trailing ??
-                Icon(Icons.arrow_forward_ios_rounded,
-                    size: 14, color: Colors.white.withOpacity(0.2)),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildDivider() {
-    return Divider(
-        color: Colors.white.withOpacity(0.05), thickness: 1, height: 1);
+class _SectionLabel extends StatelessWidget {
+  final String title;
+
+  const _SectionLabel(this.title);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(title, style: kanafSectionTitleStyle);
+  }
+}
+
+class _SettingTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final Color? textColor;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+
+  const _SettingTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    this.textColor,
+    this.trailing,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        hoverColor: color.withOpacity(0.08),
+        splashColor: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(kanafRadius),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              KanafIconBox(icon: icon, color: color, size: 42, iconSize: 21),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        color: textColor ?? AppColors.textDarkPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(subtitle, style: kanafMutedStyle),
+                  ],
+                ),
+              ),
+              trailing ??
+                  const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: AppColors.textDarkMuted,
+                  ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

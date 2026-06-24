@@ -4,8 +4,8 @@ import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'care_home_light_widgets.dart';
 
-/// [IncomingDonationsScreen] - الواجهة رقم 33: إدارة وتدقيق التبرعات الواردة لدار الرعاية لعام 2026.
-/// مصممة بنقاء هيكلي واضح لعرض وتتبع التبرعات المالية والعينية الواردة لفرع غريان وفحصها فورياً.
+/// [IncomingDonationsScreen] - ط§ظ„ظˆط§ط¬ظ‡ط© ط±ظ‚ظ… 33: ط¥ط¯ط§ط±ط© ظˆطھط¯ظ‚ظٹظ‚ ط§ظ„طھط¨ط±ط¹ط§طھ ط§ظ„ظˆط§ط±ط¯ط© ظ„ط¯ط§ط± ط§ظ„ط±ط¹ط§ظٹط© ظ„ط¹ط§ظ… 2026.
+/// ظ…طµظ…ظ…ط© ط¨ظ†ظ‚ط§ط، ظ‡ظٹظƒظ„ظٹ ظˆط§ط¶ط­ ظ„ط¹ط±ط¶ ظˆطھطھط¨ط¹ ط§ظ„طھط¨ط±ط¹ط§طھ ط§ظ„ظ…ط§ظ„ظٹط© ظˆط§ظ„ط¹ظٹظ†ظٹط© ط§ظ„ظˆط§ط±ط¯ط© ظ„ظپط±ط¹ ط؛ط±ظٹط§ظ† ظˆظپط­طµظ‡ط§ ظپظˆط±ظٹط§ظ‹.
 class IncomingDonationsScreen extends StatefulWidget {
   const IncomingDonationsScreen({super.key});
 
@@ -15,25 +15,25 @@ class IncomingDonationsScreen extends StatefulWidget {
 }
 
 class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
-  String _selectedTypeFilter = 'الكل'; // الفلتر المختار: الكل، مالي، عيني
+  String _selectedTypeFilter = 'الكل';
 
-  // بيانات محاكاة تفصيلية ومقنعة لعمليات دعم حقيقية داخل تطبيق "كَنَفْ" لتجربة تشغيل واقعية
+  // TODO: Replace fallback donations with backend donations when AppProvider is empty.
   final List<Map<String, dynamic>> _donations = [
     {
       'id': 'd1',
       'donor': 'مؤسسة غريان الخيرية',
       'type': 'مالي',
       'amount': '2,500 د.ل',
-      'details': 'دعم مالي مخصص لتغطية مصاريف الرعاية الطبية الدورية للأطفال',
+      'details': 'دعم مالي مخصص للرعاية الطبية الدورية للأطفال',
       'date': '2026-06-02',
       'is_received': true,
     },
     {
       'id': 'd2',
-      'donor': 'أهل الخير - بريد غريان',
+      'donor': 'أهل الخير - غريان',
       'type': 'عيني',
       'amount': '30 طقم ملابس',
-      'details': 'كسوة وأحذية مودرن مخصصة لأعمار الروضة والابتدائي للدار',
+      'details': 'كسوة وأحذية مخصصة لأعمار الروضة والابتدائي',
       'date': '2026-06-01',
       'is_received': true,
     },
@@ -42,16 +42,16 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
       'donor': 'شركة النماء للمواد الغذائية',
       'type': 'عيني',
       'amount': '50 صندوق سلع',
-      'details': 'مواد تموينية أساسية وحليب أطفال قيد الفرز والتحقق بالمخزن',
+      'details': 'مواد تموينية وحليب أطفال قيد الفرز والتحقق',
       'date': '2026-05-30',
-      'is_received': false, // قيد التحقق والفرز الفوري
+      'is_received': false, // ظ‚ظٹط¯ ط§ظ„طھط­ظ‚ظ‚ ظˆط§ظ„ظپط±ط² ط§ظ„ظپظˆط±ظٹ
     },
     {
       'id': 'd4',
       'donor': 'فاعل خير مستقل',
       'type': 'مالي',
       'amount': '1,750 د.ل',
-      'details': 'زكاة مال مخصصة لكفالة المصاريف الدراسية والكتب للأيتام',
+      'details': 'زكاة مال مخصصة للمصاريف الدراسية والكتب',
       'date': '2026-05-28',
       'is_received': true,
     },
@@ -61,14 +61,14 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isWebOrDesktop = size.width > 600;
-    final containerWidth = isWebOrDesktop ? 420.0 : double.infinity;
+    final containerWidth = isWebOrDesktop ? 430.0 : double.infinity;
 
     final provider = AppProviderScope.of(context);
     final donations = provider.donations.isEmpty
         ? _donations
         : provider.donations.map(_donationToMap).toList();
 
-    // فلترة التبرعات ديناميكياً وفق التخصص المختار لمنع التشتت البصري للمشرف
+    // ظپظ„طھط±ط© ط§ظ„طھط¨ط±ط¹ط§طھ ط¯ظٹظ†ط§ظ…ظٹظƒظٹط§ظ‹ ظˆظپظ‚ ط§ظ„طھط®طµطµ ط§ظ„ظ…ط®طھط§ط± ظ„ظ…ظ†ط¹ ط§ظ„طھط´طھطھ ط§ظ„ط¨طµط±ظٹ ظ„ظ„ظ…ط´ط±ظپ
     final filteredDonations = donations.where((d) {
       if (_selectedTypeFilter == 'الكل') return true;
       return d['type'] == _selectedTypeFilter;
@@ -89,14 +89,14 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                   ? [
                       BoxShadow(
                           color: AppColors.innerShadow,
-                          blurRadius: 45,
-                          spreadRadius: 8)
+                          blurRadius: 24,
+                          spreadRadius: 0)
                     ]
                   : [],
             ),
             child: Stack(
               children: [
-                // خلفية بيضاء هادئة وموحدة للتطبيق
+                // ط®ظ„ظپظٹط© ط¨ظٹط¶ط§ط، ظ‡ط§ط¯ط¦ط© ظˆظ…ظˆط­ط¯ط© ظ„ظ„طھط·ط¨ظٹظ‚
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -128,7 +128,7 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                   ),
                 ),
 
-                // توزيع المحتوى والهيكل البرمجي المريح للعين والمضاد للتشتت
+                // طھظˆط²ظٹط¹ ط§ظ„ظ…ط­طھظˆظ‰ ظˆط§ظ„ظ‡ظٹظƒظ„ ط§ظ„ط¨ط±ظ…ط¬ظٹ ط§ظ„ظ…ط±ظٹط­ ظ„ظ„ط¹ظٹظ† ظˆط§ظ„ظ…ط¶ط§ط¯ ظ„ظ„طھط´طھطھ
                 SafeArea(
                   child: Column(
                     children: [
@@ -139,7 +139,7 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20.0, vertical: 10.0),
                           child: Column(
-                            // تم إصلاح السطر 120 هنا بحذف كلمة cross الزائدة
+                            // طھظ… ط¥طµظ„ط§ط­ ط§ظ„ط³ط·ط± 120 ظ‡ظ†ط§ ط¨ط­ط°ظپ ظƒظ„ظ…ط© cross ط§ظ„ط²ط§ط¦ط¯ط©
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSummaryCard(donations),
@@ -217,7 +217,7 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
             ),
           ),
           const Text(
-            'سجل التبرعات الواردة',
+            'التبرعات الواردة',
             style: TextStyle(
               fontFamily: 'Cairo',
               fontSize: 18,
@@ -278,7 +278,7 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'بالإضافة إلى شحنات الدعم العيني الموثقة بالمخازن.',
+                  'بالإضافة إلى التبرعات العينية الموثقة في المخزن.',
                   style: TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 11,
@@ -389,9 +389,7 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                     border: Border.all(color: badgeColor.withOpacity(0.3)),
                   ),
                   child: Text(
-                    donation['is_received']
-                        ? 'تم الاستلام'
-                        : 'قيد الفرز والتحقق',
+                    donation['is_received'] ? 'تم الاستلام' : 'قيد الفرز',
                     style: TextStyle(
                       fontFamily: 'Cairo',
                       fontSize: 10,
@@ -442,7 +440,7 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                              'تم تأكيد الفحص اليدوي وإضافتها للمخازن بنجاح',
+                              'تم تأكيد الفرز وإضافة التبرع للمخزن بنجاح',
                               style: TextStyle(fontFamily: 'Cairo')),
                           backgroundColor: Color(0xFF10B981),
                         ),
@@ -456,7 +454,7 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text(
-                        'تأكيد الفرز والقبول',
+                        'تأكيد القبول',
                         style: TextStyle(
                           fontFamily: 'Cairo',
                           fontSize: 11,
@@ -484,7 +482,7 @@ class _IncomingDonationsScreenState extends State<IncomingDonationsScreen> {
               size: 50, color: AppColors.innerBorder),
           const SizedBox(height: 12),
           Text(
-            'لا توجد عمليات دعم مسجلة طھط­طھ هذا التصنيف',
+            'لا توجد تبرعات ضمن هذا التصنيف حاليًا',
             style: TextStyle(
               fontFamily: 'Cairo',
               fontSize: 13.5,

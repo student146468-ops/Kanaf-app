@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 
-/// [AddNeedScreen] - الواجهة رقم 28: نموذج إضافة احتياج جديد لدار الرعاية لعام 2026.
-/// مصمم بالكامل لتوفير تجربة مستخدم سلسة ومبهرة خالية من التعقيد والتشتت.
+/// [AddNeedScreen] - ط§ظ„ظˆط§ط¬ظ‡ط© ط±ظ‚ظ… 28: ظ†ظ…ظˆط°ط¬ ط¥ط¶ط§ظپط© ط§ط­طھظٹط§ط¬ ط¬ط¯ظٹط¯ ظ„ط¯ط§ط± ط§ظ„ط±ط¹ط§ظٹط© ظ„ط¹ط§ظ… 2026.
+/// ظ…طµظ…ظ… ط¨ط§ظ„ظƒط§ظ…ظ„ ظ„طھظˆظپظٹط± طھط¬ط±ط¨ط© ظ…ط³طھط®ط¯ظ… ط³ظ„ط³ط© ظˆظ…ط¨ظ‡ط±ط© ط®ط§ظ„ظٹط© ظ…ظ† ط§ظ„طھط¹ظ‚ظٹط¯ ظˆط§ظ„طھط´طھطھ.
 class AddNeedScreen extends StatefulWidget {
   const AddNeedScreen({super.key});
 
@@ -11,6 +11,7 @@ class AddNeedScreen extends StatefulWidget {
 }
 
 class _AddNeedScreenState extends State<AddNeedScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _quantityController = TextEditingController();
   final _detailsController = TextEditingController();
@@ -20,7 +21,7 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
   final FocusNode _detailsFocusNode = FocusNode();
 
   String _selectedCategory = 'غذائي';
-  String _priorityLevel = 'متوسط'; // منخفض، متوسط، حرج جداً
+  String _priorityLevel = 'متوسط';
   bool _issubmitting = false;
 
   final List<Map<String, dynamic>> _categories = [
@@ -66,10 +67,10 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
   }
 
   Future<void> _submitNeed() async {
-    if (_titleController.text.isEmpty || _quantityController.text.isEmpty) {
+    if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('الرجاء ملء الحقول الأساسية لوصف الاحتياج',
+          content: Text('يرجى إكمال الحقول الأساسية لوصف الاحتياج',
               style: TextStyle(fontFamily: 'Cairo')),
           backgroundColor: AppColors.brandOrange,
         ),
@@ -78,21 +79,23 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
     }
 
     setState(() => _issubmitting = true);
-    await Future.delayed(
-        const Duration(milliseconds: 1500)); // محاكاة الرفع البرمجي للسيرفر
+    await Future.delayed(const Duration(
+        milliseconds:
+            1500)); // ظ…ط­ط§ظƒط§ط© ط§ظ„ط±ظپط¹ ط§ظ„ط¨ط±ظ…ط¬ظٹ ظ„ظ„ط³ظٹط±ظپط±
 
     if (mounted) {
       setState(() => _issubmitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-              'تم نشر الاحتياج بنجاح في نظام كَنَفْ وجاري تنبيه المتبرعين',
+              'تم نشر الاحتياج بنجاح، وسيظهر للمتبرعين والمتطوعين المناسبين.',
               style: TextStyle(fontFamily: 'Cairo')),
           backgroundColor: Color(
-              0xFF10B981), // استخدام القيمة اللونية الصافية بدلاً من السمة المفقودة
+              0xFF10B981), // ط§ط³طھط®ط¯ط§ظ… ط§ظ„ظ‚ظٹظ…ط© ط§ظ„ظ„ظˆظ†ظٹط© ط§ظ„طµط§ظپظٹط© ط¨ط¯ظ„ط§ظ‹ ظ…ظ† ط§ظ„ط³ظ…ط© ط§ظ„ظ…ظپظ‚ظˆط¯ط©
         ),
       );
-      Navigator.of(context).pop(); // العودة التلقائية للوحة التحكم
+      Navigator.of(context)
+          .pop(); // ط§ظ„ط¹ظˆط¯ط© ط§ظ„طھظ„ظ‚ط§ط¦ظٹط© ظ„ظ„ظˆط­ط© ط§ظ„طھط­ظƒظ…
     }
   }
 
@@ -100,7 +103,7 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isWebOrDesktop = size.width > 600;
-    final containerWidth = isWebOrDesktop ? 420.0 : double.infinity;
+    final containerWidth = isWebOrDesktop ? 430.0 : double.infinity;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -117,14 +120,14 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
                   ? [
                       BoxShadow(
                           color: AppColors.innerShadow,
-                          blurRadius: 45,
-                          spreadRadius: 8)
+                          blurRadius: 24,
+                          spreadRadius: 0)
                     ]
                   : [],
             ),
             child: Stack(
               children: [
-                // الخلفية الجمالية الموحدة للتطبيق
+                // ط§ظ„ط®ظ„ظپظٹط© ط§ظ„ط¬ظ…ط§ظ„ظٹط© ط§ظ„ظ…ظˆط­ط¯ط© ظ„ظ„طھط·ط¨ظٹظ‚
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -156,7 +159,7 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
                   ),
                 ),
 
-                // المحتوى الهيكلي للنموذج
+                // ط§ظ„ظ…ط­طھظˆظ‰ ط§ظ„ظ‡ظٹظƒظ„ظٹ ظ„ظ„ظ†ظ…ظˆط°ط¬
                 SafeArea(
                   child: Column(
                     children: [
@@ -166,49 +169,51 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
                           physics: const BouncingScrollPhysics(),
                           padding: const EdgeInsets.symmetric(
                               horizontal: 24.0, vertical: 10.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 10),
-                              _buildSectionLabel('تصنيف الاحتياج الحالي'),
-                              const SizedBox(height: 12),
-                              _buildCategorySelector(),
-                              const SizedBox(height: 24),
-                              _buildSectionLabel('بيانات طلب الكفالة'),
-                              const SizedBox(height: 14),
-                              _buildInputField(
-                                controller: _titleController,
-                                focusNode: _titleFocusNode,
-                                hint:
-                                    'عنوان الاحتياج (مثال: أحذية شتوية للأطفال)',
-                                icon: Icons.title_rounded,
-                              ),
-                              const SizedBox(height: 16),
-                              _buildInputField(
-                                controller: _quantityController,
-                                focusNode: _quantityFocusNode,
-                                hint: 'الكمية أو العدد المطلوب (مثال: 25 طقم)',
-                                icon: Icons.production_quantity_limits_rounded,
-                                keyboardType: TextInputType.text,
-                              ),
-                              const SizedBox(height: 16),
-                              _buildInputField(
-                                controller: _detailsController,
-                                focusNode: _detailsFocusNode,
-                                hint:
-                                    'تفاصيل إضافية أو مقاسات خاصة لمساعدة المتبرع...',
-                                icon: Icons.description_rounded,
-                                maxLines: 4,
-                              ),
-                              const SizedBox(height: 24),
-                              _buildSectionLabel(
-                                  'مستوى أولوية الاحتياج في الدار'),
-                              const SizedBox(height: 12),
-                              _buildPrioritySelector(),
-                              const SizedBox(height: 40),
-                              _buildSubmitButton(),
-                              const SizedBox(height: 24),
-                            ],
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 10),
+                                _buildSectionLabel('تصنيف الاحتياج'),
+                                const SizedBox(height: 12),
+                                _buildCategorySelector(),
+                                const SizedBox(height: 24),
+                                _buildSectionLabel('بيانات الاحتياج'),
+                                const SizedBox(height: 14),
+                                _buildInputField(
+                                  controller: _titleController,
+                                  focusNode: _titleFocusNode,
+                                  hint:
+                                      'عنوان الاحتياج، مثل: أحذية شتوية للأطفال',
+                                  icon: Icons.title_rounded,
+                                ),
+                                const SizedBox(height: 16),
+                                _buildInputField(
+                                  controller: _quantityController,
+                                  focusNode: _quantityFocusNode,
+                                  hint: 'الكمية أو العدد المطلوب، مثل: 25 طقم',
+                                  icon: Icons.numbers_rounded,
+                                  keyboardType: TextInputType.text,
+                                ),
+                                const SizedBox(height: 16),
+                                _buildInputField(
+                                  controller: _detailsController,
+                                  focusNode: _detailsFocusNode,
+                                  hint:
+                                      'تفاصيل تساعد المتبرع: المقاسات، النوع، أو الأولوية...',
+                                  icon: Icons.description_rounded,
+                                  maxLines: 4,
+                                ),
+                                const SizedBox(height: 24),
+                                _buildSectionLabel('مستوى أولوية الاحتياج'),
+                                const SizedBox(height: 12),
+                                _buildPrioritySelector(),
+                                const SizedBox(height: 40),
+                                _buildSubmitButton(),
+                                const SizedBox(height: 24),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -255,7 +260,8 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 40), // موازن بصري لضبط السنترة
+          const SizedBox(
+              width: 40), // ظ…ظˆط§ط²ظ† ط¨طµط±ظٹ ظ„ط¶ط¨ط· ط§ظ„ط³ظ†طھط±ط©
         ],
       ),
     );
@@ -349,12 +355,19 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
           width: isFocused ? 1.5 : 1.0,
         ),
       ),
-      child: TextField(
+      child: TextFormField(
         controller: controller,
         focusNode: focusNode,
         maxLines: maxLines,
         keyboardType: keyboardType,
         cursorColor: AppColors.brandOrange,
+        validator: (value) {
+          if (controller == _detailsController) return null;
+          if (value == null || value.trim().isEmpty) {
+            return 'هذا الحقل مطلوب';
+          }
+          return null;
+        },
         style: const TextStyle(
             fontFamily: 'Cairo',
             fontSize: 14,
@@ -382,7 +395,7 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
   }
 
   Widget _buildPrioritySelector() {
-    final priorities = ['منخفض', 'متوسط', 'حرج جداً'];
+    final priorities = ['منخفض', 'متوسط', 'عاجل'];
     return Row(
       children: priorities.map((p) {
         final isSelected = _priorityLevel == p;
@@ -390,7 +403,7 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
         if (isSelected) {
           if (p == 'منخفض') pColor = const Color(0xFF10B981);
           if (p == 'متوسط') pColor = Colors.orange;
-          if (p == 'حرج جداً') pColor = Colors.red;
+          if (p == 'عاجل') pColor = Colors.red;
         }
 
         return Expanded(
@@ -439,8 +452,8 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.white,
-              blurRadius: 12,
+              color: AppColors.brandOrange.withOpacity(0.18),
+              blurRadius: 16,
               offset: const Offset(0, 4),
             )
           ],
@@ -455,7 +468,7 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
                 )
               : const Text(
-                  'نشر الاحتياج الفوري',
+                  'نشر الاحتياج',
                   style: TextStyle(
                     fontFamily: 'Cairo',
                     fontSize: 16,

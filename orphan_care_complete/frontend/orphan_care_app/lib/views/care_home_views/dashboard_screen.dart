@@ -3,8 +3,8 @@ import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'care_home_light_widgets.dart';
 
-/// [CareHomeDashboardScreen] - الواجهة رقم 27: لوحة التحكم الرئيسية لدار الرعاية لعام 2026.
-/// مصممة بواجهة موبايل بيضاء ونظيفة لتنظيم دعم دار الرعاية بوضوح.
+/// [CareHomeDashboardScreen] - ط§ظ„ظˆط§ط¬ظ‡ط© ط±ظ‚ظ… 27: ظ„ظˆط­ط© ط§ظ„طھط­ظƒظ… ط§ظ„ط±ط¦ظٹط³ظٹط© ظ„ط¯ط§ط± ط§ظ„ط±ط¹ط§ظٹط© ظ„ط¹ط§ظ… 2026.
+/// ظ…طµظ…ظ…ط© ط¨ظˆط§ط¬ظ‡ط© ظ…ظˆط¨ط§ظٹظ„ ط¨ظٹط¶ط§ط، ظˆظ†ط¸ظٹظپط© ظ„طھظ†ط¸ظٹظ… ط¯ط¹ظ… ط¯ط§ط± ط§ظ„ط±ط¹ط§ظٹط© ط¨ظˆط¶ظˆط­.
 class CareHomeDashboardScreen extends StatefulWidget {
   const CareHomeDashboardScreen({super.key});
 
@@ -14,7 +14,7 @@ class CareHomeDashboardScreen extends StatefulWidget {
 }
 
 class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
-  // بيانات احتياطية للإحصائيات عند عدم توفر بيانات المزود.
+  // TODO: Replace fallback dashboard numbers with live AppProvider/backend data.
   final int _activeNeedsCount = 14;
   final int _newVolunteersCount = 8;
   final String _totalDonations = "4,250 د.ل";
@@ -23,7 +23,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isWebOrDesktop = size.width > 600;
-    final containerWidth = isWebOrDesktop ? 420.0 : double.infinity;
+    final containerWidth = isWebOrDesktop ? 430.0 : double.infinity;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -40,14 +40,14 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                   ? [
                       BoxShadow(
                           color: AppColors.innerShadow,
-                          blurRadius: 45,
-                          spreadRadius: 8)
+                          blurRadius: 24,
+                          spreadRadius: 0)
                     ]
                   : [],
             ),
             child: Stack(
               children: [
-                // 1️⃣ خلفية هادئة لتطبيق كَنَفْ
+                // 1ï¸ڈâƒ£ ط®ظ„ظپظٹط© ظ‡ط§ط¯ط¦ط© ظ„طھط·ط¨ظٹظ‚ ظƒظژظ†ظژظپظ’
                 Positioned.fill(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -65,7 +65,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                   ),
                 ),
 
-                // 2️⃣ غطاء حماية النص والتعتيم المتدرج الاحترافي لراحة العين
+                // 2ï¸ڈâƒ£ ط؛ط·ط§ط، ط­ظ…ط§ظٹط© ط§ظ„ظ†طµ ظˆط§ظ„طھط¹طھظٹظ… ط§ظ„ظ…طھط¯ط±ط¬ ط§ظ„ط§ط­طھط±ط§ظپظٹ ظ„ط±ط§ط­ط© ط§ظ„ط¹ظٹظ†
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
@@ -82,7 +82,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                   ),
                 ),
 
-                // 3️⃣ المحتوى البرمجي مقسم وموزع هندسياً بدون تشتيت
+                // 3ï¸ڈâƒ£ ط§ظ„ظ…ط­طھظˆظ‰ ط§ظ„ط¨ط±ظ…ط¬ظٹ ظ…ظ‚ط³ظ… ظˆظ…ظˆط²ط¹ ظ‡ظ†ط¯ط³ظٹط§ظ‹ ط¨ط¯ظˆظ† طھط´طھظٹطھ
                 SafeArea(
                   child: Column(
                     children: [
@@ -99,11 +99,11 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                               const SizedBox(height: 24),
                               _buildStatisticsGrid(),
                               const SizedBox(height: 28),
-                              _buildSectionTitle('الوصول السريع للعمليات'),
+                              _buildSectionTitle('إجراءات سريعة'),
                               const SizedBox(height: 14),
                               _buildQuickActionsGrid(),
                               const SizedBox(height: 28),
-                              _buildSectionTitle('آخر التحديثات النشطة'),
+                              _buildSectionTitle('آخر التحديثات'),
                               const SizedBox(height: 14),
                               _buildRecentActivitiesList(),
                               const SizedBox(height: 20),
@@ -122,7 +122,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
     );
   }
 
-  /// ًں› ï¸ڈ الجزء 1: الترويسة العلوية الواضحة المرتبطة بالإشعارات والملف الشخصي
+  /// ظ‹ع؛â€؛آ أ¯آ¸عˆ ط§ظ„ط¬ط²ط، 1: ط§ظ„طھط±ظˆظٹط³ط© ط§ظ„ط¹ظ„ظˆظٹط© ط§ظ„ظˆط§ط¶ط­ط© ط§ظ„ظ…ط±طھط¨ط·ط© ط¨ط§ظ„ط¥ط´ط¹ط§ط±ط§طھ ظˆط§ظ„ظ…ظ„ظپ ط§ظ„ط´ط®طµظٹ
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -156,7 +156,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'دار الأمان للأيتام',
+                    'دار الأمان لرعاية الأيتام',
                     style: TextStyle(
                       fontFamily: 'Cairo',
                       fontSize: 15,
@@ -176,7 +176,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
               ),
             ],
           ),
-          // زر الإشعارات المربوط بالواجهة رقم 37 تلقائياً
+          // ط²ط± ط§ظ„ط¥ط´ط¹ط§ط±ط§طھ ط§ظ„ظ…ط±ط¨ظˆط· ط¨ط§ظ„ظˆط§ط¬ظ‡ط© ط±ظ‚ظ… 37 طھظ„ظ‚ط§ط¦ظٹط§ظ‹
           GestureDetector(
             onTap: () =>
                 Navigator.of(context).pushNamed('/care_home_notifications'),
@@ -200,13 +200,13 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
     );
   }
 
-  /// ًں› ï¸ڈ الجزء 2: المقطع الترحيبي التفاعلي
+  /// ظ‹ع؛â€؛آ أ¯آ¸عˆ ط§ظ„ط¬ط²ط، 2: ط§ظ„ظ…ظ‚ط·ط¹ ط§ظ„طھط±ط­ظٹط¨ظٹ ط§ظ„طھظپط§ط¹ظ„ظٹ
   Widget _buildWelcomeSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'أهلاً بكِ مجدداً،',
+          'مرحبًا بك مجددًا',
           style: TextStyle(
             fontFamily: 'Cairo',
             fontSize: 16,
@@ -227,7 +227,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
     );
   }
 
-  /// ًں› ï¸ڈ الجزء 3: شبكة الإحصائيات الواضحة بلمسة ألوان عصرية طافية ومريحة
+  /// ظ‹ع؛â€؛آ أ¯آ¸عˆ ط§ظ„ط¬ط²ط، 3: ط´ط¨ظƒط© ط§ظ„ط¥ط­طµط§ط¦ظٹط§طھ ط§ظ„ظˆط§ط¶ط­ط© ط¨ظ„ظ…ط³ط© ط£ظ„ظˆط§ظ† ط¹طµط±ظٹط© ط·ط§ظپظٹط© ظˆظ…ط±ظٹط­ط©
   Widget _buildStatisticsGrid() {
     final stats = AppProviderScope.of(context).dashboardStats;
     final activeNeeds =
@@ -253,7 +253,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
             totalDonations,
             Icons.account_balance_wallet_outlined,
             const Color(
-                0xFF10B981), // تم استبدال السمة غير المعرفة بالكود السداسي الصافي للون الزمردي
+                0xFF10B981), // طھظ… ط§ط³طھط¨ط¯ط§ظ„ ط§ظ„ط³ظ…ط© ط؛ظٹط± ط§ظ„ظ…ط¹ط±ظپط© ط¨ط§ظ„ظƒظˆط¯ ط§ظ„ط³ط¯ط§ط³ظٹ ط§ظ„طµط§ظپظٹ ظ„ظ„ظˆظ† ط§ظ„ط²ظ…ط±ط¯ظٹ
             () => Navigator.of(context)
                 .pushNamed('/care_home_incoming_donations'),
           ),
@@ -305,7 +305,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
     );
   }
 
-  /// ًں› ï¸ڈ الجزء 4: شبكة أزرار العمليات السريعة المربوطة هندسياً ببقية الملفات الـ 13
+  /// ظ‹ع؛â€؛آ أ¯آ¸عˆ ط§ظ„ط¬ط²ط، 4: ط´ط¨ظƒط© ط£ط²ط±ط§ط± ط§ظ„ط¹ظ…ظ„ظٹط§طھ ط§ظ„ط³ط±ظٹط¹ط© ط§ظ„ظ…ط±ط¨ظˆط·ط© ظ‡ظ†ط¯ط³ظٹط§ظ‹ ط¨ط¨ظ‚ظٹط© ط§ظ„ظ…ظ„ظپط§طھ ط§ظ„ظ€ 13
   Widget _buildQuickActionsGrid() {
     final width = MediaQuery.of(context).size.width;
     final crossAxisCount = width < 380 ? 2 : 3;
@@ -320,37 +320,37 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
       children: [
         _buildActionItem(
           'إضافة احتياج',
-          Icons.add_box_rounded,
+          Icons.add_circle_outline_rounded,
           AppColors.brandOrange,
           () => Navigator.of(context).pushNamed('/care_home_add_need'),
         ),
         _buildActionItem(
-          'المتطوعين',
-          Icons.people_alt_rounded,
+          'المتطوعون',
+          Icons.groups_2_outlined,
           Colors.blueAccent,
           () => Navigator.of(context).pushNamed('/care_home_manage_volunteers'),
         ),
         _buildActionItem(
           'مواعيد الزيارة',
-          Icons.calendar_month_rounded,
+          Icons.event_available_outlined,
           const Color(0xFF8B5CF6),
           () => Navigator.of(context).pushNamed('/care_home_visit_hours'),
         ),
         _buildActionItem(
           'التقارير',
-          Icons.insert_chart_rounded,
+          Icons.query_stats_outlined,
           const Color(0xFF0F766E),
           () => Navigator.of(context).pushNamed('/care_home_reports'),
         ),
         _buildActionItem(
           'تقييم الأداء',
-          Icons.star_rate_rounded,
+          Icons.star_half_rounded,
           Colors.amber,
           () => Navigator.of(context).pushNamed('/care_home_rate_volunteers'),
         ),
         _buildActionItem(
-          'الملف العام',
-          Icons.storefront_rounded,
+          'ملف الدار',
+          Icons.home_work_outlined,
           const Color(0xFFDB2777),
           () => Navigator.of(context).pushNamed('/care_home_profile'),
         ),
@@ -392,23 +392,22 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
     );
   }
 
-  /// ًں› ï¸ڈ الجزء 5: التحديثات والنشاطات الأخيرة داخل الدار
+  /// ظ‹ع؛â€؛آ أ¯آ¸عˆ ط§ظ„ط¬ط²ط، 5: ط§ظ„طھط­ط¯ظٹط«ط§طھ ظˆط§ظ„ظ†ط´ط§ط·ط§طھ ط§ظ„ط£ط®ظٹط±ط© ط¯ط§ط®ظ„ ط§ظ„ط¯ط§ط±
   Widget _buildRecentActivitiesList() {
     final activities = [
       {
-        'title': 'تم كفالة طلب كسوة العيد',
+        'title': 'تمت كفالة احتياج كسوة العيد',
         'time': 'منذ 10 دقائق',
         'type': 'donation'
       },
       {
-        'title': 'طلب انضمام جديد من المتطوع أحمد',
+        'title': 'طلب تطوع جديد بانتظار المراجعة',
         'time': 'منذ ساعة',
         'type': 'volunteer'
       },
-      // دمج المتغير الذكي هنا لإنهاء تحذير الكومبايلر الأصفر تماماً
+      // ط¯ظ…ط¬ ط§ظ„ظ…طھط؛ظٹط± ط§ظ„ط°ظƒظٹ ظ‡ظ†ط§ ظ„ط¥ظ†ظ‡ط§ط، طھط­ط°ظٹط± ط§ظ„ظƒظˆظ…ط¨ط§ظٹظ„ط± ط§ظ„ط£طµظپط± طھظ…ط§ظ…ط§ظ‹
       {
-        'title':
-            'يوجد لدينا حالياً $_newVolunteersCount متطوعين جدد قيد الانتظار',
+        'title': 'يوجد حاليًا $_newVolunteersCount طلبات تطوع تحتاج قرارًا',
         'time': 'منذ ساعتين',
         'type': 'system'
       },
@@ -464,7 +463,7 @@ class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
     );
   }
 
-  /// عنوان جانبي منسق وموحد لمنع الهزة والتشتت البصري
+  /// ط¹ظ†ظˆط§ظ† ط¬ط§ظ†ط¨ظٹ ظ…ظ†ط³ظ‚ ظˆظ…ظˆط­ط¯ ظ„ظ…ظ†ط¹ ط§ظ„ظ‡ط²ط© ظˆط§ظ„طھط´طھطھ ط§ظ„ط¨طµط±ظٹ
   Widget _buildSectionTitle(String title) {
     return Text(
       title,

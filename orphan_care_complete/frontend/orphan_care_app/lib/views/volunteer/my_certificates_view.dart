@@ -1,189 +1,172 @@
 import 'package:flutter/material.dart';
+
 import '../../utils/app_colors.dart';
+import 'volunteer_ui.dart';
 
 class MyCertificatesView extends StatelessWidget {
   const MyCertificatesView({super.key});
 
+  // TODO: Replace with AppProvider certificates when available.
+  static const List<Map<String, String>> _certificates = [
+    {
+      'title': 'شهادة تميز في الدعم التعليمي',
+      'issuer': 'دار الأمان لرعاية الأيتام',
+      'date': '28 أبريل 2026',
+      'hours': '18 ساعة',
+    },
+    {
+      'title': 'شهادة شكر لتنظيم الأنشطة',
+      'issuer': 'مركز كنف المجتمعي',
+      'date': '20 فبراير 2026',
+      'hours': '10 ساعات',
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        leading: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.innerBorder),
-              boxShadow: const [
-                BoxShadow(color: Colors.black12, blurRadius: 4)
-              ],
-            ),
-            child: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: AppColors.textDarkPrimary, size: 16),
-          ),
-        ),
-        title: const Text(
-          'شهادات التقدير المعتمدة',
-          style: TextStyle(
-              color: AppColors.textDarkPrimary,
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Tajawal'),
-        ),
-      ),
+    return VolunteerAppScaffold(
+      title: 'شهاداتي',
       body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                    colors: [AppColors.brandOrange, AppColors.brandOrangeDark]),
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                      color: AppColors.brandOrange.withOpacity(0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10))
-                ],
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.workspace_premium_rounded,
-                      color: Colors.white, size: 40),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text('وثقّي إنجازاتكِ الإنسانية',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Tajawal')),
-                        SizedBox(height: 4),
-                        Text('كل ساعة عطاء توثق هنا بشهادة معتمدة.',
-                            style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                                fontFamily: 'Tajawal')),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView(
+        top: false,
+        child: _certificates.isEmpty
+            ? VolunteerEmptyState(
+                icon: Icons.workspace_premium_outlined,
+                title: 'لا توجد شهادات بعد',
+                message:
+                    'بعد إكمال مساهمة تطوعية موثقة ستظهر شهادات التقدير هنا.',
+                actionLabel: 'استكشاف الفرص',
+                onAction: () =>
+                    Navigator.of(context).pushNamed('/volunteer_search'),
+              )
+            : ListView.separated(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  _buildCertificateCard(
-                      context,
-                      'شهادة تميز في التدريب البرمجي',
-                      'إدارة دار رعاية الأيتام - غريان',
-                      '28 أبريل 2026',
-                      '18 ساعة'),
-                  const SizedBox(height: 16),
-                  _buildCertificateCard(
-                      context,
-                      'شهادة شكر لتطوير البنية التحتية',
-                      'قاعة التقنية - غريان',
-                      '20 فبراير 2026',
-                      '10 ساعات'),
-                ],
+                padding: const EdgeInsets.fromLTRB(
+                  volunteerHorizontalPadding,
+                  10,
+                  volunteerHorizontalPadding,
+                  24,
+                ),
+                itemCount: _certificates.length + 1,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  if (index == 0) return const _IntroCard();
+                  return _CertificateCard(
+                    certificate: _certificates[index - 1],
+                  );
+                },
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
+}
 
-  Widget _buildCertificateCard(BuildContext context, String title,
-      String issuer, String date, String hours) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.innerBorder),
-        // تم استبدال 'Colors.black05' التي كانت تسبب الخطأ بـ 'Colors.black.withOpacity(0.05)'
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4))
+class _IntroCard extends StatelessWidget {
+  const _IntroCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return const VolunteerCard(
+      color: AppColors.brandOrangeLight,
+      borderColor: Colors.white,
+      child: Row(
+        children: [
+          VolunteerIconBox(
+            icon: Icons.workspace_premium_rounded,
+            backgroundColor: Colors.white,
+            size: 48,
+            iconSize: 25,
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'توثق الشهادات مساهماتك التطوعية مع دور الرعاية وتبرز أثر وقتك.',
+              style: volunteerBodyStyle,
+            ),
+          ),
         ],
       ),
+    );
+  }
+}
+
+class _CertificateCard extends StatelessWidget {
+  final Map<String, String> certificate;
+
+  const _CertificateCard({required this.certificate});
+
+  @override
+  Widget build(BuildContext context) {
+    return VolunteerCard(
       child: Column(
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                    color: AppColors.brandOrangeLight,
-                    borderRadius: BorderRadius.circular(16)),
-                child: const Icon(Icons.picture_as_pdf_rounded,
-                    color: AppColors.brandOrangeDark),
+              const VolunteerIconBox(
+                icon: Icons.verified_rounded,
+                color: Color(0xFFFFB300),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Tajawal')),
-                    Text(issuer,
-                        style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                            fontFamily: 'Tajawal')),
+                    Text(
+                      certificate['title']!,
+                      style: const TextStyle(
+                        fontFamily: 'Cairo',
+                        color: AppColors.textDarkPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(certificate['issuer']!, style: volunteerBodyStyle),
                   ],
                 ),
               ),
             ],
           ),
-          const Divider(height: 30),
+          const Divider(height: 24),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(date,
-                  style: const TextStyle(color: Colors.grey, fontSize: 11)),
-              ElevatedButton.icon(
+              Expanded(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    VolunteerMetaChip(
+                      label: certificate['date']!,
+                      icon: Icons.calendar_month_outlined,
+                      color: const Color(0xFF4A90E2),
+                      prominent: true,
+                    ),
+                    VolunteerMetaChip(
+                      label: certificate['hours']!,
+                      icon: Icons.schedule_rounded,
+                      color: AppColors.brandOrange,
+                      prominent: true,
+                    ),
+                  ],
+                ),
+              ),
+              IconButton.filledTonal(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        '$title - $hours',
+                        'سيتم تفعيل تحميل "${certificate['title']}" عند ربط ملفات الشهادات.',
                         style: const TextStyle(fontFamily: 'Tajawal'),
                       ),
-                      backgroundColor: AppColors.brandOrangeDark,
                       behavior: SnackBarBehavior.floating,
+                      backgroundColor: AppColors.brandOrange,
                     ),
                   );
                 },
-                style: ElevatedButton.styleFrom(
+                icon: const Icon(Icons.download_rounded, size: 20),
+                style: IconButton.styleFrom(
                   backgroundColor: AppColors.brandOrangeLight,
-                  foregroundColor: AppColors.brandOrangeDark,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  foregroundColor: AppColors.brandOrange,
                 ),
-                icon: const Icon(Icons.download_rounded, size: 16),
-                label: const Text('تحميل',
-                    style: TextStyle(fontFamily: 'Tajawal')),
               ),
             ],
           ),
