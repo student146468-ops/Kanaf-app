@@ -8,8 +8,7 @@ class ApiService {
   late Dio _dio;
   
   // عنوان المنظومة الأساسي (يمكن تغييره حسب البيئة)
-  static const String baseUrl = 'http://localhost:8000/api';
-  
+  static const String baseUrl = 'https://kanafapp.pythonanywhere.com/api';  
   // متغير لتخزين المستخدم الحالي
   UserModel? _currentUser;
   
