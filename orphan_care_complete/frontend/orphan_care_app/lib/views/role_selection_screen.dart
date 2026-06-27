@@ -46,7 +46,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     if (_selectedRoleIndex == null) return;
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 350));
+    await Future.delayed(const Duration(milliseconds: 1500));
 
     if (!mounted) return;
     setState(() => _isLoading = false);
@@ -105,25 +105,19 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                     const SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
-                      height: 56,
+                      height: 54,
                       child: ElevatedButton(
                         onPressed: _selectedRoleIndex == null || _isLoading
                             ? null
                             : _handleProceed,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.brandOrange,
-                          disabledBackgroundColor: const Color(0xFFE5E7EB),
+                          disabledBackgroundColor:
+                              AppColors.brandOrange.withOpacity(0.58),
                           foregroundColor: Colors.white,
-                          disabledForegroundColor: const Color(0xFF9CA3AF),
                           elevation: 0,
-                          shadowColor: Colors.transparent,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          textStyle: const TextStyle(
-                            fontFamily: 'Cairo',
-                            fontSize: 17,
-                            fontWeight: FontWeight.w900,
+                            borderRadius: BorderRadius.circular(17),
                           ),
                         ),
                         child: _isLoading
@@ -131,11 +125,18 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                                 width: 22,
                                 height: 22,
                                 child: CircularProgressIndicator(
-                                  strokeWidth: 2.4,
+                                  strokeWidth: 2.5,
                                   color: Colors.white,
                                 ),
                               )
-                            : const Text('متابعة'),
+                            : const Text(
+                                'متابعة',
+                                style: TextStyle(
+                                  fontFamily: 'Cairo',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
                       ),
                     ),
                   ],

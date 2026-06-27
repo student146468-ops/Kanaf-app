@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../providers/app_provider_scope.dart';
 import 'volunteer_ui.dart';
 
 const String _profileVolunteerName = 'ياسمين عادل';
-const String _profileVolunteerEmail = 'yasmin.adel@example.com';
+const String _profileVolunteerEmail = 'Yasmine.adel@gmail.com';
 const Color _profileOrange = Color(0xFFFF7A00);
 const Color _profileBackground = Color(0xFFF8F8F8);
 const Color _profileText = Color(0xFF1F2937);
@@ -15,17 +14,7 @@ class ProfileVolunteerView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = AppProviderScope.of(context);
-    final volunteer =
-        provider.volunteers.isNotEmpty ? provider.volunteers.first : null;
-    final name = volunteer?.name.isNotEmpty == true
-        ? volunteer!.name
-        : _profileVolunteerName;
-    final email = volunteer?.email?.isNotEmpty == true
-        ? volunteer!.email!
-        : _profileVolunteerEmail;
-
-    return Directionality(
+    return const Directionality(
       textDirection: TextDirection.rtl,
       child: VolunteerMobileFrame(
         child: Scaffold(
@@ -33,18 +22,21 @@ class ProfileVolunteerView extends StatelessWidget {
           body: SafeArea(
             bottom: false,
             child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(bottom: 112),
+              physics: BouncingScrollPhysics(),
+              padding: EdgeInsets.only(bottom: 112),
               child: Column(
                 children: [
-                  _ProfileHero(name: name, email: email),
-                  const SizedBox(height: 54),
-                  const _ProfileMenu(),
+                  _ProfileHero(
+                    name: _profileVolunteerName,
+                    email: _profileVolunteerEmail,
+                  ),
+                  SizedBox(height: 54),
+                  _ProfileMenu(),
                 ],
               ),
             ),
           ),
-          bottomNavigationBar: const _ProfileBottomBar(),
+          bottomNavigationBar: _ProfileBottomBar(),
         ),
       ),
     );
@@ -65,8 +57,8 @@ class _ProfileHero extends StatelessWidget {
       children: [
         Container(
           width: double.infinity,
-          height: 286,
-          padding: const EdgeInsets.fromLTRB(24, 22, 24, 74),
+          height: 340,
+          padding: const EdgeInsets.fromLTRB(24, 18, 24, 84),
           decoration: const BoxDecoration(
             color: _profileOrange,
             borderRadius: BorderRadius.only(
@@ -81,13 +73,13 @@ class _ProfileHero extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Cairo',
                   color: Colors.white,
-                  fontSize: 21,
+                  fontSize: 20,
                   fontWeight: FontWeight.w900,
                 ),
               ),
               const Spacer(),
               const _ProfileAvatar(),
-              const SizedBox(height: 14),
+              const SizedBox(height: 10),
               Text(
                 name,
                 maxLines: 1,
@@ -96,35 +88,59 @@ class _ProfileHero extends StatelessWidget {
                 style: const TextStyle(
                   fontFamily: 'Cairo',
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: 19,
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: Text(
-                      email,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'Tajawal',
-                        color: Colors.white.withOpacity(0.88),
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
+              const SizedBox(height: 2),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 280),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        email,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Tajawal',
+                          color: Colors.white.withOpacity(0.88),
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Icon(
-                    Icons.edit_outlined,
-                    color: Colors.white.withOpacity(0.9),
-                    size: 15,
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          // TODO: Open volunteer profile edit screen when it is available.
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'تعديل البيانات قريبًا',
+                                style: TextStyle(fontFamily: 'Tajawal'),
+                              ),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(
+                            Icons.edit_square,
+                            color: Colors.white.withOpacity(0.92),
+                            size: 17,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -149,9 +165,9 @@ class _ProfileAvatar extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         Container(
-          width: 108,
-          height: 108,
-          padding: const EdgeInsets.all(5),
+          width: 96,
+          height: 96,
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
@@ -168,13 +184,13 @@ class _ProfileAvatar extends StatelessWidget {
             child: Icon(
               Icons.person_rounded,
               color: _profileOrange,
-              size: 54,
+              size: 48,
             ),
           ),
         ),
         PositionedDirectional(
           start: 2,
-          bottom: 7,
+          bottom: 6,
           child: Material(
             color: Colors.transparent,
             child: InkWell(
@@ -185,8 +201,8 @@ class _ProfileAvatar extends StatelessWidget {
               },
               borderRadius: BorderRadius.circular(18),
               child: Container(
-                width: 34,
-                height: 34,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
@@ -202,7 +218,7 @@ class _ProfileAvatar extends StatelessWidget {
                 child: const Icon(
                   Icons.photo_camera_rounded,
                   color: _profileOrange,
-                  size: 17,
+                  size: 15,
                 ),
               ),
             ),
@@ -238,7 +254,7 @@ class _ProfileStatsCard extends StatelessWidget {
           _StatDivider(),
           Expanded(child: _StatItem(value: '8', label: 'أنشطة')),
           _StatDivider(),
-          Expanded(child: _StatItem(value: '3', label: 'فرصات')),
+          Expanded(child: _StatItem(value: '3', label: 'فرص')),
         ],
       ),
     );
@@ -307,14 +323,9 @@ class _ProfileMenu extends StatelessWidget {
         onTap: () => Navigator.of(context).pushNamed('/my_volunteer_history'),
       ),
       _ProfileMenuItemData(
-        title: 'تطوعاتي',
-        icon: Icons.volunteer_activism_outlined,
-        onTap: () => Navigator.of(context).pushNamed('/my_schedule'),
-      ),
-      _ProfileMenuItemData(
-        title: 'المفضلة',
-        icon: Icons.favorite_border_rounded,
-        onTap: () => Navigator.of(context).pushNamed('/volunteer_search'),
+        title: 'شهاداتي',
+        icon: Icons.workspace_premium_outlined,
+        onTap: () => Navigator.of(context).pushNamed('/my_certificates'),
       ),
       _ProfileMenuItemData(
         title: 'بياناتي الشخصية',
@@ -332,17 +343,33 @@ class _ProfileMenu extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 22),
       child: Column(
         children: [
-          for (int i = 0; i < items.length; i++) ...[
-            _ProfileMenuTile(data: items[i]),
-            if (i != items.length - 1) const SizedBox(height: 12),
-          ],
-          const SizedBox(height: 18),
-          VolunteerSecondaryButton(
-            label: 'تسجيل الخروج',
-            icon: Icons.logout_rounded,
-            onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
-              '/login',
-              (route) => false,
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 18,
+                  offset: const Offset(0, 9),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                for (int i = 0; i < items.length; i++) ...[
+                  _ProfileMenuTile(data: items[i]),
+                  if (i != items.length - 1)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 18),
+                      child: Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: Color(0xFFF0F0F0),
+                      ),
+                    ),
+                ],
+              ],
             ),
           ),
         ],
@@ -374,23 +401,15 @@ class _ProfileMenuTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: data.onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          height: 58,
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.035),
-                blurRadius: 14,
-                offset: const Offset(0, 7),
-              ),
-            ],
-          ),
+        borderRadius: BorderRadius.circular(20),
+        child: SizedBox(
+          height: 60,
           child: Row(
+            textDirection: TextDirection.rtl,
             children: [
+              const SizedBox(width: 18),
+              Icon(data.icon, color: _profileMuted, size: 23),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   data.title,
@@ -404,7 +423,13 @@ class _ProfileMenuTile extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(data.icon, color: _profileMuted, size: 23),
+              const SizedBox(width: 10),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Color(0xFFB5BAC3),
+                size: 24,
+              ),
+              const SizedBox(width: 14),
             ],
           ),
         ),
@@ -418,147 +443,6 @@ class _ProfileBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
-        child: Container(
-          height: 72,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 22,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home_rounded,
-                  label: 'الرئيسية',
-                  selected: false,
-                  onTap: () =>
-                      Navigator.of(context).pushNamed('/volunteer_home'),
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.notifications_none_rounded,
-                  activeIcon: Icons.notifications_active_rounded,
-                  label: 'الإشعارات',
-                  selected: false,
-                  showDot: true,
-                  onTap: () => Navigator.of(context)
-                      .pushNamed('/volunteer_notifications'),
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.event_note_outlined,
-                  activeIcon: Icons.event_note_rounded,
-                  label: 'مواعيدي',
-                  selected: false,
-                  onTap: () => Navigator.of(context).pushNamed('/my_schedule'),
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.person_outline_rounded,
-                  activeIcon: Icons.person_rounded,
-                  label: 'حسابي',
-                  selected: true,
-                  onTap: () {},
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final bool selected;
-  final bool showDot;
-  final VoidCallback onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-    this.showDot = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = selected ? _profileOrange : const Color(0xFF6B7280);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(22),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFFFF2E8) : Colors.transparent,
-          borderRadius: BorderRadius.circular(22),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 26,
-              height: 24,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  Icon(selected ? activeIcon : icon, color: color, size: 23),
-                  if (showDot)
-                    Positioned(
-                      top: -2,
-                      child: Container(
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: _profileOrange,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: 'Tajawal',
-                color: color,
-                fontSize: 11,
-                fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
-                height: 1,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    return const VolunteerBottomNavBar(selectedIndex: 3);
   }
 }

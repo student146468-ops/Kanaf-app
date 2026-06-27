@@ -2,19 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../providers/app_provider_scope.dart';
 import 'volunteer_ui.dart';
 
-const String _fallbackVolunteerName = 'ياسمين عادل';
+const String _welcomeTitle = 'مرحبًا ياسمين';
 const String _homeSubtitle = 'ساهمي بوقتك ومهاراتك لصنع أثر حقيقي';
 const String _opportunitiesTitle = 'فرص تطوع جديدة';
 const String _filterActionLabel = 'عرض الكل';
 const String _upcomingActivitiesTitle = 'الأنشطة القادمة';
 const String _applyButtonLabel = 'تطوع الآن';
-const String _homeTabLabel = 'الرئيسية';
-const String _scheduleTabLabel = 'مواعيدي';
-const String _notificationsTabLabel = 'الإشعارات';
-const String _profileTabLabel = 'حسابي';
 const String _searchTooltip = 'البحث عن فرصة';
 const String _notificationsTooltip = 'الإشعارات';
 
@@ -117,13 +112,6 @@ class _HomeVolunteerViewState extends State<HomeVolunteerView> {
   ];
   @override
   Widget build(BuildContext context) {
-    final provider = AppProviderScope.of(context);
-    final volunteer =
-        provider.volunteers.isNotEmpty ? provider.volunteers.first : null;
-    final displayName = volunteer?.name.isNotEmpty == true
-        ? volunteer!.name
-        : _fallbackVolunteerName;
-
     return Directionality(
       textDirection: TextDirection.rtl,
       child: VolunteerMobileFrame(
@@ -142,7 +130,6 @@ class _HomeVolunteerViewState extends State<HomeVolunteerView> {
                       0,
                     ),
                     child: _HomeHeader(
-                      name: displayName,
                       onSearch: () =>
                           Navigator.of(context).pushNamed('/volunteer_search'),
                       onNotifications: () => Navigator.of(context).pushNamed(
@@ -215,7 +202,7 @@ class _HomeVolunteerViewState extends State<HomeVolunteerView> {
               ],
             ),
           ),
-          bottomNavigationBar: _FloatingVolunteerNavBar(
+          bottomNavigationBar: VolunteerBottomNavBar(
             selectedIndex: _currentIndex,
             onItemSelected: (index) {
               setState(() => _currentIndex = index);
@@ -235,12 +222,10 @@ class _HomeVolunteerViewState extends State<HomeVolunteerView> {
 }
 
 class _HomeHeader extends StatelessWidget {
-  final String name;
   final VoidCallback onSearch;
   final VoidCallback onNotifications;
 
   const _HomeHeader({
-    required this.name,
     required this.onSearch,
     required this.onNotifications,
   });
@@ -248,24 +233,25 @@ class _HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.max,
       children: [
-        Expanded(
+        const Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                name,
+                _welcomeTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Cairo',
                   color: _textPrimary,
                   fontSize: 24,
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(height: 4),
-              const Text(
+              SizedBox(height: 4),
+              Text(
                 _homeSubtitle,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -508,8 +494,8 @@ class _OpportunityImage extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: Image.asset(
         imagePath,
-        width: 124,
-        height: 110,
+        width: 136,
+        height: 124,
         fit: BoxFit.cover,
       ),
     );
@@ -609,7 +595,7 @@ class _OpportunityCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               _OpportunityImage(imagePath: imagePath),
             ],
           ),
@@ -683,160 +669,6 @@ class _OpportunityMetaItem extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                   height: 1,
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FloatingVolunteerNavBar extends StatelessWidget {
-  final int selectedIndex;
-  final ValueChanged<int> onItemSelected;
-
-  const _FloatingVolunteerNavBar({
-    required this.selectedIndex,
-    required this.onItemSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
-        child: Container(
-          height: 72,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 22,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home_rounded,
-                  label: _homeTabLabel,
-                  selected: selectedIndex == 0,
-                  onTap: () => onItemSelected(0),
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.notifications_none_rounded,
-                  activeIcon: Icons.notifications_active_rounded,
-                  label: _notificationsTabLabel,
-                  selected: selectedIndex == 1,
-                  showDot: true,
-                  onTap: () => onItemSelected(1),
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.event_note_outlined,
-                  activeIcon: Icons.event_note_rounded,
-                  label: _scheduleTabLabel,
-                  selected: selectedIndex == 2,
-                  onTap: () => onItemSelected(2),
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.person_outline_rounded,
-                  activeIcon: Icons.person_rounded,
-                  label: _profileTabLabel,
-                  selected: selectedIndex == 3,
-                  onTap: () => onItemSelected(3),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final bool selected;
-  final bool showDot;
-  final VoidCallback onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-    this.showDot = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = selected ? _primaryOrange : const Color(0xFF6B7280);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(22),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFFFF2E8) : Colors.transparent,
-          borderRadius: BorderRadius.circular(22),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 26,
-              height: 24,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  Icon(selected ? activeIcon : icon, color: color, size: 23),
-                  if (showDot)
-                    Positioned(
-                      top: -2,
-                      child: Container(
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: _primaryOrange,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: 'Tajawal',
-                color: color,
-                fontSize: 11,
-                fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
-                height: 1,
               ),
             ),
           ],

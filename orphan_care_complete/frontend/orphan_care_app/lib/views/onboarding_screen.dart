@@ -22,14 +22,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       titleLineTwo: 'يصل لمن يحتاجه',
       description:
           'ساهم بما تستطيع من غذاء أو ملابس أو مستلزمات أو تبرعات مالية، وساعد دور رعاية الأيتام على تلبية احتياجاتها الحقيقية بكل سهولة وشفافية.',
-      imagePath: 'assets/images/image11.png',
+      imagePath: 'assets/images/image12.png',
     ),
     _OnboardingSlideData(
       titleLineOne: 'شارك بوقتك...',
       titleLineTwo: 'واصنع أثرًا',
       description:
           'قدّم مهاراتك في التعليم أو الترفيه أو الإرشاد أو أي مجال تستطيع المساهمة فيه، وكن سببًا في رسم الابتسامة على وجوه الأطفال.',
-      imagePath: 'assets/images/image12.png',
+      imagePath: 'assets/images/image11.png',
     ),
     _OnboardingSlideData(
       titleLineOne: 'سجّل',

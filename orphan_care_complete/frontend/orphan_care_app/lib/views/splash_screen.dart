@@ -241,32 +241,60 @@ class _SplashScreenState extends State<SplashScreen>
             right: 0,
             bottom: 0,
             child: IgnorePointer(
-              child: SizedBox(
-                height: 142,
-                child: Stack(
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    Positioned.fill(
-                      child: ClipPath(
-                        clipper: const _SplashWaveClipper(amplitude: 26),
-                        child: Container(
-                          color: AppColors.brandOrangeLight.withOpacity(0.55),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: ClipPath(
-                        clipper: const _SplashWaveClipper(amplitude: 22),
-                        child: Container(
-                          height: 112,
-                          color: AppColors.brandOrange,
-                        ),
-                      ),
-                    ),
-                  ],
+              child: _SplashBottomWaves(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SplashBottomWaves extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final waveHeight = (screenHeight * 0.20).clamp(138.0, 178.0);
+
+    return SizedBox(
+      height: waveHeight,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Positioned.fill(
+            child: ClipPath(
+              clipper: const _SplashWaveClipper(layer: _SplashWaveLayer.light),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.brandOrangeLight.withOpacity(0.58),
+                      AppColors.brandOrangeLight.withOpacity(0.82),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: waveHeight * 0.82,
+            child: ClipPath(
+              clipper: const _SplashWaveClipper(layer: _SplashWaveLayer.main),
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFFFFA25F),
+                      AppColors.brandOrange,
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -277,30 +305,35 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-class _SplashWaveClipper extends CustomClipper<Path> {
-  final double amplitude;
+enum _SplashWaveLayer { light, main }
 
-  const _SplashWaveClipper({required this.amplitude});
+class _SplashWaveClipper extends CustomClipper<Path> {
+  final _SplashWaveLayer layer;
+
+  const _SplashWaveClipper({required this.layer});
 
   @override
   Path getClip(Size size) {
+    final isLightLayer = layer == _SplashWaveLayer.light;
+    final startY = size.height * (isLightLayer ? 0.28 : 0.24);
+
     final path = Path()
-      ..moveTo(0, amplitude)
+      ..moveTo(0, startY)
       ..cubicTo(
-        size.width * 0.22,
-        amplitude * 2.1,
+        size.width * 0.18,
+        size.height * (isLightLayer ? 0.08 : 0.44),
         size.width * 0.36,
-        0,
-        size.width * 0.56,
-        amplitude * 0.78,
+        size.height * (isLightLayer ? 0.14 : 0.02),
+        size.width * 0.52,
+        size.height * (isLightLayer ? 0.27 : 0.19),
       )
       ..cubicTo(
-        size.width * 0.76,
-        amplitude * 1.55,
-        size.width * 0.86,
-        amplitude * 0.18,
+        size.width * 0.68,
+        size.height * (isLightLayer ? 0.41 : 0.36),
+        size.width * 0.82,
+        size.height * (isLightLayer ? 0.08 : 0.08),
         size.width,
-        amplitude * 0.92,
+        size.height * (isLightLayer ? 0.22 : 0.18),
       )
       ..lineTo(size.width, size.height)
       ..lineTo(0, size.height)
@@ -311,6 +344,6 @@ class _SplashWaveClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(covariant _SplashWaveClipper oldClipper) {
-    return oldClipper.amplitude != amplitude;
+    return oldClipper.layer != layer;
   }
 }

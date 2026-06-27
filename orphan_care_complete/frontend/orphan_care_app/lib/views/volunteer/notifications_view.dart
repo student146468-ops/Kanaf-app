@@ -75,10 +75,14 @@ class _NotificationsViewState extends State<NotificationsView> {
       child: VolunteerMobileFrame(
         child: Scaffold(
           backgroundColor: Colors.white,
+          appBar: const PreferredSize(
+            preferredSize: Size.fromHeight(volunteerAppBarHeight),
+            child: VolunteerTopBar(title: 'الإشعارات'),
+          ),
           body: SafeArea(
+            top: false,
             child: Column(
               children: [
-                const _NotificationsTopBar(),
                 const SizedBox(height: 16),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -144,55 +148,6 @@ class _NotificationsViewState extends State<NotificationsView> {
             ? Icons.celebration_rounded
             : Icons.notifications_active_outlined;
     }
-  }
-}
-
-class _NotificationsTopBar extends StatelessWidget {
-  const _NotificationsTopBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      bottom: false,
-      child: SizedBox(
-        height: 56,
-        child: Stack(
-          children: [
-            const Align(
-              alignment: Alignment.center,
-              child: Text(
-                'الإشعارات',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  color: _textPrimary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-            PositionedDirectional(
-              start: 16,
-              top: 4,
-              bottom: 4,
-              child: SizedBox(
-                width: 48,
-                height: 48,
-                child: IconButton(
-                  onPressed: () => Navigator.maybePop(context),
-                  padding: EdgeInsets.zero,
-                  icon: const Icon(
-                    Icons.chevron_right_rounded,
-                    color: _textPrimary,
-                    size: 30,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -384,147 +339,6 @@ class _NotificationsBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
-        child: Container(
-          height: 72,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 22,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home_rounded,
-                  label: 'الرئيسية',
-                  selected: false,
-                  onTap: () =>
-                      Navigator.of(context).pushNamed('/volunteer_home'),
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.notifications_none_rounded,
-                  activeIcon: Icons.notifications_active_rounded,
-                  label: 'الإشعارات',
-                  selected: true,
-                  showDot: true,
-                  onTap: () {},
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.event_note_outlined,
-                  activeIcon: Icons.event_note_rounded,
-                  label: 'مواعيدي',
-                  selected: false,
-                  onTap: () => Navigator.of(context).pushNamed('/my_schedule'),
-                ),
-              ),
-              Expanded(
-                child: _NavItem(
-                  icon: Icons.person_outline_rounded,
-                  activeIcon: Icons.person_rounded,
-                  label: 'حسابي',
-                  selected: false,
-                  onTap: () =>
-                      Navigator.of(context).pushNamed('/volunteer_profile'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final bool selected;
-  final bool showDot;
-  final VoidCallback onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-    this.showDot = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = selected ? _primaryOrange : const Color(0xFF6B7280);
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(22),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFFFF2E8) : Colors.transparent,
-          borderRadius: BorderRadius.circular(22),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 26,
-              height: 24,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  Icon(selected ? activeIcon : icon, color: color, size: 23),
-                  if (showDot)
-                    Positioned(
-                      top: -2,
-                      child: Container(
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: _primaryOrange,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: 'Tajawal',
-                color: color,
-                fontSize: 11,
-                fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
-                height: 1,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    return const VolunteerBottomNavBar(selectedIndex: 1);
   }
 }

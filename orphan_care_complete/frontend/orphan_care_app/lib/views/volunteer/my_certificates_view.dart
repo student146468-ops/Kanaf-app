@@ -18,14 +18,17 @@ class MyCertificatesView extends StatelessWidget {
       child: VolunteerMobileFrame(
         child: Scaffold(
           backgroundColor: _certificateBackground,
+          appBar: const PreferredSize(
+            preferredSize: Size.fromHeight(volunteerAppBarHeight),
+            child: VolunteerTopBar(title: 'شهاداتي'),
+          ),
           body: SafeArea(
+            top: false,
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(22, 10, 22, 32),
+              padding: const EdgeInsets.fromLTRB(22, 28, 22, 32),
               child: Column(
                 children: [
-                  const _CertificatesTopBar(),
-                  const SizedBox(height: 28),
                   const _CertificatePreviewCard(),
                   const SizedBox(height: 28),
                   _CertificateActionButton(
@@ -62,43 +65,6 @@ class MyCertificatesView extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _CertificatesTopBar extends StatelessWidget {
-  const _CertificatesTopBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 56,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          const Text(
-            'شهاداتي',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'Cairo',
-              color: _certificateText,
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          PositionedDirectional(
-            start: 0,
-            child: IconButton(
-              onPressed: () => Navigator.maybePop(context),
-              icon: const Icon(
-                Icons.chevron_left_rounded,
-                color: _certificateText,
-                size: 30,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -189,7 +155,7 @@ class _CertificatePreviewCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    'أحمد محمد',
+                    'ياسمين عادل',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'Cairo',
@@ -209,7 +175,7 @@ class _CertificatePreviewCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 22),
                   const Text(
-                    'وذلك تقديرًا لمشاركته في العمل التطوعي ومساهمته الفاعلة في خدمة المجتمع ودعم المبادرات الإنسانية.',
+                    'وذلك تقديرًا لمشاركتها في العمل التطوعي ومساهمتها الفاعلة في خدمة المجتمع ودعم المبادرات الإنسانية.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontFamily: 'Tajawal',
