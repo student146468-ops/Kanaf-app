@@ -1,86 +1,101 @@
 import 'package:flutter/material.dart';
 
-import '../../utils/app_colors.dart';
 import 'volunteer_ui.dart';
+
+const Color _certificateOrange = Color(0xFFFF8C42);
+const Color _certificateText = Color(0xFF1F2937);
+const Color _certificateMuted = Color(0xFF6B7280);
+const Color _certificateBackground = Color(0xFFF7F7F7);
+const Color _certificateCream = Color(0xFFFFFCF6);
 
 class MyCertificatesView extends StatelessWidget {
   const MyCertificatesView({super.key});
 
-  // TODO: Replace with AppProvider certificates when available.
-  static const List<Map<String, String>> _certificates = [
-    {
-      'title': 'شهادة تميز في الدعم التعليمي',
-      'issuer': 'دار الأمان لرعاية الأيتام',
-      'date': '28 أبريل 2026',
-      'hours': '18 ساعة',
-    },
-    {
-      'title': 'شهادة شكر لتنظيم الأنشطة',
-      'issuer': 'مركز كنف المجتمعي',
-      'date': '20 فبراير 2026',
-      'hours': '10 ساعات',
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return VolunteerAppScaffold(
-      title: 'شهاداتي',
-      body: SafeArea(
-        top: false,
-        child: _certificates.isEmpty
-            ? VolunteerEmptyState(
-                icon: Icons.workspace_premium_outlined,
-                title: 'لا توجد شهادات بعد',
-                message:
-                    'بعد إكمال مساهمة تطوعية موثقة ستظهر شهادات التقدير هنا.',
-                actionLabel: 'استكشاف الفرص',
-                onAction: () =>
-                    Navigator.of(context).pushNamed('/volunteer_search'),
-              )
-            : ListView.separated(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(
-                  volunteerHorizontalPadding,
-                  10,
-                  volunteerHorizontalPadding,
-                  24,
-                ),
-                itemCount: _certificates.length + 1,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  if (index == 0) return const _IntroCard();
-                  return _CertificateCard(
-                    certificate: _certificates[index - 1],
-                  );
-                },
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: VolunteerMobileFrame(
+        child: Scaffold(
+          backgroundColor: _certificateBackground,
+          body: SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(22, 10, 22, 32),
+              child: Column(
+                children: [
+                  const _CertificatesTopBar(),
+                  const SizedBox(height: 28),
+                  const _CertificatePreviewCard(),
+                  const SizedBox(height: 28),
+                  _CertificateActionButton(
+                    label: 'تحميل الشهادة',
+                    icon: Icons.download_rounded,
+                    filled: true,
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'سيتم تفعيل تحميل الشهادة عند ربط ملفات الشهادات.',
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  _CertificateActionButton(
+                    label: 'مشاركة الشهادة',
+                    icon: Icons.ios_share_rounded,
+                    filled: false,
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('مشاركة الشهادة قريبًا'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _IntroCard extends StatelessWidget {
-  const _IntroCard();
+class _CertificatesTopBar extends StatelessWidget {
+  const _CertificatesTopBar();
 
   @override
   Widget build(BuildContext context) {
-    return const VolunteerCard(
-      color: AppColors.brandOrangeLight,
-      borderColor: Colors.white,
-      child: Row(
+    return SizedBox(
+      height: 56,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          VolunteerIconBox(
-            icon: Icons.workspace_premium_rounded,
-            backgroundColor: Colors.white,
-            size: 48,
-            iconSize: 25,
+          const Text(
+            'شهاداتي',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Cairo',
+              color: _certificateText,
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+            ),
           ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'توثق الشهادات مساهماتك التطوعية مع دور الرعاية وتبرز أثر وقتك.',
-              style: volunteerBodyStyle,
+          PositionedDirectional(
+            start: 0,
+            child: IconButton(
+              onPressed: () => Navigator.maybePop(context),
+              icon: const Icon(
+                Icons.chevron_left_rounded,
+                color: _certificateText,
+                size: 30,
+              ),
             ),
           ),
         ],
@@ -89,89 +104,232 @@ class _IntroCard extends StatelessWidget {
   }
 }
 
-class _CertificateCard extends StatelessWidget {
-  final Map<String, String> certificate;
-
-  const _CertificateCard({required this.certificate});
+class _CertificatePreviewCard extends StatelessWidget {
+  const _CertificatePreviewCard();
 
   @override
   Widget build(BuildContext context) {
-    return VolunteerCard(
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const VolunteerIconBox(
-                icon: Icons.verified_rounded,
-                color: Color(0xFFFFB300),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      certificate['title']!,
-                      style: const TextStyle(
-                        fontFamily: 'Cairo',
-                        color: AppColors.textDarkPrimary,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        width: double.infinity,
+        constraints: const BoxConstraints(minHeight: 500),
+        decoration: BoxDecoration(
+          color: _certificateCream,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFFF1E5D6)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            const PositionedDirectional(
+              top: -52,
+              start: -44,
+              child: _SoftOrangeCircle(size: 130, opacity: 0.13),
+            ),
+            const PositionedDirectional(
+              top: 28,
+              start: 24,
+              child: _SoftOrangeCircle(size: 34, opacity: 0.30),
+            ),
+            const PositionedDirectional(
+              bottom: -46,
+              end: -40,
+              child: _SoftOrangeCircle(size: 128, opacity: 0.13),
+            ),
+            const PositionedDirectional(
+              bottom: 30,
+              end: 30,
+              child: _SoftOrangeCircle(size: 30, opacity: 0.28),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 44, 24, 34),
+              child: Column(
+                children: [
+                  Container(
+                    width: 58,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      color: _certificateOrange.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.workspace_premium_rounded,
+                      color: _certificateOrange,
+                      size: 34,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'شهادة تطوع',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      color: _certificateText,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'تمنح هذه الشهادة إلى',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Tajawal',
+                      color: _certificateMuted,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'أحمد محمد',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      color: _certificateOrange,
+                      fontSize: 25,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  Container(
+                    width: 72,
+                    height: 2,
+                    decoration: BoxDecoration(
+                      color: _certificateOrange.withOpacity(0.45),
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  const Text(
+                    'وذلك تقديرًا لمشاركته في العمل التطوعي ومساهمته الفاعلة في خدمة المجتمع ودعم المبادرات الإنسانية.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Tajawal',
+                      color: _certificateText,
+                      fontSize: 15,
+                      height: 1.75,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'تاريخ الإصدار: 28 أبريل 2026',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Tajawal',
+                      color: _certificateMuted,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Container(
+                    width: 74,
+                    height: 74,
+                    decoration: BoxDecoration(
+                      color: _certificateOrange.withOpacity(0.10),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _certificateOrange.withOpacity(0.28),
                       ),
                     ),
-                    const SizedBox(height: 3),
-                    Text(certificate['issuer']!, style: volunteerBodyStyle),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const Divider(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    VolunteerMetaChip(
-                      label: certificate['date']!,
-                      icon: Icons.calendar_month_outlined,
-                      color: const Color(0xFF4A90E2),
-                      prominent: true,
+                    child: const Icon(
+                      Icons.military_tech_rounded,
+                      color: _certificateOrange,
+                      size: 42,
                     ),
-                    VolunteerMetaChip(
-                      label: certificate['hours']!,
-                      icon: Icons.schedule_rounded,
-                      color: AppColors.brandOrange,
-                      prominent: true,
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              IconButton.filledTonal(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'سيتم تفعيل تحميل "${certificate['title']}" عند ربط ملفات الشهادات.',
-                        style: const TextStyle(fontFamily: 'Tajawal'),
-                      ),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: AppColors.brandOrange,
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.download_rounded, size: 20),
-                style: IconButton.styleFrom(
-                  backgroundColor: AppColors.brandOrangeLight,
-                  foregroundColor: AppColors.brandOrange,
-                ),
-              ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _SoftOrangeCircle extends StatelessWidget {
+  final double size;
+  final double opacity;
+
+  const _SoftOrangeCircle({required this.size, required this.opacity});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: _certificateOrange.withOpacity(opacity),
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+}
+
+class _CertificateActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool filled;
+  final VoidCallback onPressed;
+
+  const _CertificateActionButton({
+    required this.label,
+    required this.icon,
+    required this.filled,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: filled
+          ? ElevatedButton.icon(
+              onPressed: onPressed,
+              icon: Icon(icon, size: 20),
+              label: Text(label),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _certificateOrange,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                textStyle: const TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(17),
+                ),
+              ),
+            )
+          : OutlinedButton.icon(
+              onPressed: onPressed,
+              icon: Icon(icon, size: 20),
+              label: Text(label),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _certificateOrange,
+                side: const BorderSide(color: _certificateOrange, width: 1.4),
+                textStyle: const TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(17),
+                ),
+              ),
+            ),
     );
   }
 }

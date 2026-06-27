@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../utils/app_colors.dart';
 import 'volunteer_ui.dart';
+
+const Color _primaryOrange = Color(0xFFFF8C42);
+const Color _textPrimary = Color(0xFF1E1E1E);
+const Color _textSecondary = Color(0xFF6B7280);
+const Color _softBorder = Color(0xFFEAEAEA);
 
 class NotificationsView extends StatefulWidget {
   const NotificationsView({super.key});
@@ -11,6 +15,8 @@ class NotificationsView extends StatefulWidget {
 }
 
 class _NotificationsViewState extends State<NotificationsView> {
+  String _selectedFilter = 'الكل';
+
   // TODO: Replace with AppProvider notifications when available.
   final List<Map<String, dynamic>> _notifications = [
     {
@@ -50,109 +56,211 @@ class _NotificationsViewState extends State<NotificationsView> {
     },
   ];
 
-  void _markAllRead() {
-    setState(() {
-      for (final item in _notifications) {
-        item['read'] = true;
-      }
-    });
+  List<Map<String, dynamic>> get _filteredNotifications {
+    if (_selectedFilter == 'غير مقروء') {
+      return _notifications.where((item) => item['read'] == false).toList();
+    }
+    if (_selectedFilter == 'التسويق') {
+      return _notifications
+          .where((item) => item['type'] == 'opportunity')
+          .toList();
+    }
+    return _notifications;
   }
 
   @override
   Widget build(BuildContext context) {
-    final unreadCount =
-        _notifications.where((item) => item['read'] == false).length;
-
-    return VolunteerAppScaffold(
-      title: 'الإشعارات',
-      body: SafeArea(
-        top: false,
-        child: _notifications.isEmpty
-            ? VolunteerEmptyState(
-                icon: Icons.notifications_none_rounded,
-                title: 'لا توجد إشعارات الآن',
-                message:
-                    'سنخبرك هنا عند قبول الطلبات أو صدور الشهادات أو نشر فرص جديدة.',
-                actionLabel: 'استكشاف الفرص',
-                onAction: () =>
-                    Navigator.of(context).pushNamed('/volunteer_search'),
-              )
-            : ListView.separated(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(
-                  volunteerHorizontalPadding,
-                  10,
-                  volunteerHorizontalPadding,
-                  24,
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: VolunteerMobileFrame(
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Column(
+              children: [
+                const _NotificationsTopBar(),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _NotificationFilters(
+                    selectedFilter: _selectedFilter,
+                    onSelected: (filter) {
+                      setState(() => _selectedFilter = filter);
+                    },
+                  ),
                 ),
-                itemCount: _notifications.length + 1,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return _HeaderNote(
-                      unreadCount: unreadCount,
-                      onMarkAllRead: unreadCount == 0 ? null : _markAllRead,
-                    );
-                  }
-                  return _NotificationCard(
-                    item: _notifications[index - 1],
-                    onTap: () => setState(() {
-                      _notifications[index - 1]['read'] = true;
-                    }),
-                  );
-                },
+                const SizedBox(height: 18),
+                Expanded(
+                  child: _filteredNotifications.isEmpty
+                      ? VolunteerEmptyState(
+                          icon: Icons.notifications_none_rounded,
+                          title: 'لا توجد إشعارات الآن',
+                          message:
+                              'سنخبرك هنا عند قبول الطلبات أو صدور الشهادات أو نشر فرص جديدة.',
+                          actionLabel: 'استكشاف الفرص',
+                          onAction: () => Navigator.of(context).pushNamed(
+                            '/volunteer_search',
+                          ),
+                        )
+                      : ListView.separated(
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 110),
+                          itemCount: _filteredNotifications.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 14),
+                          itemBuilder: (context, index) {
+                            final item = _filteredNotifications[index];
+                            return _NotificationCard(
+                              item: item,
+                              icon: _notificationIcon(index, item),
+                              onTap: () => setState(() {
+                                item['read'] = true;
+                              }),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+          bottomNavigationBar: const _NotificationsBottomBar(),
+        ),
+      ),
+    );
+  }
+
+  IconData _notificationIcon(int index, Map<String, dynamic> item) {
+    switch (index) {
+      case 0:
+        return Icons.school_rounded;
+      case 1:
+        return Icons.brush_rounded;
+      case 2:
+        return Icons.celebration_rounded;
+      case 3:
+        return Icons.inventory_2_rounded;
+      default:
+        return item['type'] == 'opportunity'
+            ? Icons.celebration_rounded
+            : Icons.notifications_active_outlined;
+    }
+  }
+}
+
+class _NotificationsTopBar extends StatelessWidget {
+  const _NotificationsTopBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: SizedBox(
+        height: 56,
+        child: Stack(
+          children: [
+            const Align(
+              alignment: Alignment.center,
+              child: Text(
+                'الإشعارات',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  color: _textPrimary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
+            ),
+            PositionedDirectional(
+              start: 16,
+              top: 4,
+              bottom: 4,
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: IconButton(
+                  onPressed: () => Navigator.maybePop(context),
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: _textPrimary,
+                    size: 30,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _HeaderNote extends StatelessWidget {
-  final int unreadCount;
-  final VoidCallback? onMarkAllRead;
+class _NotificationFilters extends StatelessWidget {
+  final String selectedFilter;
+  final ValueChanged<String> onSelected;
 
-  const _HeaderNote({required this.unreadCount, required this.onMarkAllRead});
+  const _NotificationFilters({
+    required this.selectedFilter,
+    required this.onSelected,
+  });
+
+  static const List<String> _filters = ['الكل', 'غير مقروء', 'التسويق'];
 
   @override
   Widget build(BuildContext context) {
-    return VolunteerCard(
-      color: AppColors.brandOrangeLight,
-      borderColor: Colors.white,
-      child: Row(
-        children: [
-          const VolunteerIconBox(
-            icon: Icons.notifications_active_outlined,
-            backgroundColor: Colors.white,
+    return Row(
+      children: [
+        for (int i = 0; i < _filters.length; i++) ...[
+          _FilterChipButton(
+            label: _filters[i],
+            selected: selectedFilter == _filters[i],
+            onTap: () => onSelected(_filters[i]),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              unreadCount == 0
-                  ? 'كل الإشعارات مقروءة'
-                  : 'لديك $unreadCount إشعارات تحتاج إلى متابعة',
-              style: const TextStyle(
-                fontFamily: 'Tajawal',
-                color: AppColors.textDarkPrimary,
-                fontSize: 13.5,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          TextButton.icon(
-            onPressed: onMarkAllRead,
-            icon: const Icon(Icons.done_all_rounded, size: 18),
-            label: const Text('تحديد الكل'),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.brandOrange,
-              disabledForegroundColor: AppColors.textDarkMuted,
-              textStyle: const TextStyle(
-                fontFamily: 'Tajawal',
-                fontWeight: FontWeight.w900,
-                fontSize: 12,
-              ),
-            ),
-          ),
+          if (i != _filters.length - 1) const SizedBox(width: 10),
         ],
+      ],
+    );
+  }
+}
+
+class _FilterChipButton extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FilterChipButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          height: 36,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected ? _primaryOrange : const Color(0xFFF4F4F5),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Tajawal',
+              color: selected ? Colors.white : _textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -160,129 +268,263 @@ class _HeaderNote extends StatelessWidget {
 
 class _NotificationCard extends StatelessWidget {
   final Map<String, dynamic> item;
+  final IconData icon;
   final VoidCallback onTap;
 
-  const _NotificationCard({required this.item, required this.onTap});
+  const _NotificationCard({
+    required this.item,
+    required this.icon,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final meta = _notificationMeta(item['type'] as String);
     final isRead = item['read'] == true;
 
-    return VolunteerCard(
-      onTap: onTap,
-      color: isRead ? Colors.white : meta.color.withOpacity(0.065),
-      borderColor: isRead ? AppColors.innerBorder : meta.color.withOpacity(0.3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          VolunteerIconBox(
-            icon: meta.icon,
-            color: meta.color,
-            backgroundColor: meta.color.withOpacity(0.12),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: _softBorder.withOpacity(0.75)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.045),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF2E8),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Icon(icon, color: _primaryOrange, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        item['title'] as String,
-                        style: const TextStyle(
-                          fontFamily: 'Cairo',
-                          color: AppColors.textDarkPrimary,
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w900,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item['title'] as String,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontFamily: 'Cairo',
+                              color: _textPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
                         ),
+                        if (!isRead) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 8,
+                            height: 8,
+                            margin: const EdgeInsets.only(top: 7),
+                            decoration: const BoxDecoration(
+                              color: _primaryOrange,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      item['body'] as String,
+                      style: const TextStyle(
+                        fontFamily: 'Tajawal',
+                        color: _textSecondary,
+                        fontSize: 13,
+                        height: 1.45,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    VolunteerStatusBadge(
-                      label: meta.label,
-                      color: meta.color,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(item['body'] as String, style: volunteerBodyStyle),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
+                    const SizedBox(height: 8),
                     Text(
                       item['time'] as String,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Tajawal',
-                        color: meta.color,
+                        color: _textSecondary,
                         fontSize: 11.5,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const Spacer(),
-                    if (!isRead)
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: meta.color,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
+}
 
-  _NotificationMeta _notificationMeta(String type) {
-    switch (type) {
-      case 'accepted':
-        return const _NotificationMeta(
-          icon: Icons.check_circle_rounded,
-          color: AppColors.successGreen,
-          label: 'قبول',
-        );
-      case 'rejected':
-        return const _NotificationMeta(
-          icon: Icons.cancel_rounded,
-          color: AppColors.errorRed,
-          label: 'رفض',
-        );
-      case 'reminder':
-        return const _NotificationMeta(
-          icon: Icons.alarm_rounded,
-          color: Color(0xFF4A90E2),
-          label: 'تذكير',
-        );
-      case 'certificate':
-        return const _NotificationMeta(
-          icon: Icons.workspace_premium_rounded,
-          color: Color(0xFFFFB300),
-          label: 'شهادة',
-        );
-      default:
-        return const _NotificationMeta(
-          icon: Icons.auto_awesome_rounded,
-          color: AppColors.brandOrange,
-          label: 'فرصة',
-        );
-    }
+class _NotificationsBottomBar extends StatelessWidget {
+  const _NotificationsBottomBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 0, 18, 12),
+        child: Container(
+          height: 72,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 22,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home_rounded,
+                  label: 'الرئيسية',
+                  selected: false,
+                  onTap: () =>
+                      Navigator.of(context).pushNamed('/volunteer_home'),
+                ),
+              ),
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.notifications_none_rounded,
+                  activeIcon: Icons.notifications_active_rounded,
+                  label: 'الإشعارات',
+                  selected: true,
+                  showDot: true,
+                  onTap: () {},
+                ),
+              ),
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.event_note_outlined,
+                  activeIcon: Icons.event_note_rounded,
+                  label: 'مواعيدي',
+                  selected: false,
+                  onTap: () => Navigator.of(context).pushNamed('/my_schedule'),
+                ),
+              ),
+              Expanded(
+                child: _NavItem(
+                  icon: Icons.person_outline_rounded,
+                  activeIcon: Icons.person_rounded,
+                  label: 'حسابي',
+                  selected: false,
+                  onTap: () =>
+                      Navigator.of(context).pushNamed('/volunteer_profile'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
-class _NotificationMeta {
+class _NavItem extends StatelessWidget {
   final IconData icon;
-  final Color color;
+  final IconData activeIcon;
   final String label;
+  final bool selected;
+  final bool showDot;
+  final VoidCallback onTap;
 
-  const _NotificationMeta({
+  const _NavItem({
     required this.icon,
-    required this.color,
+    required this.activeIcon,
     required this.label,
+    required this.selected,
+    required this.onTap,
+    this.showDot = false,
   });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? _primaryOrange : const Color(0xFF6B7280);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFFFF2E8) : Colors.transparent,
+          borderRadius: BorderRadius.circular(22),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 26,
+              height: 24,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  Icon(selected ? activeIcon : icon, color: color, size: 23),
+                  if (showDot)
+                    Positioned(
+                      top: -2,
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: _primaryOrange,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: 'Tajawal',
+                color: color,
+                fontSize: 11,
+                fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+                height: 1,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

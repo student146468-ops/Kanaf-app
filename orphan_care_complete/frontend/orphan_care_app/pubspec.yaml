@@ -50,6 +50,7 @@ flutter:
     - assets/images/apple_icon.png
     - assets/images/google_icon.png
     - assets/images/happy_child.png    
+    - assets/images/
   
   # الخطوط العربية الاحترافية
   fonts:

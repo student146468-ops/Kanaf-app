@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart'; // ربط ملف الألوان المطور
-import '../widgets/glass_container.dart'; // ربط المكون الزجاجي الموحد 25%
-import '../widgets/welcome_progress_indicator.dart';
-import 'register_screen.dart'; 
 
-/// [LoginScreen] - واجهة تسجيل الدخول لـ "تطبيق كَنَفْ" لعام 2026.
+import '../utils/app_colors.dart';
+import 'register_screen.dart';
+
+/// [LoginScreen] - واجهة تسجيل الدخول لـ "تطبيق كَنَفْ".
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -15,11 +14,11 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
-  bool _obscurePassword = true; 
-
   final FocusNode _emailFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
+
+  bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -37,12 +36,14 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // ✨ دالة معالجة الدخول المحدثة والمصححة بالكامل للتوجيه الشرطي الثلاثي (كما هي بدون تغيير)
   Future<void> _handleLogin() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('الرجاء إدخال البريد الإلكتروني وكلمة المرور', style: TextStyle(fontFamily: 'Cairo')),
+          content: Text(
+            'الرجاء إدخال البريد الإلكتروني وكلمة المرور',
+            style: TextStyle(fontFamily: 'Cairo'),
+          ),
           backgroundColor: AppColors.brandOrange,
         ),
       );
@@ -51,20 +52,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(milliseconds: 1500));
-    
+
     if (mounted) {
       setState(() => _isLoading = false);
-      
-      // 💎 التقاط الدور الممرر من شاشة الـ RoleSelection
-      final String selectedRole = ModalRoute.of(context)?.settings.arguments as String? ?? 'donor';
-      
-      // 💎 التوجيه الشرطي الذكي والثلاثي بناءً على الدور المختار
+
+      final String selectedRole =
+          ModalRoute.of(context)?.settings.arguments as String? ?? 'donor';
+
       if (selectedRole == 'care_home') {
-        Navigator.of(context).pushReplacementNamed('/care_home_home'); 
+        Navigator.of(context).pushReplacementNamed('/care_home_home');
       } else if (selectedRole == 'volunteer') {
-        Navigator.of(context).pushReplacementNamed('/volunteer_home'); 
+        Navigator.of(context).pushReplacementNamed('/volunteer_home');
       } else {
-        Navigator.of(context).pushReplacementNamed('/supporter_home'); 
+        Navigator.of(context).pushReplacementNamed('/supporter_home');
       }
     }
   }
@@ -72,363 +72,288 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isWebOrDesktop = size.width > 600;
-    final containerWidth = isWebOrDesktop ? 420.0 : double.infinity;
+    final containerWidth = size.width > 600 ? 430.0 : double.infinity;
 
     return Directionality(
-      textDirection: TextDirection.rtl, 
+      textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground, // استخدام الخلفية الداكنة الفخمة من ملف الألوان
+        backgroundColor: Colors.white,
         body: Center(
-          child: Container(
+          child: SizedBox(
             width: containerWidth,
             height: double.infinity,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: Colors.black,
-              boxShadow: isWebOrDesktop
-                  ? [BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 45, spreadRadius: 8)]
-                  : [],
-            ),
-            child: Stack(
-              children: [
-                // 1. تثبيت الخلفية البصرية الجديدة باستخدام صورة child.png المعتمدة بالملي
-                Positioned.fill(
-                  child: Image.asset(
-                    'assets/images/child.png',
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                  ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 32,
                 ),
-
-                // طبقة التدرج السينمائي المدمجة بنعومة فوق الصورة لمنح لمعان وتأثير بصري تفاعلي ومريح للعين
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.10),
-                          AppColors.brandOrangeDark.withOpacity(0.24), 
-                          Colors.black.withOpacity(0.72), 
-                        ],
-                      ),
-                    ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: MediaQuery.of(context).size.height -
+                        MediaQuery.of(context).padding.vertical -
+                        64,
                   ),
-                ),
-
-                // 2. محتوى الواجهة المنظم بالكامل فوق الطبقة الكريستالية
-                SafeArea(
                   child: Center(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(22, 30, 22, 24),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const WelcomeProgressIndicator(currentStep: 4),
-                          const SizedBox(height: 22),
-                          Text(
-                            'مرحباً بك في كَنَفْ',
+                          const Text(
+                            'مرحبًا بك',
+                            textAlign: TextAlign.center,
                             style: TextStyle(
                               fontFamily: 'Cairo',
-                              fontSize: 26,
+                              color: AppColors.brandOrange,
+                              fontSize: 28,
                               fontWeight: FontWeight.w900,
-                              color: AppColors.glassTextPrimary,
-                              shadows: [Shadow(color: Colors.black.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 3))],
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
                           const Text(
-                            'سجّل دخولك لتتفقد احتياجات الأيتام وتصنع أثراً',
+                            'سجل الدخول للمتابعة',
+                            textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontFamily: 'Cairo',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.glassTextSecondary,
+                              fontFamily: 'Tajawal',
+                              color: Color(0xFF6B7280),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 30),
-
-                          // 3. استدعاء القالب الزجاجي الموحد لدمج العناصر وتوحيد الشفافية والـ Blur عند 25%
-                          GlassContainer(
-                            padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 22),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // حقل البريد الإلكتروني المطور والمحمي من التمدد العشوائي واهتزاز الحجم
-                                _buildGlassInputField(
-                                  controller: _emailController,
-                                  focusNode: _emailFocusNode,
-                                  hintText: 'البريد الإلكتروني',
-                                  icon: Icons.alternate_email_rounded, 
-                                  keyboardType: TextInputType.emailAddress,
-                                ),
-                                const SizedBox(height: 18),
-
-                                // حقل كلمة المرور المطور
-                                _buildGlassInputField(
-                                  controller: _passwordController,
-                                  focusNode: _passwordFocusNode,
-                                  hintText: 'كلمة المرور',
-                                  icon: Icons.lock_outline_rounded,
-                                  keyboardType: TextInputType.visiblePassword,
-                                  isPassword: true,
-                                  obscureText: _obscurePassword,
-                                  onSuffixIconTap: () {
-                                    setState(() => _obscurePassword = !_obscurePassword);
-                                  },
-                                ),
-                                const SizedBox(height: 14),
-
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: InkWell(
-                                    onTap: () {
-                                      Navigator.of(context).pushNamed('/forgot_password');
-                                    },
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
-                                      child: Text(
-                                        'نسيت كلمة المرور؟',
-                                        style: TextStyle(
-                                          fontFamily: 'Cairo',
-                                          fontSize: 13.5,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.glassTextPrimary.withOpacity(0.85),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-
-                                // زر الدخول التفاعلي الاحترافي ثلاثي الأبعاد
-                                _buildGlassLoginButton(),
-                                const SizedBox(height: 32),
-
-                                Row(
-                                  children: [
-                                    Expanded(child: Divider(color: Colors.white.withOpacity(0.15), thickness: 1)),
-                                    const Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: 14.0),
-                                      child: Text(
-                                        'أو سجل الدخول عبر',
-                                        style: TextStyle(
-                                          fontFamily: 'Cairo',
-                                          fontSize: 13.5,
-                                          color: AppColors.glassTextSecondary,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(child: Divider(color: Colors.white.withOpacity(0.15), thickness: 1)),
-                                  ],
-                                ),
-                                const SizedBox(height: 24),
-
-                                // أيقونات التواصل الاجتماعي المودرن المريحة للعين
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    _buildSocialIcon(
-                                      iconPath: 'assets/images/google_icon.png', 
-                                      fallbackIcon: Icons.g_mobiledata_rounded,
-                                      onTap: () {},
-                                    ),
-                                    const SizedBox(width: 24),
-                                    _buildSocialIcon(
-                                      iconPath: 'assets/images/apple_icon.png', 
-                                      fallbackIcon: Icons.apple_rounded,
-                                      onTap: () {},
-                                    ),
-                                  ],
-                                ),
-                              ],
+                          _LoginInputField(
+                            controller: _emailController,
+                            focusNode: _emailFocusNode,
+                            hintText: 'البريد الإلكتروني',
+                            icon: Icons.mail_outline_rounded,
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          const SizedBox(height: 16),
+                          _LoginInputField(
+                            controller: _passwordController,
+                            focusNode: _passwordFocusNode,
+                            hintText: 'كلمة المرور',
+                            icon: Icons.lock_outline_rounded,
+                            keyboardType: TextInputType.visiblePassword,
+                            obscureText: _obscurePassword,
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                );
+                              },
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: _passwordFocusNode.hasFocus
+                                    ? AppColors.brandOrange
+                                    : const Color(0xFF9CA3AF),
+                                size: 21,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 35),
-
-                          _buildSignUpAction(),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.of(context)
+                                    .pushNamed('/forgot_password');
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.brandOrange,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 6,
+                                ),
+                                textStyle: const TextStyle(
+                                  fontFamily: 'Tajawal',
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              child: const Text('نسيت كلمة المرور؟'),
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 54,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _handleLogin,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.brandOrange,
+                                disabledBackgroundColor:
+                                    AppColors.brandOrange.withOpacity(0.58),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(17),
+                                ),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'تسجيل الدخول',
+                                      style: TextStyle(
+                                        fontFamily: 'Cairo',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          const _DividerWithText(),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 54,
+                            child: OutlinedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (ctx) => const RegisterScreen(),
+                                  ),
+                                );
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.brandOrange,
+                                side: const BorderSide(
+                                  color: AppColors.brandOrange,
+                                  width: 1.4,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(17),
+                                ),
+                              ),
+                              child: const Text(
+                                'إنشاء حساب جديد',
+                                style: TextStyle(
+                                  fontFamily: 'Cairo',
+                                  fontSize: 15.5,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
 
-  // ويدجت حقل الإدخال بتصميم زجاجي ناعم متناسق مع تثبيت الطول لمنع الاهتزاز (Height: 56)
-  Widget _buildGlassInputField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String hintText,
-    required IconData icon,
-    required TextInputType keyboardType,
-    bool isPassword = false,
-    bool obscureText = false,
-    VoidCallback? onSuffixIconTap,
-  }) {
-    final bool isFocused = focusNode.hasFocus;
+class _LoginInputField extends StatelessWidget {
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String hintText;
+  final IconData icon;
+  final TextInputType keyboardType;
+  final bool obscureText;
+  final Widget? suffixIcon;
+
+  const _LoginInputField({
+    required this.controller,
+    required this.focusNode,
+    required this.hintText,
+    required this.icon,
+    required this.keyboardType,
+    this.obscureText = false,
+    this.suffixIcon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isFocused = focusNode.hasFocus;
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 180),
       height: 56,
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.15),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isFocused ? AppColors.brandOrange : AppColors.glassBorderWhite.withOpacity(0.2),
-          width: isFocused ? 1.5 : 1.0,
+          color: isFocused ? AppColors.brandOrange : const Color(0xFFE5E7EB),
+          width: isFocused ? 1.6 : 1,
         ),
       ),
       child: TextField(
         controller: controller,
         focusNode: focusNode,
-        obscureText: isPassword ? obscureText : false,
         keyboardType: keyboardType,
-        cursorColor: AppColors.brandOrange, 
+        obscureText: obscureText,
+        cursorColor: AppColors.brandOrange,
         style: const TextStyle(
-          fontFamily: 'Cairo',
+          fontFamily: 'Tajawal',
+          color: Color(0xFF1F2937),
           fontSize: 15,
-          color: AppColors.glassTextPrimary,
+          fontWeight: FontWeight.w700,
         ),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: const TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: 14,
-            color: AppColors.glassTextSecondary,
+            fontFamily: 'Tajawal',
+            color: Color(0xFF9CA3AF),
+            fontSize: 14.5,
+            fontWeight: FontWeight.w600,
           ),
           prefixIcon: Icon(
-            icon, 
-            color: isFocused ? AppColors.brandOrange : AppColors.glassTextPrimary.withOpacity(0.6), 
-            size: 22,
+            icon,
+            color: isFocused ? AppColors.brandOrange : const Color(0xFF9CA3AF),
+            size: 21,
           ),
-          suffixIcon: isPassword
-              ? IconButton(
-                  icon: Icon(
-                    obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    color: isFocused ? AppColors.brandOrange.withOpacity(0.8) : AppColors.glassTextPrimary.withOpacity(0.5),
-                    size: 20,
-                  ),
-                  onPressed: onSuffixIconTap,
-                )
-              : null,
+          suffixIcon: suffixIcon,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        ),
-      ),
-    );
-  }
-
-  // زر الدخول الموحد المتناسق مع الهوية والمقاسات الثابتة (Height: 54) لمنع اهتزاز الشاشات
-  Widget _buildGlassLoginButton() {
-    return GestureDetector(
-      onTap: _isLoading ? null : _handleLogin,
-      child: Container(
-        width: double.infinity,
-        height: 54,
-        decoration: BoxDecoration(
-          color: AppColors.glassBtnActive, 
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.30),
-              blurRadius: 16,
-              spreadRadius: 1,
-              offset: const Offset(0, 6), 
-            ),
-            BoxShadow(
-              color: AppColors.brandOrangeDark.withOpacity(0.12),
-              blurRadius: 10,
-              spreadRadius: -2,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Center(
-          child: _isLoading
-              ? const SizedBox(
-                  width: 22, 
-                  height: 22, 
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5, 
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : const Text(
-                  'تسجيل الدخول',
-                  style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 16.5,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white, 
-                    letterSpacing: 0,
-                  ),
-                ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSocialIcon({required String iconPath, required IconData fallbackIcon, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(30),
-      child: Container(
-        width: 54,
-        height: 54,
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.06),
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.glassBorderWhite.withOpacity(0.2), width: 1.2),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(13.0),
-          child: Image.asset(
-            iconPath, 
-            width: 28,
-            height: 28,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => Icon(fallbackIcon, color: AppColors.glassTextPrimary.withOpacity(0.7), size: 24),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 16,
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildSignUpAction() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+class _DividerWithText extends StatelessWidget {
+  const _DividerWithText();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
       children: [
-        Text(
-          'ليس لديك حساب؟',
-          style: TextStyle(fontFamily: 'Cairo', fontSize: 14.5, color: AppColors.glassTextPrimary.withOpacity(0.85)),
-        ),
-        const SizedBox(width: 8),
-        InkWell(
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (ctx) => const RegisterScreen()));
-          },
-          child: const Text(
-            'إنشاء حساب',
+        Expanded(child: Divider(color: Color(0xFFE5E7EB), thickness: 1)),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 14),
+          child: Text(
+            'أو',
             style: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 15,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              decoration: TextDecoration.underline, 
-              decorationThickness: 1.5,
+              fontFamily: 'Tajawal',
+              color: Color(0xFF6B7280),
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ),
+        Expanded(child: Divider(color: Color(0xFFE5E7EB), thickness: 1)),
       ],
     );
   }

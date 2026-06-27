@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import 'volunteer_ui.dart';
 
+const Color _detailsTextSecondary = Color(0xFF6B7280);
+const String _fallbackImagePath = 'assets/images/image4.png';
+const String _volunteersNeededLabel = 'عدد المتطوعين المطلوبين';
+
 class VolunteerOpportunityDetailsView extends StatelessWidget {
   const VolunteerOpportunityDetailsView({super.key});
 
@@ -15,14 +19,47 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
     'date': 'الإثنين 1 يوليو',
     'time': '16:00 - 18:00',
     'duration': '4 ساعات أسبوعيًا',
-    'seats': 'مقعدان متاحان',
+    'seats': '10 متطوعين مطلوبين',
     'status': 'متاحة',
     'summary':
         'فرصة قصيرة ومنظمة لمساعدة الأطفال على فهم مبادئ الحاسوب بطريقة بسيطة وآمنة، مع متابعة من مشرف الدار.',
   };
 
+  Map<String, String> _selectedOpportunity(BuildContext context) {
+    final selected = Map<String, String>.from(_opportunity);
+    final args = ModalRoute.of(context)?.settings.arguments;
+
+    if (args is Map) {
+      final opportunityArg = args['opportunity'];
+      if (opportunityArg is Map) {
+        opportunityArg.forEach((key, value) {
+          if (key is String && value is String) {
+            selected[key] = value;
+          }
+        });
+      }
+      final location = selected['location'];
+      if (location != null && location.isNotEmpty) {
+        selected['organization'] = location;
+      }
+    }
+
+    return selected;
+  }
+
+  String _selectedImagePath(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map && args['imagePath'] is String) {
+      return args['imagePath'] as String;
+    }
+    return _fallbackImagePath;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final opportunity = _selectedOpportunity(context);
+    final imagePath = _selectedImagePath(context);
+
     return VolunteerAppScaffold(
       title: 'تفاصيل الفرصة',
       body: SafeArea(
@@ -38,15 +75,18 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _HeroDetailsCard(opportunity: _opportunity),
-              const SizedBox(height: 12),
-              const _ImportantInfoGrid(opportunity: _opportunity),
+              _HeroDetailsCard(
+                opportunity: opportunity,
+                imagePath: imagePath,
+              ),
+              const SizedBox(height: 16),
+              _ImportantInfoGrid(opportunity: opportunity),
               const SizedBox(height: 18),
               const VolunteerSectionTitle(title: 'وصف الفرصة'),
               const SizedBox(height: 10),
               VolunteerCard(
                 child: Text(
-                  _opportunity['summary']!,
+                  opportunity['summary']!,
                   style: volunteerBodyStyle,
                 ),
               ),
@@ -75,7 +115,6 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: _ApplyBar(
-        seats: _opportunity['seats']!,
         onApply: () => Navigator.of(context).pushNamed('/apply_opportunity'),
       ),
     );
@@ -84,66 +123,98 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
 
 class _HeroDetailsCard extends StatelessWidget {
   final Map<String, String> opportunity;
+  final String imagePath;
 
-  const _HeroDetailsCard({required this.opportunity});
+  const _HeroDetailsCard({
+    required this.opportunity,
+    required this.imagePath,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return VolunteerCard(
-      padding: const EdgeInsets.all(18),
-      color: AppColors.brandOrangeLight,
-      borderColor: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              const VolunteerStatusBadge(
-                label: 'متاحة',
-                color: AppColors.successGreen,
-                icon: Icons.check_circle_outline_rounded,
-              ),
-              VolunteerMetaChip(
-                icon: Icons.location_on_outlined,
-                label: opportunity['city']!,
-                color: AppColors.brandOrange,
-                prominent: true,
-              ),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Image.asset(
+            imagePath,
+            width: double.infinity,
+            height: 190,
+            fit: BoxFit.cover,
           ),
-          const SizedBox(height: 14),
-          Text(
-            opportunity['title']!,
-            style: const TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 21,
-              fontWeight: FontWeight.w900,
-              color: AppColors.textDarkPrimary,
-              height: 1.35,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          opportunity['title']!,
+          style: const TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            color: AppColors.textDarkPrimary,
+            height: 1.35,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Icon(
+              Icons.apartment_rounded,
+              color: _detailsTextSecondary,
+              size: 18,
             ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const VolunteerIconBox(
-                icon: Icons.apartment_rounded,
-                size: 36,
-                iconSize: 19,
-                backgroundColor: Colors.white,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  opportunity['organization']!,
-                  style: volunteerBodyStyle,
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                opportunity['organization']!,
+                style: const TextStyle(
+                  fontFamily: 'Tajawal',
+                  color: _detailsTextSecondary,
+                  fontSize: 13.5,
+                  height: 1.45,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-            ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _DetailInfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _DetailInfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: _detailsTextSecondary, size: 18),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            '$label: $value',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: 'Tajawal',
+              color: _detailsTextSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              height: 1.25,
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -157,47 +228,41 @@ class _ImportantInfoGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = [
       _InfoItem(
+        icon: Icons.location_on_outlined,
+        label: 'الموقع',
+        value: opportunity['city']!,
+      ),
+      _InfoItem(
         icon: Icons.calendar_month_outlined,
         label: 'التاريخ',
         value: opportunity['date']!,
-        color: const Color(0xFF4A90E2),
       ),
       _InfoItem(
         icon: Icons.schedule_rounded,
-        label: 'الوقت',
+        label: 'التوقيت',
         value: opportunity['time']!,
-        color: AppColors.brandOrange,
-      ),
-      _InfoItem(
-        icon: Icons.psychology_alt_outlined,
-        label: 'المهارة',
-        value: opportunity['skill']!,
-        color: const Color(0xFF7E57C2),
       ),
       _InfoItem(
         icon: Icons.event_seat_outlined,
-        label: 'المقاعد',
+        label: _volunteersNeededLabel,
         value: opportunity['seats']!,
-        color: AppColors.successGreen,
       ),
     ];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact = constraints.maxWidth < 360;
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: items.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: compact ? 1 : 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: compact ? 3.8 : 1.85,
-          ),
-          itemBuilder: (context, index) => _InfoTile(item: items[index]),
-        );
-      },
+    return VolunteerCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Column(
+        children: [
+          for (int i = 0; i < items.length; i++) ...[
+            _DetailInfoRow(
+              icon: items[i].icon,
+              label: items[i].label,
+              value: items[i].value,
+            ),
+            if (i != items.length - 1) const SizedBox(height: 12),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -206,59 +271,12 @@ class _InfoItem {
   final IconData icon;
   final String label;
   final String value;
-  final Color color;
 
   const _InfoItem({
     required this.icon,
     required this.label,
     required this.value,
-    required this.color,
   });
-}
-
-class _InfoTile extends StatelessWidget {
-  final _InfoItem item;
-
-  const _InfoTile({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return VolunteerCard(
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        children: [
-          VolunteerIconBox(
-            icon: item.icon,
-            color: item.color,
-            size: 38,
-            iconSize: 20,
-          ),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(item.label, style: volunteerMutedStyle),
-                const SizedBox(height: 2),
-                Text(
-                  item.value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontFamily: 'Tajawal',
-                    color: AppColors.textDarkPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _BulletCard extends StatelessWidget {
@@ -277,7 +295,7 @@ class _BulletCard extends StatelessWidget {
               children: [
                 const Icon(
                   Icons.check_circle_rounded,
-                  color: AppColors.successGreen,
+                  color: AppColors.brandOrange,
                   size: 19,
                 ),
                 const SizedBox(width: 8),
@@ -295,10 +313,9 @@ class _BulletCard extends StatelessWidget {
 }
 
 class _ApplyBar extends StatelessWidget {
-  final String seats;
   final VoidCallback onApply;
 
-  const _ApplyBar({required this.seats, required this.onApply});
+  const _ApplyBar({required this.onApply});
 
   @override
   Widget build(BuildContext context) {
@@ -317,26 +334,13 @@ class _ApplyBar extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: VolunteerMetaChip(
-                icon: Icons.event_seat_outlined,
-                label: seats,
-                color: AppColors.successGreen,
-                prominent: true,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 2,
-              child: VolunteerPrimaryButton(
-                label: 'تقديم طلب تطوع',
-                icon: Icons.send_rounded,
-                onPressed: onApply,
-              ),
-            ),
-          ],
+        child: SizedBox(
+          width: double.infinity,
+          child: VolunteerPrimaryButton(
+            label: 'تقديم طلب تطوع',
+            icon: Icons.send_rounded,
+            onPressed: onApply,
+          ),
         ),
       ),
     );

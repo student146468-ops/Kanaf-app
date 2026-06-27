@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import 'volunteer_ui.dart';
 
+const Color _primaryOrange = Color(0xFFFF8C42);
+const Color _volunteerMetaColor = Color(0xFF6B7280);
+const Color _softBorder = Color(0xFFEAEAEA);
+
 class SearchFilterView extends StatefulWidget {
   const SearchFilterView({super.key});
 
@@ -12,19 +16,14 @@ class SearchFilterView extends StatefulWidget {
 
 class _SearchFilterViewState extends State<SearchFilterView> {
   final _searchController = TextEditingController();
-  String _selectedCategory = 'الكل';
-  String _selectedCity = 'كل المدن';
-  String _selectedDate = 'أي وقت';
+  String _selectedFilter = 'الكل';
 
-  static const List<String> _categories = [
+  static const List<String> _filters = [
     'الكل',
-    'تعليم وتقنية',
-    'أنشطة أطفال',
-    'تنظيم',
-    'دعم نفسي',
+    'تعليم',
+    'أنشطة',
+    'إغاثة',
   ];
-  static const List<String> _cities = ['كل المدن', 'غريان', 'طرابلس', 'مصراتة'];
-  static const List<String> _dates = ['أي وقت', 'هذا الأسبوع', 'هذا الشهر'];
 
   // TODO: Replace with AppProvider opportunities when available.
   static const List<Map<String, String>> _results = [
@@ -33,16 +32,24 @@ class _SearchFilterViewState extends State<SearchFilterView> {
       'city': 'غريان',
       'skill': 'تعليم وتقنية',
       'date': 'الإثنين 1 يوليو',
-      'seats': 'مقعدان',
-      'status': 'متاحة',
+      'seats': '10 متطوعين مطلوبين',
+      'image': 'assets/images/image4.png',
     },
     {
       'title': 'تنظيم يوم أنشطة للأطفال',
       'city': 'غريان',
       'skill': 'أنشطة أطفال',
       'date': 'الجمعة 5 يوليو',
-      'seats': '5 مقاعد',
-      'status': 'قريبة',
+      'seats': '5 متطوعين مطلوبين',
+      'image': 'assets/images/image5.png',
+    },
+    {
+      'title': 'فرز التبرعات وتجهيز السلال',
+      'city': 'طرابلس',
+      'skill': 'تنظيم ومتابعة',
+      'date': 'الأحد 7 يوليو',
+      'seats': '15 متطوعاً مطلوباً',
+      'image': 'assets/images/image6.png',
     },
   ];
 
@@ -52,27 +59,30 @@ class _SearchFilterViewState extends State<SearchFilterView> {
     super.dispose();
   }
 
-  void _clearFilters() {
-    setState(() {
-      _searchController.clear();
-      _selectedCategory = 'الكل';
-      _selectedCity = 'كل المدن';
-      _selectedDate = 'أي وقت';
-    });
-  }
-
-  void _applyFilters() {
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'تم تطبيق خيارات البحث وعرض ${_results.length} فرص تطوعية مناسبة.',
-          style: const TextStyle(fontFamily: 'Tajawal'),
-        ),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.brandOrange,
-      ),
-    );
+  List<Map<String, String>> get _filteredResults {
+    if (_selectedFilter == 'تعليم') {
+      return _results
+          .where((item) =>
+              item['title']!.contains('تعليمي') ||
+              item['skill']!.contains('تعليم'))
+          .toList();
+    }
+    if (_selectedFilter == 'أنشطة') {
+      return _results
+          .where((item) =>
+              item['title']!.contains('أنشطة') ||
+              item['skill']!.contains('أنشطة'))
+          .toList();
+    }
+    if (_selectedFilter == 'إغاثة') {
+      return _results
+          .where((item) =>
+              item['title']!.contains('تبرعات') ||
+              item['title']!.contains('سلال') ||
+              item['skill']!.contains('إغاثة'))
+          .toList();
+    }
+    return _results;
   }
 
   @override
@@ -82,79 +92,30 @@ class _SearchFilterViewState extends State<SearchFilterView> {
       showBack: false,
       body: SafeArea(
         top: false,
-        child: Column(
+        child: ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(
+            volunteerHorizontalPadding,
+            10,
+            volunteerHorizontalPadding,
+            24,
+          ),
           children: [
-            Expanded(
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(
-                  volunteerHorizontalPadding,
-                  10,
-                  volunteerHorizontalPadding,
-                  20,
-                ),
-                children: [
-                  _SearchField(controller: _searchController),
-                  const SizedBox(height: 16),
-                  _FilterSummary(
-                    count: _results.length,
-                    onClear: _clearFilters,
-                  ),
-                  const SizedBox(height: 16),
-                  _FilterSection(
-                    title: 'مجال التطوع',
-                    children: _categories
-                        .map(
-                          (item) => _ChoicePill(
-                            label: item,
-                            selected: _selectedCategory == item,
-                            onTap: () =>
-                                setState(() => _selectedCategory = item),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  const SizedBox(height: 18),
-                  _FilterSection(
-                    title: 'المدينة',
-                    children: _cities
-                        .map(
-                          (item) => _ChoicePill(
-                            label: item,
-                            selected: _selectedCity == item,
-                            onTap: () => setState(() => _selectedCity = item),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  const SizedBox(height: 18),
-                  _FilterSection(
-                    title: 'التاريخ',
-                    children: _dates
-                        .map(
-                          (item) => _ChoicePill(
-                            label: item,
-                            selected: _selectedDate == item,
-                            onTap: () => setState(() => _selectedDate = item),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  const SizedBox(height: 22),
-                  const VolunteerSectionTitle(title: 'نتائج مقترحة'),
-                  const SizedBox(height: 10),
-                  ..._results.map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _ResultCard(item: item),
-                    ),
-                  ),
-                ],
-              ),
+            _SearchField(controller: _searchController),
+            const SizedBox(height: 14),
+            _InlineFilterRow(
+              filters: _filters,
+              selectedFilter: _selectedFilter,
+              onSelected: (item) => setState(() => _selectedFilter = item),
             ),
-            _SearchFooter(
-              onClear: _clearFilters,
-              onApply: _applyFilters,
+            const SizedBox(height: 22),
+            const VolunteerSectionTitle(title: 'نتائج مقترحة'),
+            const SizedBox(height: 10),
+            ..._filteredResults.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _ResultCard(item: item),
+              ),
             ),
           ],
         ),
@@ -170,99 +131,99 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      style: const TextStyle(
-        fontFamily: 'Tajawal',
-        color: AppColors.textDarkPrimary,
-        fontWeight: FontWeight.w700,
-      ),
-      decoration: InputDecoration(
-        hintText: 'اكتب مهارة أو مدينة أو اسم فرصة',
-        hintStyle: volunteerMutedStyle,
-        prefixIcon: const Icon(
-          Icons.manage_search_rounded,
-          color: AppColors.brandOrange,
+    return SizedBox(
+      height: 56,
+      child: TextField(
+        controller: controller,
+        style: const TextStyle(
+          fontFamily: 'Tajawal',
+          color: AppColors.textDarkPrimary,
+          fontWeight: FontWeight.w700,
         ),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.all(16),
-        border: _border(AppColors.innerBorder),
-        enabledBorder: _border(AppColors.innerBorder),
-        focusedBorder: _border(AppColors.brandOrange),
+        decoration: InputDecoration(
+          hintText: 'ابحث عن فرصة',
+          hintStyle: volunteerMutedStyle,
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: _volunteerMetaColor,
+            size: 22,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: 15,
+          ),
+          border: _border(_softBorder),
+          enabledBorder: _border(_softBorder),
+          focusedBorder: _border(_primaryOrange),
+        ),
       ),
     );
   }
 
   OutlineInputBorder _border(Color color) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       borderSide: BorderSide(color: color),
     );
   }
 }
 
-class _FilterSummary extends StatelessWidget {
-  final int count;
-  final VoidCallback onClear;
+class _InlineFilterRow extends StatelessWidget {
+  final List<String> filters;
+  final String selectedFilter;
+  final ValueChanged<String> onSelected;
 
-  const _FilterSummary({required this.count, required this.onClear});
+  const _InlineFilterRow({
+    required this.filters,
+    required this.selectedFilter,
+    required this.onSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return VolunteerCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      color: AppColors.surfaceLight,
+    return SizedBox(
+      height: 40,
       child: Row(
+        textDirection: TextDirection.rtl,
         children: [
-          const VolunteerIconBox(
-            icon: Icons.filter_alt_outlined,
-            size: 36,
-            iconSize: 19,
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                textDirection: TextDirection.rtl,
+                children: [
+                  for (int i = 0; i < filters.length; i++) ...[
+                    _ChoicePill(
+                      label: filters[i],
+                      selected: selectedFilter == filters[i],
+                      onTap: () => onSelected(filters[i]),
+                    ),
+                    if (i != filters.length - 1) const SizedBox(width: 8),
+                  ],
+                ],
+              ),
+            ),
           ),
           const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              '$count فرص تطوعية مطابقة للخيارات الحالية',
-              style: const TextStyle(
-                fontFamily: 'Tajawal',
-                color: AppColors.textDarkPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => onSelected('الكل'),
+              borderRadius: BorderRadius.circular(12),
+              child: const SizedBox(
+                width: 32,
+                height: 40,
+                child: Icon(
+                  Icons.filter_alt_outlined,
+                  color: Color(0xFF374151),
+                  size: 28,
+                ),
               ),
             ),
           ),
-          TextButton(
-            onPressed: onClear,
-            child: const Text(
-              'مسح',
-              style: TextStyle(
-                fontFamily: 'Tajawal',
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FilterSection extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-
-  const _FilterSection({required this.title, required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    return VolunteerCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: volunteerSectionTitleStyle),
-          const SizedBox(height: 10),
-          Wrap(spacing: 8, runSpacing: 8, children: children),
         ],
       ),
     );
@@ -291,12 +252,13 @@ class _ChoicePill extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          height: 36,
+          padding: const EdgeInsets.symmetric(horizontal: 15),
           decoration: BoxDecoration(
-            color: selected ? AppColors.brandOrange : Colors.white,
+            color: selected ? _primaryOrange : Colors.white,
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: selected ? AppColors.brandOrange : AppColors.innerBorder,
+              color: selected ? _primaryOrange : _softBorder,
             ),
           ),
           child: Row(
@@ -310,7 +272,7 @@ class _ChoicePill extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontFamily: 'Tajawal',
-                  color: selected ? Colors.white : AppColors.textDarkSecondary,
+                  color: selected ? Colors.white : _volunteerMetaColor,
                   fontSize: 12.5,
                   fontWeight: FontWeight.w900,
                 ),
@@ -330,70 +292,71 @@ class _ResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final status = item['status']!;
-    final statusColor =
-        status == 'قريبة' ? const Color(0xFF4A90E2) : AppColors.successGreen;
-
     return VolunteerCard(
       onTap: () => Navigator.of(context).pushNamed(
         '/volunteer_opportunity_details',
+        arguments: {
+          'opportunity': item,
+          'imagePath': item['image']!,
+        },
       ),
-      child: Column(
+      padding: const EdgeInsets.all(16),
+      borderRadius: BorderRadius.circular(22),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const VolunteerIconBox(
-                icon: Icons.handshake_outlined,
-                size: 40,
-                iconSize: 21,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   item['title']!,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontFamily: 'Cairo',
                     color: AppColors.textDarkPrimary,
-                    fontSize: 14.5,
+                    fontSize: 15.5,
+                    height: 1.35,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-              ),
-              VolunteerStatusBadge(
-                label: status,
-                color: statusColor,
-              ),
-            ],
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _ResultMetaItem(
+                      icon: Icons.location_on_outlined,
+                      label: item['city']!,
+                    ),
+                    _ResultMetaItem(
+                      icon: Icons.calendar_month_outlined,
+                      label: item['date']!,
+                    ),
+                    _ResultMetaItem(
+                      icon: Icons.psychology_alt_outlined,
+                      label: item['skill']!,
+                    ),
+                    _ResultMetaItem(
+                      icon: Icons.groups_2_outlined,
+                      label: item['seats']!,
+                      wide: true,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              VolunteerMetaChip(
-                icon: Icons.location_on_outlined,
-                label: item['city']!,
-                color: AppColors.brandOrange,
-                prominent: true,
-              ),
-              VolunteerMetaChip(
-                icon: Icons.calendar_month_outlined,
-                label: item['date']!,
-                color: const Color(0xFF4A90E2),
-                prominent: true,
-              ),
-              VolunteerMetaChip(
-                icon: Icons.psychology_alt_outlined,
-                label: item['skill']!,
-              ),
-              VolunteerMetaChip(
-                icon: Icons.event_seat_outlined,
-                label: item['seats']!,
-                color: AppColors.successGreen,
-                prominent: true,
-              ),
-            ],
+          const SizedBox(width: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset(
+              item['image']!,
+              width: 124,
+              height: 110,
+              fit: BoxFit.cover,
+            ),
           ),
         ],
       ),
@@ -401,38 +364,40 @@ class _ResultCard extends StatelessWidget {
   }
 }
 
-class _SearchFooter extends StatelessWidget {
-  final VoidCallback onClear;
-  final VoidCallback onApply;
+class _ResultMetaItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool wide;
 
-  const _SearchFooter({required this.onClear, required this.onApply});
+  const _ResultMetaItem({
+    required this.icon,
+    required this.label,
+    this.wide = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: AppColors.innerBorder)),
-        ),
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: wide ? 190 : 150),
+      child: SizedBox(
+        height: 28,
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: VolunteerSecondaryButton(
-                label: 'إعادة ضبط',
-                icon: Icons.restart_alt_rounded,
-                onPressed: onClear,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              flex: 2,
-              child: VolunteerPrimaryButton(
-                label: 'عرض النتائج',
-                icon: Icons.filter_alt_rounded,
-                onPressed: onApply,
+            Icon(icon, color: _volunteerMetaColor, size: 15),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontFamily: 'Tajawal',
+                  color: _volunteerMetaColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  height: 1,
+                ),
               ),
             ),
           ],
