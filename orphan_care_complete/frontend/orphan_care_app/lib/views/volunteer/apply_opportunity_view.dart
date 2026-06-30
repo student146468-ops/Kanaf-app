@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
@@ -77,7 +77,7 @@ class _ApplyOpportunityViewState extends State<ApplyOpportunityView> {
               Text(
                 hasError ? 'تم حفظ الطلب محليًا' : 'تم إرسال طلبك بنجاح',
                 style: const TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: 'Vazirmatn',
                   fontSize: 19,
                   fontWeight: FontWeight.w900,
                   color: AppColors.textDarkPrimary,
@@ -192,7 +192,7 @@ class _OpportunitySummary extends StatelessWidget {
                 Text(
                   'دعم تعليمي في أساسيات الحاسوب',
                   style: TextStyle(
-                    fontFamily: 'Cairo',
+                    fontFamily: 'Vazirmatn',
                     color: AppColors.textDarkPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w900,
@@ -226,7 +226,7 @@ class _InputField extends StatelessWidget {
       controller: controller,
       maxLines: maxLines,
       style: const TextStyle(
-        fontFamily: 'Tajawal',
+        fontFamily: 'Vazirmatn',
         color: AppColors.textDarkPrimary,
         fontSize: 14,
         height: 1.5,
@@ -286,7 +286,7 @@ class _AttachmentTile extends StatelessWidget {
                   ? 'تم إرفاق ملف تعريفي مؤقت'
                   : 'إرفاق سيرة أو ملف تعريفي اختياري',
               style: TextStyle(
-                fontFamily: 'Tajawal',
+                fontFamily: 'Vazirmatn',
                 color: selected
                     ? AppColors.brandOrangeDark
                     : AppColors.textDarkSecondary,

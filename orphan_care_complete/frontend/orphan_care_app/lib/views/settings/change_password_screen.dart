@@ -201,6 +201,10 @@ class _PasswordField extends StatelessWidget {
           Icons.lock_outline_rounded,
           color: AppColors.brandOrange,
         ),
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: 48,
+          minHeight: 48,
+        ),
         suffixIcon: IconButton(
           icon: Icon(
             obscureText
@@ -210,6 +214,10 @@ class _PasswordField extends StatelessWidget {
             size: 20,
           ),
           onPressed: onToggle,
+        ),
+        suffixIconConstraints: const BoxConstraints(
+          minWidth: 48,
+          minHeight: 48,
         ),
         filled: true,
         fillColor: Colors.white,

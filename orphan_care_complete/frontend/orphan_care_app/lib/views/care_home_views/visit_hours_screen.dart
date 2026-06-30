@@ -434,6 +434,10 @@ class _InputField extends StatelessWidget {
       ),
       decoration: InputDecoration(
         prefixIcon: Icon(icon, color: AppColors.brandOrange, size: 20),
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: 48,
+          minHeight: 48,
+        ),
         hintText: hint,
         hintStyle: TextStyle(
           fontFamily: 'Tajawal',

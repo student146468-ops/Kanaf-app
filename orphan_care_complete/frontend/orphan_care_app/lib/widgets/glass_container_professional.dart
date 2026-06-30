@@ -157,7 +157,8 @@ class GlassButton extends StatefulWidget {
   State<GlassButton> createState() => _GlassButtonState();
 }
 
-class _GlassButtonState extends State<GlassButton> with SingleTickerProviderStateMixin {
+class _GlassButtonState extends State<GlassButton>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
@@ -217,7 +218,8 @@ class _GlassButtonState extends State<GlassButton> with SingleTickerProviderStat
                     height: 24,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(widget.textColor),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(widget.textColor),
                     ),
                   )
                 : Row(
@@ -322,30 +324,52 @@ class _GlassTextFieldState extends State<GlassTextField> {
               hintText: widget.hintText,
               border: InputBorder.none,
               prefixIcon: widget.prefixIcon != null
-                  ? Icon(widget.prefixIcon, color: const Color(0xFFFF9500))
-                  : null,
-              suffixIcon: widget.suffixIcon != null
-                  ? GestureDetector(
-                      onTap: widget.onSuffixIconPressed ??
-                          (widget.obscureText
-                              ? () {
-                                  setState(() {
-                                    _obscureText = !_obscureText;
-                                  });
-                                }
-                              : null),
-                      child: Icon(
-                        widget.suffixIcon,
-                        color: const Color(0xFFFF9500),
+                  ? SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Center(
+                        child: Icon(
+                          widget.prefixIcon,
+                          color: const Color(0xFFFF9500),
+                        ),
                       ),
                     )
                   : null,
+              prefixIconConstraints: const BoxConstraints(
+                minWidth: 48,
+                minHeight: 48,
+              ),
+              suffixIcon: widget.suffixIcon != null
+                  ? SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: GestureDetector(
+                        onTap: widget.onSuffixIconPressed ??
+                            (widget.obscureText
+                                ? () {
+                                    setState(() {
+                                      _obscureText = !_obscureText;
+                                    });
+                                  }
+                                : null),
+                        child: Icon(
+                          widget.suffixIcon,
+                          color: const Color(0xFFFF9500),
+                        ),
+                      ),
+                    )
+                  : null,
+              suffixIconConstraints: const BoxConstraints(
+                minWidth: 48,
+                minHeight: 48,
+              ),
               hintStyle: const TextStyle(
                 fontFamily: 'Tajawal',
                 fontSize: 14,
                 color: Color(0xFFCCCCCC),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             ),
             style: const TextStyle(
               fontFamily: 'Tajawal',

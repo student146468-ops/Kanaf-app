@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'volunteer_ui.dart';
 
@@ -19,24 +19,33 @@ class ProfileVolunteerView extends StatelessWidget {
       child: VolunteerMobileFrame(
         child: Scaffold(
           backgroundColor: _profileBackground,
-          body: SafeArea(
-            bottom: false,
-            child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
-              padding: EdgeInsets.only(bottom: 112),
-              child: Column(
-                children: [
-                  _ProfileHero(
-                    name: _profileVolunteerName,
-                    email: _profileVolunteerEmail,
+          body: Stack(
+            children: [
+              SafeArea(
+                bottom: false,
+                child: SingleChildScrollView(
+                  physics: BouncingScrollPhysics(),
+                  padding: EdgeInsets.only(bottom: 112),
+                  child: Column(
+                    children: [
+                      _ProfileHero(
+                        name: _profileVolunteerName,
+                        email: _profileVolunteerEmail,
+                      ),
+                      SizedBox(height: 54),
+                      _ProfileMenu(),
+                    ],
                   ),
-                  SizedBox(height: 54),
-                  _ProfileMenu(),
-                ],
+                ),
               ),
-            ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: VolunteerBottomNavBar(selectedIndex: 3),
+              ),
+            ],
           ),
-          bottomNavigationBar: _ProfileBottomBar(),
         ),
       ),
     );
@@ -71,7 +80,7 @@ class _ProfileHero extends StatelessWidget {
               const Text(
                 'الملف الشخصي',
                 style: TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: 'Vazirmatn',
                   color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
@@ -86,7 +95,7 @@ class _ProfileHero extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: 'Vazirmatn',
                   color: Colors.white,
                   fontSize: 19,
                   fontWeight: FontWeight.w900,
@@ -106,7 +115,7 @@ class _ProfileHero extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontFamily: 'Tajawal',
+                          fontFamily: 'Vazirmatn',
                           color: Colors.white.withOpacity(0.88),
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700,
@@ -123,7 +132,7 @@ class _ProfileHero extends StatelessWidget {
                             const SnackBar(
                               content: Text(
                                 'تعديل البيانات قريبًا',
-                                style: TextStyle(fontFamily: 'Tajawal'),
+                                style: TextStyle(fontFamily: 'Vazirmatn'),
                               ),
                             ),
                           );
@@ -275,7 +284,7 @@ class _StatItem extends StatelessWidget {
         Text(
           value,
           style: const TextStyle(
-            fontFamily: 'Cairo',
+            fontFamily: 'Vazirmatn',
             color: _profileOrange,
             fontSize: 20,
             fontWeight: FontWeight.w900,
@@ -287,7 +296,7 @@ class _StatItem extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
-            fontFamily: 'Tajawal',
+            fontFamily: 'Vazirmatn',
             color: _profileText,
             fontSize: 12.5,
             fontWeight: FontWeight.w800,
@@ -416,7 +425,7 @@ class _ProfileMenuTile extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontFamily: 'Cairo',
+                    fontFamily: 'Vazirmatn',
                     color: _profileText,
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
@@ -435,14 +444,5 @@ class _ProfileMenuTile extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _ProfileBottomBar extends StatelessWidget {
-  const _ProfileBottomBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return const VolunteerBottomNavBar(selectedIndex: 3);
   }
 }

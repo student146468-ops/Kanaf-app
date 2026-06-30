@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 
 import 'volunteer_ui.dart';
 
-const String _welcomeTitle = 'مرحبًا ياسمين';
-const String _homeSubtitle = 'ساهمي بوقتك ومهاراتك لصنع أثر حقيقي';
 const String _opportunitiesTitle = 'فرص تطوع جديدة';
 const String _filterActionLabel = 'عرض الكل';
 const String _upcomingActivitiesTitle = 'الأنشطة القادمة';
@@ -39,8 +37,6 @@ class HomeVolunteerView extends StatefulWidget {
 }
 
 class _HomeVolunteerViewState extends State<HomeVolunteerView> {
-  int _currentIndex = 0;
-
   // TODO: Replace with AppProvider opportunities when the backend exposes them.
   static const List<Map<String, String>> _opportunities = [
     {
@@ -77,7 +73,7 @@ class _HomeVolunteerViewState extends State<HomeVolunteerView> {
   ];
 
   // TODO: Replace with AppProvider opportunities when the backend exposes them.
-  static const List<Map<String, String>> _displayOpportunities = [
+  static const List<Map<String, dynamic>> _displayOpportunities = [
     {
       'title': 'دعم تعليمي في أساسيات الحاسوب',
       'city': 'غريان',
@@ -97,7 +93,19 @@ class _HomeVolunteerViewState extends State<HomeVolunteerView> {
       'status': 'قريبة',
       'location': 'قاعة الأنشطة بدار الرعاية',
       'summary':
-          'مساندة الفريق في تنظيم ألعاب هادفة ومساحة ترفيه آمنة للأطفال.',
+          'ساهم في تنظيم يوم ترفيهي مليء بالألعاب والأنشطة الهادفة، بهدف إدخال السرور على الأطفال وتنمية روح التعاون والثقة لديهم في بيئة آمنة وممتعة.',
+      'tasks': [
+        'تنظيم الألعاب والأنشطة الجماعية للأطفال.',
+        'الإشراف على سلامة الأطفال أثناء الفعالية.',
+        'تشجيع الأطفال على المشاركة والتفاعل الإيجابي.',
+        'التعاون مع فريق التنظيم وتجهيز الأدوات قبل وبعد النشاط.',
+      ],
+      'skillsList': [
+        'حب التعامل مع الأطفال والصبر عليهم.',
+        'القدرة على العمل ضمن فريق.',
+        'مهارات التواصل والابتكار في الأنشطة الترفيهية.',
+        'الالتزام بالمواعيد وتحمل المسؤولية.',
+      ],
     },
     {
       'title': 'فرز التبرعات وتجهيز السلال',
@@ -107,7 +115,20 @@ class _HomeVolunteerViewState extends State<HomeVolunteerView> {
       'seats': '15 متطوع مطلوب',
       'status': 'متاحة',
       'location': 'مركز كنف المجتمعي',
-      'summary': 'ترتيب المواد العينية وتجهيزها لتصل إلى دور الرعاية المحتاجة.',
+      'summary':
+          'المساهمة في فرز وترتيب وتجهيز التبرعات العينية، والتأكد من جاهزيتها لتوزيعها على دور رعاية الأيتام بطريقة منظمة وسريعة.',
+      'tasks': [
+        'فرز التبرعات حسب النوع والاستخدام.',
+        'تغليف وترتيب المواد داخل الصناديق.',
+        'إعداد قوائم بالمحتويات للمساعدة في عملية التوزيع.',
+        'التعاون مع فريق العمل في تحميل وتجهيز المواد.',
+      ],
+      'skillsList': [
+        'الدقة والتنظيم في ترتيب المواد.',
+        'القدرة على العمل الجماعي.',
+        'تحمل العمل البدني الخفيف عند الحاجة.',
+        'الالتزام بالتعليمات والمحافظة على الممتلكات.',
+      ],
     },
   ];
   @override
@@ -117,103 +138,102 @@ class _HomeVolunteerViewState extends State<HomeVolunteerView> {
       child: VolunteerMobileFrame(
         child: Scaffold(
           backgroundColor: Colors.white,
-          body: SafeArea(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      _pagePadding,
-                      20,
-                      _pagePadding,
-                      0,
-                    ),
-                    child: _HomeHeader(
-                      onSearch: () =>
-                          Navigator.of(context).pushNamed('/volunteer_search'),
-                      onNotifications: () => Navigator.of(context).pushNamed(
-                        '/volunteer_notifications',
+          body: Stack(
+            children: [
+              SafeArea(
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          _pagePadding,
+                          12,
+                          _pagePadding,
+                          0,
+                        ),
+                        child: _HomeHeader(
+                          onSearch: () => Navigator.of(
+                            context,
+                          ).pushNamed('/volunteer_search'),
+                          onNotifications: () => Navigator.of(
+                            context,
+                          ).pushNamed('/volunteer_notifications'),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      _pagePadding,
-                      24,
-                      _pagePadding,
-                      0,
-                    ),
-                    child: _VolunteerImageSlider(),
-                  ),
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      _pagePadding,
-                      32,
-                      _pagePadding,
-                      16,
-                    ),
-                    child: _OpportunitiesSectionHeader(
-                      title: _opportunitiesTitle,
-                      actionLabel: _filterActionLabel,
-                      onAction: () =>
-                          Navigator.of(context).pushNamed('/volunteer_search'),
-                    ),
-                  ),
-                ),
-                SliverList.separated(
-                  itemCount: _opportunities.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 18),
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: _pagePadding,
+                    const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          _pagePadding,
+                          14,
+                          _pagePadding,
+                          0,
+                        ),
+                        child: _VolunteerImageSlider(),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _OpportunityCard(
-                            opportunity: _displayOpportunities[index],
-                            imagePath: _opportunityImagePaths[index],
-                            onTap: () => Navigator.of(context).pushNamed(
-                              '/volunteer_opportunity_details',
-                              arguments: {
-                                'opportunity': _displayOpportunities[index],
-                                'imagePath': _opportunityImagePaths[index],
-                              },
-                            ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          _pagePadding,
+                          32,
+                          _pagePadding,
+                          16,
+                        ),
+                        child: _OpportunitiesSectionHeader(
+                          title: _opportunitiesTitle,
+                          actionLabel: _filterActionLabel,
+                          onAction: () => Navigator.of(
+                            context,
+                          ).pushNamed('/volunteer_search'),
+                        ),
+                      ),
+                    ),
+                    SliverList.separated(
+                      itemCount: _opportunities.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 18),
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: _pagePadding,
                           ),
-                          if (index == 0) ...[
-                            const SizedBox(height: 24),
-                            const _InlineSectionTitle(
-                              title: _upcomingActivitiesTitle,
-                            ),
-                          ],
-                        ],
-                      ),
-                    );
-                  },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _OpportunityCard(
+                                opportunity: _displayOpportunities[index],
+                                imagePath: _opportunityImagePaths[index],
+                                onTap: () => Navigator.of(context).pushNamed(
+                                  '/volunteer_opportunity_details',
+                                  arguments: {
+                                    'opportunity': _displayOpportunities[index],
+                                    'imagePath': _opportunityImagePaths[index],
+                                  },
+                                ),
+                              ),
+                              if (index == 0) ...[
+                                const SizedBox(height: 24),
+                                const _InlineSectionTitle(
+                                  title: _upcomingActivitiesTitle,
+                                ),
+                              ],
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 88)),
+                  ],
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 100)),
-              ],
-            ),
-          ),
-          bottomNavigationBar: VolunteerBottomNavBar(
-            selectedIndex: _currentIndex,
-            onItemSelected: (index) {
-              setState(() => _currentIndex = index);
-              if (index == 1) {
-                Navigator.of(context).pushNamed('/volunteer_notifications');
-              } else if (index == 2) {
-                Navigator.of(context).pushNamed('/my_schedule');
-              } else if (index == 3) {
-                Navigator.of(context).pushNamed('/volunteer_profile');
-              }
-            },
+              ),
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: VolunteerBottomNavBar(selectedIndex: 0),
+              ),
+            ],
           ),
         ),
       ),
@@ -233,56 +253,20 @@ class _HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _welcomeTitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  color: _textPrimary,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                _homeSubtitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontFamily: 'Tajawal',
-                  color: _textSecondary,
-                  fontSize: 13.5,
-                  height: 1.45,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
+        _HeaderIconButton(
+          icon: Icons.search_rounded,
+          tooltip: _searchTooltip,
+          onTap: onSearch,
         ),
-        const SizedBox(width: 14),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _HeaderIconButton(
-              icon: Icons.search_rounded,
-              tooltip: _searchTooltip,
-              onTap: onSearch,
-            ),
-            const SizedBox(width: 10),
-            _HeaderIconButton(
-              icon: Icons.notifications_active_outlined,
-              tooltip: _notificationsTooltip,
-              onTap: onNotifications,
-              active: true,
-            ),
-          ],
+        const SizedBox(width: 10),
+        _HeaderIconButton(
+          icon: Icons.notifications_active_outlined,
+          tooltip: _notificationsTooltip,
+          onTap: onNotifications,
+          active: true,
         ),
       ],
     );
@@ -310,7 +294,7 @@ class _OpportunitiesSectionHeader extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: 'Vazirmatn',
               color: _textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.w900,
@@ -323,7 +307,7 @@ class _OpportunitiesSectionHeader extends StatelessWidget {
             foregroundColor: _primaryOrange,
             padding: const EdgeInsets.symmetric(horizontal: 8),
             textStyle: const TextStyle(
-              fontFamily: 'Tajawal',
+              fontFamily: 'Vazirmatn',
               fontWeight: FontWeight.w900,
               fontSize: 14,
             ),
@@ -347,7 +331,7 @@ class _InlineSectionTitle extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: const TextStyle(
-        fontFamily: 'Cairo',
+        fontFamily: 'Vazirmatn',
         color: _textPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w900,
@@ -503,7 +487,7 @@ class _OpportunityImage extends StatelessWidget {
 }
 
 class _OpportunityCard extends StatelessWidget {
-  final Map<String, String> opportunity;
+  final Map<String, dynamic> opportunity;
   final String imagePath;
   final VoidCallback onTap;
 
@@ -547,7 +531,7 @@ class _OpportunityCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontFamily: 'Cairo',
+                        fontFamily: 'Vazirmatn',
                         fontSize: 20,
                         height: 1.25,
                         fontWeight: FontWeight.w900,
@@ -560,7 +544,7 @@ class _OpportunityCard extends StatelessWidget {
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontFamily: 'Tajawal',
+                        fontFamily: 'Vazirmatn',
                         color: _textSecondary,
                         fontSize: 14.5,
                         height: 1.45,
@@ -626,7 +610,7 @@ class _ApplyButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
           ),
           textStyle: const TextStyle(
-            fontFamily: 'Tajawal',
+            fontFamily: 'Vazirmatn',
             fontSize: 13,
             fontWeight: FontWeight.w900,
           ),
@@ -663,7 +647,7 @@ class _OpportunityMetaItem extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontFamily: 'Tajawal',
+                  fontFamily: 'Vazirmatn',
                   color: _textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w800,

@@ -313,7 +313,15 @@ class _PasswordInputField extends StatelessWidget {
             color: isFocused ? AppColors.brandOrange : const Color(0xFF9CA3AF),
             size: 21,
           ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 48,
+            minHeight: 48,
+          ),
           suffixIcon: suffixIcon,
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 48,
+            minHeight: 48,
+          ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 14,

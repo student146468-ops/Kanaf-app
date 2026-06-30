@@ -193,6 +193,10 @@ class _InkindDonationScreenState extends State<InkindDonationScreen> {
         labelText: label,
         hintText: hint,
         prefixIcon: Icon(icon, color: AppColors.successGreen),
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: 48,
+          minHeight: 48,
+        ),
         labelStyle: const TextStyle(fontFamily: 'Tajawal'),
         hintStyle: const TextStyle(
           fontFamily: 'Tajawal',

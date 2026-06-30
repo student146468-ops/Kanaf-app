@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 /// ألوان التطبيق الاحترافية
 class AppColors {
   // ============ الألوان الأساسية ============
-  static const Color brandOrange = Color(0xFFFF9500);
+  static const Color brandOrange = Color(0xFFFF8C42);
   static const Color brandOrangeDark = Color(0xFFE68A00);
   static const Color brandOrangeLight = Color(0xFFFFB84D);
 
   // ============ الألوان الخلفية ============
   static const Color darkBg = Color(0xFF0F0F0F);
   static const Color darkBgSecondary = Color(0xFF1A1A1A);
-  static const Color lightBg = Color(0xFFFAFAFA);
+  static const Color lightBg = Color(0xFFF5F5F5);
 
   // ============ الألوان الزجاجية ============
   static const Color glassWhite = Color(0xFFFFFFFF);
@@ -46,7 +46,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      
+
       // ============ Seed Color ============
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.brandOrange,
@@ -56,20 +56,20 @@ class AppTheme {
       // ============ الألوان الأساسية ============
       primaryColor: AppColors.brandOrange,
       scaffoldBackgroundColor: AppColors.lightBg,
-      
+
       // ============ AppBar ============
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         elevation: 0,
         backgroundColor: AppColors.lightBg,
         foregroundColor: AppColors.textPrimary,
         centerTitle: true,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           fontFamily: 'Cairo',
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
         ),
-        iconTheme: const IconThemeData(
+        iconTheme: IconThemeData(
           color: AppColors.brandOrange,
           size: 24,
         ),
@@ -126,7 +126,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.glassGrey,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.borderLight),
@@ -174,18 +175,18 @@ class AppTheme {
       ),
 
       // ============ الشريط السفلي ============
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.glassWhite,
         selectedItemColor: AppColors.brandOrange,
         unselectedItemColor: AppColors.textTertiary,
         elevation: 8,
         type: BottomNavigationBarType.fixed,
-        selectedLabelStyle: const TextStyle(
+        selectedLabelStyle: TextStyle(
           fontFamily: 'Cairo',
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
-        unselectedLabelStyle: const TextStyle(
+        unselectedLabelStyle: TextStyle(
           fontFamily: 'Tajawal',
           fontSize: 12,
           fontWeight: FontWeight.w400,
@@ -269,7 +270,7 @@ class AppTheme {
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
         ),
-        
+
         // العناوين المتوسطة
         headlineMedium: TextStyle(
           fontFamily: 'Cairo',
@@ -283,7 +284,7 @@ class AppTheme {
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        
+
         // العناوين الصغيرة
         titleLarge: TextStyle(
           fontFamily: 'Cairo',
@@ -303,7 +304,7 @@ class AppTheme {
           fontWeight: FontWeight.w600,
           color: AppColors.textTertiary,
         ),
-        
+
         // النصوص العادية
         bodyLarge: TextStyle(
           fontFamily: 'Tajawal',
@@ -323,7 +324,7 @@ class AppTheme {
           fontWeight: FontWeight.w400,
           color: AppColors.textTertiary,
         ),
-        
+
         // النصوص الصغيرة
         labelLarge: TextStyle(
           fontFamily: 'Tajawal',

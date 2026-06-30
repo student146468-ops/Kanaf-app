@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'volunteer_ui.dart';
 
@@ -79,55 +79,64 @@ class _NotificationsViewState extends State<NotificationsView> {
             preferredSize: Size.fromHeight(volunteerAppBarHeight),
             child: VolunteerTopBar(title: 'الإشعارات'),
           ),
-          body: SafeArea(
-            top: false,
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: _NotificationFilters(
-                    selectedFilter: _selectedFilter,
-                    onSelected: (filter) {
-                      setState(() => _selectedFilter = filter);
-                    },
-                  ),
+          body: Stack(
+            children: [
+              SafeArea(
+                top: false,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: _NotificationFilters(
+                        selectedFilter: _selectedFilter,
+                        onSelected: (filter) {
+                          setState(() => _selectedFilter = filter);
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Expanded(
+                      child: _filteredNotifications.isEmpty
+                          ? VolunteerEmptyState(
+                              icon: Icons.notifications_none_rounded,
+                              title: 'لا توجد إشعارات الآن',
+                              message:
+                                  'سنخبرك هنا عند قبول الطلبات أو صدور الشهادات أو نشر فرص جديدة.',
+                              actionLabel: 'استكشاف الفرص',
+                              onAction: () => Navigator.of(
+                                context,
+                              ).pushNamed('/volunteer_search'),
+                            )
+                          : ListView.separated(
+                              physics: const BouncingScrollPhysics(),
+                              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                              itemCount: _filteredNotifications.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 14),
+                              itemBuilder: (context, index) {
+                                final item = _filteredNotifications[index];
+                                return _NotificationCard(
+                                  item: item,
+                                  icon: _notificationIcon(index, item),
+                                  onTap: () => setState(() {
+                                    item['read'] = true;
+                                  }),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 18),
-                Expanded(
-                  child: _filteredNotifications.isEmpty
-                      ? VolunteerEmptyState(
-                          icon: Icons.notifications_none_rounded,
-                          title: 'لا توجد إشعارات الآن',
-                          message:
-                              'سنخبرك هنا عند قبول الطلبات أو صدور الشهادات أو نشر فرص جديدة.',
-                          actionLabel: 'استكشاف الفرص',
-                          onAction: () => Navigator.of(context).pushNamed(
-                            '/volunteer_search',
-                          ),
-                        )
-                      : ListView.separated(
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 110),
-                          itemCount: _filteredNotifications.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 14),
-                          itemBuilder: (context, index) {
-                            final item = _filteredNotifications[index];
-                            return _NotificationCard(
-                              item: item,
-                              icon: _notificationIcon(index, item),
-                              onTap: () => setState(() {
-                                item['read'] = true;
-                              }),
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
+              ),
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: VolunteerBottomNavBar(selectedIndex: 1),
+              ),
+            ],
           ),
-          bottomNavigationBar: const _NotificationsBottomBar(),
         ),
       ),
     );
@@ -209,7 +218,7 @@ class _FilterChipButton extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontFamily: 'Tajawal',
+              fontFamily: 'Vazirmatn',
               color: selected ? Colors.white : _textSecondary,
               fontSize: 13,
               fontWeight: FontWeight.w900,
@@ -281,7 +290,7 @@ class _NotificationCard extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontFamily: 'Cairo',
+                              fontFamily: 'Vazirmatn',
                               color: _textPrimary,
                               fontSize: 15,
                               fontWeight: FontWeight.w900,
@@ -306,7 +315,7 @@ class _NotificationCard extends StatelessWidget {
                     Text(
                       item['body'] as String,
                       style: const TextStyle(
-                        fontFamily: 'Tajawal',
+                        fontFamily: 'Vazirmatn',
                         color: _textSecondary,
                         fontSize: 13,
                         height: 1.45,
@@ -317,7 +326,7 @@ class _NotificationCard extends StatelessWidget {
                     Text(
                       item['time'] as String,
                       style: const TextStyle(
-                        fontFamily: 'Tajawal',
+                        fontFamily: 'Vazirmatn',
                         color: _textSecondary,
                         fontSize: 11.5,
                         fontWeight: FontWeight.w800,
@@ -331,14 +340,5 @@ class _NotificationCard extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _NotificationsBottomBar extends StatelessWidget {
-  const _NotificationsBottomBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return const VolunteerBottomNavBar(selectedIndex: 1);
   }
 }

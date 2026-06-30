@@ -125,6 +125,10 @@ class _FinancialDonationScreenState extends State<FinancialDonationScreen> {
         errorStyle: const TextStyle(fontFamily: 'Tajawal'),
         suffixIcon:
             const Icon(Icons.savings_outlined, color: AppColors.brandOrange),
+        suffixIconConstraints: const BoxConstraints(
+          minWidth: 48,
+          minHeight: 48,
+        ),
         filled: true,
         fillColor: Colors.white,
         contentPadding:

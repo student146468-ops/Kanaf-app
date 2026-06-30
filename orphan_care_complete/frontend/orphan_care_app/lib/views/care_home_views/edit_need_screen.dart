@@ -387,6 +387,10 @@ class _EditNeedScreenState extends State<EditNeedScreen> {
                     isFocused ? AppColors.brandOrange : AppColors.textDarkMuted,
                 size: 20),
           ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 48,
+            minHeight: 48,
+          ),
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(vertical: 16, horizontal: 16),

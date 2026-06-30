@@ -191,6 +191,10 @@ class _SearchField extends StatelessWidget {
           Icons.manage_search_rounded,
           color: AppColors.brandOrange,
         ),
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: 48,
+          minHeight: 48,
+        ),
         filled: true,
         fillColor: Colors.white,
         border: _border(AppColors.innerBorder),

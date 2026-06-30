@@ -26,7 +26,7 @@ class _SearchFilterViewState extends State<SearchFilterView> {
   ];
 
   // TODO: Replace with AppProvider opportunities when available.
-  static const List<Map<String, String>> _results = [
+  static const List<Map<String, dynamic>> _results = [
     {
       'title': 'دعم تعليمي في أساسيات الحاسوب',
       'city': 'غريان',
@@ -42,6 +42,20 @@ class _SearchFilterViewState extends State<SearchFilterView> {
       'date': 'الجمعة 5 يوليو',
       'seats': '5 متطوعين مطلوبين',
       'image': 'assets/images/image5.png',
+      'summary':
+          'ساهم في تنظيم يوم ترفيهي مليء بالألعاب والأنشطة الهادفة، بهدف إدخال السرور على الأطفال وتنمية روح التعاون والثقة لديهم في بيئة آمنة وممتعة.',
+      'tasks': [
+        'تنظيم الألعاب والأنشطة الجماعية للأطفال.',
+        'الإشراف على سلامة الأطفال أثناء الفعالية.',
+        'تشجيع الأطفال على المشاركة والتفاعل الإيجابي.',
+        'التعاون مع فريق التنظيم وتجهيز الأدوات قبل وبعد النشاط.',
+      ],
+      'skillsList': [
+        'حب التعامل مع الأطفال والصبر عليهم.',
+        'القدرة على العمل ضمن فريق.',
+        'مهارات التواصل والابتكار في الأنشطة الترفيهية.',
+        'الالتزام بالمواعيد وتحمل المسؤولية.',
+      ],
     },
     {
       'title': 'فرز التبرعات وتجهيز السلال',
@@ -50,6 +64,20 @@ class _SearchFilterViewState extends State<SearchFilterView> {
       'date': 'الأحد 7 يوليو',
       'seats': '15 متطوعاً مطلوباً',
       'image': 'assets/images/image6.png',
+      'summary':
+          'المساهمة في فرز وترتيب وتجهيز التبرعات العينية، والتأكد من جاهزيتها لتوزيعها على دور رعاية الأيتام بطريقة منظمة وسريعة.',
+      'tasks': [
+        'فرز التبرعات حسب النوع والاستخدام.',
+        'تغليف وترتيب المواد داخل الصناديق.',
+        'إعداد قوائم بالمحتويات للمساعدة في عملية التوزيع.',
+        'التعاون مع فريق العمل في تحميل وتجهيز المواد.',
+      ],
+      'skillsList': [
+        'الدقة والتنظيم في ترتيب المواد.',
+        'القدرة على العمل الجماعي.',
+        'تحمل العمل البدني الخفيف عند الحاجة.',
+        'الالتزام بالتعليمات والمحافظة على الممتلكات.',
+      ],
     },
   ];
 
@@ -59,7 +87,7 @@ class _SearchFilterViewState extends State<SearchFilterView> {
     super.dispose();
   }
 
-  List<Map<String, String>> get _filteredResults {
+  List<Map<String, dynamic>> get _filteredResults {
     if (_selectedFilter == 'تعليم') {
       return _results
           .where((item) =>
@@ -136,7 +164,7 @@ class _SearchField extends StatelessWidget {
       child: TextField(
         controller: controller,
         style: const TextStyle(
-          fontFamily: 'Tajawal',
+          fontFamily: 'Vazirmatn',
           color: AppColors.textDarkPrimary,
           fontWeight: FontWeight.w700,
         ),
@@ -147,6 +175,10 @@ class _SearchField extends StatelessWidget {
             Icons.search_rounded,
             color: _volunteerMetaColor,
             size: 22,
+          ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 48,
+            minHeight: 48,
           ),
           filled: true,
           fillColor: Colors.white,
@@ -271,7 +303,7 @@ class _ChoicePill extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontFamily: 'Tajawal',
+                  fontFamily: 'Vazirmatn',
                   color: selected ? Colors.white : _volunteerMetaColor,
                   fontSize: 12.5,
                   fontWeight: FontWeight.w900,
@@ -286,7 +318,7 @@ class _ChoicePill extends StatelessWidget {
 }
 
 class _ResultCard extends StatelessWidget {
-  final Map<String, String> item;
+  final Map<String, dynamic> item;
 
   const _ResultCard({required this.item});
 
@@ -314,7 +346,7 @@ class _ResultCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontFamily: 'Cairo',
+                    fontFamily: 'Vazirmatn',
                     color: AppColors.textDarkPrimary,
                     fontSize: 15.5,
                     height: 1.35,
@@ -392,7 +424,7 @@ class _ResultMetaItem extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontFamily: 'Tajawal',
+                  fontFamily: 'Vazirmatn',
                   color: _volunteerMetaColor,
                   fontSize: 12,
                   fontWeight: FontWeight.w800,

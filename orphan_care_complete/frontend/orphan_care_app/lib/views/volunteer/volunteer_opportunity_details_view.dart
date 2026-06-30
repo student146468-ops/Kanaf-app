@@ -11,7 +11,7 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
   const VolunteerOpportunityDetailsView({super.key});
 
   // TODO: Receive the selected opportunity from AppProvider or route arguments.
-  static const Map<String, String> _opportunity = {
+  static const Map<String, dynamic> _opportunity = {
     'title': 'دعم تعليمي في أساسيات الحاسوب',
     'organization': 'دار الأمان لرعاية الأيتام',
     'city': 'غريان',
@@ -23,17 +23,27 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
     'status': 'متاحة',
     'summary':
         'فرصة قصيرة ومنظمة لمساعدة الأطفال على فهم مبادئ الحاسوب بطريقة بسيطة وآمنة، مع متابعة من مشرف الدار.',
+    'tasks': [
+      'شرح مبادئ استخدام الحاسوب للأطفال بأسلوب مبسط.',
+      'متابعة التمارين القصيرة داخل القاعة التعليمية.',
+      'التنسيق مع مشرف الدار قبل وبعد كل جلسة.',
+    ],
+    'skillsList': [
+      'الصبر والقدرة على تبسيط المعلومة.',
+      'خبرة أساسية في الحاسوب أو التعليم.',
+      'الالتزام بالموعد واحترام خصوصية الأطفال.',
+    ],
   };
 
-  Map<String, String> _selectedOpportunity(BuildContext context) {
-    final selected = Map<String, String>.from(_opportunity);
+  Map<String, dynamic> _selectedOpportunity(BuildContext context) {
+    final selected = Map<String, dynamic>.from(_opportunity);
     final args = ModalRoute.of(context)?.settings.arguments;
 
     if (args is Map) {
       final opportunityArg = args['opportunity'];
       if (opportunityArg is Map) {
         opportunityArg.forEach((key, value) {
-          if (key is String && value is String) {
+          if (key is String && (value is String || value is List<String>)) {
             selected[key] = value;
           }
         });
@@ -55,74 +65,81 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
     return _fallbackImagePath;
   }
 
+  List<String> _selectedList(Map<String, dynamic> opportunity, String key) {
+    final value = opportunity[key];
+    if (value is List<String> && value.isNotEmpty) return value;
+    return List<String>.from(_opportunity[key] as List<String>);
+  }
+
   @override
   Widget build(BuildContext context) {
     final opportunity = _selectedOpportunity(context);
     final imagePath = _selectedImagePath(context);
+    final tasks = _selectedList(opportunity, 'tasks');
+    final skills = _selectedList(opportunity, 'skillsList');
 
     return VolunteerAppScaffold(
       title: 'تفاصيل الفرصة',
-      body: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(
-            volunteerHorizontalPadding,
-            10,
-            volunteerHorizontalPadding,
-            110,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _HeroDetailsCard(
-                opportunity: opportunity,
-                imagePath: imagePath,
+      body: Stack(
+        children: [
+          SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(
+                volunteerHorizontalPadding,
+                10,
+                volunteerHorizontalPadding,
+                86,
               ),
-              const SizedBox(height: 16),
-              _ImportantInfoGrid(opportunity: opportunity),
-              const SizedBox(height: 18),
-              const VolunteerSectionTitle(title: 'وصف الفرصة'),
-              const SizedBox(height: 10),
-              VolunteerCard(
-                child: Text(
-                  opportunity['summary']!,
-                  style: volunteerBodyStyle,
-                ),
-              ),
-              const SizedBox(height: 18),
-              const VolunteerSectionTitle(title: 'المهام المطلوبة'),
-              const SizedBox(height: 10),
-              const _BulletCard(
-                items: [
-                  'شرح مبادئ استخدام الحاسوب للأطفال بأسلوب مبسط.',
-                  'متابعة التمارين القصيرة داخل القاعة التعليمية.',
-                  'التنسيق مع مشرف الدار قبل وبعد كل جلسة.',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _HeroDetailsCard(
+                    opportunity: opportunity,
+                    imagePath: imagePath,
+                  ),
+                  const SizedBox(height: 16),
+                  _ImportantInfoGrid(opportunity: opportunity),
+                  const SizedBox(height: 18),
+                  const VolunteerSectionTitle(title: 'وصف الفرصة'),
+                  const SizedBox(height: 10),
+                  VolunteerCard(
+                    child: Text(
+                      opportunity['summary']!,
+                      style: volunteerBodyStyle,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const VolunteerSectionTitle(title: 'المهام المطلوبة'),
+                  const SizedBox(height: 10),
+                  _BulletCard(items: tasks),
+                  const SizedBox(height: 18),
+                  const VolunteerSectionTitle(title: 'المهارات المناسبة'),
+                  const SizedBox(height: 10),
+                  _BulletCard(items: skills),
                 ],
               ),
-              const SizedBox(height: 18),
-              const VolunteerSectionTitle(title: 'المهارات المناسبة'),
-              const SizedBox(height: 10),
-              const _BulletCard(
-                items: [
-                  'الصبر والقدرة على تبسيط المعلومة.',
-                  'خبرة أساسية في الحاسوب أو التعليم.',
-                  'الالتزام بالموعد واحترام خصوصية الأطفال.',
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
-      bottomNavigationBar: _ApplyBar(
-        onApply: () => Navigator.of(context).pushNamed('/apply_opportunity'),
+          PositionedDirectional(
+            start: 20,
+            end: 20,
+            bottom: MediaQuery.paddingOf(context).bottom + 16,
+            child: _ApplyBar(
+              onApply: () => Navigator.of(context).pushNamed(
+                '/apply_opportunity',
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
 class _HeroDetailsCard extends StatelessWidget {
-  final Map<String, String> opportunity;
+  final Map<String, dynamic> opportunity;
   final String imagePath;
 
   const _HeroDetailsCard({
@@ -148,7 +165,7 @@ class _HeroDetailsCard extends StatelessWidget {
         Text(
           opportunity['title']!,
           style: const TextStyle(
-            fontFamily: 'Cairo',
+            fontFamily: 'Vazirmatn',
             fontSize: 22,
             fontWeight: FontWeight.w900,
             color: AppColors.textDarkPrimary,
@@ -168,7 +185,7 @@ class _HeroDetailsCard extends StatelessWidget {
               child: Text(
                 opportunity['organization']!,
                 style: const TextStyle(
-                  fontFamily: 'Tajawal',
+                  fontFamily: 'Vazirmatn',
                   color: _detailsTextSecondary,
                   fontSize: 13.5,
                   height: 1.45,
@@ -206,7 +223,7 @@ class _DetailInfoRow extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontFamily: 'Tajawal',
+              fontFamily: 'Vazirmatn',
               color: _detailsTextSecondary,
               fontSize: 13,
               fontWeight: FontWeight.w800,
@@ -220,7 +237,7 @@ class _DetailInfoRow extends StatelessWidget {
 }
 
 class _ImportantInfoGrid extends StatelessWidget {
-  final Map<String, String> opportunity;
+  final Map<String, dynamic> opportunity;
 
   const _ImportantInfoGrid({required this.opportunity});
 
@@ -319,29 +336,12 @@ class _ApplyBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: const Border(top: BorderSide(color: AppColors.innerBorder)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 16,
-              offset: const Offset(0, -6),
-            ),
-          ],
-        ),
-        child: SizedBox(
-          width: double.infinity,
-          child: VolunteerPrimaryButton(
-            label: 'تقديم طلب تطوع',
-            icon: Icons.send_rounded,
-            onPressed: onApply,
-          ),
-        ),
+    return SizedBox(
+      width: double.infinity,
+      child: VolunteerPrimaryButton(
+        label: 'تقديم طلب تطوع',
+        icon: Icons.send_rounded,
+        onPressed: onApply,
       ),
     );
   }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'volunteer_ui.dart';
 
@@ -176,7 +176,7 @@ class _HistoryFilterChip extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontFamily: 'Tajawal',
+              fontFamily: 'Vazirmatn',
               color: selected ? Colors.white : _historyMuted,
               fontSize: 13,
               fontWeight: FontWeight.w900,
@@ -250,7 +250,7 @@ class _HistoryCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontFamily: 'Cairo',
+                          fontFamily: 'Vazirmatn',
                           color: _historyText,
                           fontSize: 14.5,
                           fontWeight: FontWeight.w900,
@@ -317,7 +317,7 @@ class _HistoryDetail extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontFamily: 'Tajawal',
+                fontFamily: 'Vazirmatn',
                 color: _historyMuted,
                 fontSize: 11.5,
                 fontWeight: FontWeight.w700,
@@ -348,7 +348,7 @@ class _InlineDetail extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
-            fontFamily: 'Tajawal',
+            fontFamily: 'Vazirmatn',
             color: _historyMuted,
             fontSize: 11.5,
             fontWeight: FontWeight.w700,
@@ -378,7 +378,7 @@ class _StatusBadge extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          fontFamily: 'Tajawal',
+          fontFamily: 'Vazirmatn',
           color: color,
           fontSize: 10.5,
           fontWeight: FontWeight.w900,

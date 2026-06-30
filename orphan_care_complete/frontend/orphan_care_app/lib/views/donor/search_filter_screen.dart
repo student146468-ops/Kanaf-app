@@ -260,6 +260,10 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
             fontFamily: 'Tajawal', color: AppColors.textDarkMuted),
         prefixIcon:
             const Icon(Icons.search_rounded, color: AppColors.brandOrange),
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: 48,
+          minHeight: 48,
+        ),
         suffixIcon: _searchController.text.isEmpty
             ? null
             : IconButton(
@@ -271,6 +275,10 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                   setState(() {});
                 },
               ),
+        suffixIconConstraints: const BoxConstraints(
+          minWidth: 48,
+          minHeight: 48,
+        ),
         filled: true,
         fillColor: Colors.white,
         enabledBorder: OutlineInputBorder(

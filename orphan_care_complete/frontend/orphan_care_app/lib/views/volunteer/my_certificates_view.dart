@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'volunteer_ui.dart';
 
@@ -136,7 +136,7 @@ class _CertificatePreviewCard extends StatelessWidget {
                     'شهادة تطوع',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: 'Vazirmatn',
                       color: _certificateText,
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
@@ -147,7 +147,7 @@ class _CertificatePreviewCard extends StatelessWidget {
                     'تمنح هذه الشهادة إلى',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontFamily: 'Tajawal',
+                      fontFamily: 'Vazirmatn',
                       color: _certificateMuted,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -158,7 +158,7 @@ class _CertificatePreviewCard extends StatelessWidget {
                     'ياسمين عادل',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: 'Vazirmatn',
                       color: _certificateOrange,
                       fontSize: 25,
                       fontWeight: FontWeight.w900,
@@ -178,7 +178,7 @@ class _CertificatePreviewCard extends StatelessWidget {
                     'وذلك تقديرًا لمشاركتها في العمل التطوعي ومساهمتها الفاعلة في خدمة المجتمع ودعم المبادرات الإنسانية.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontFamily: 'Tajawal',
+                      fontFamily: 'Vazirmatn',
                       color: _certificateText,
                       fontSize: 15,
                       height: 1.75,
@@ -190,7 +190,7 @@ class _CertificatePreviewCard extends StatelessWidget {
                     'تاريخ الإصدار: 28 أبريل 2026',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontFamily: 'Tajawal',
+                      fontFamily: 'Vazirmatn',
                       color: _certificateMuted,
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
@@ -270,7 +270,7 @@ class _CertificateActionButton extends StatelessWidget {
                 foregroundColor: Colors.white,
                 elevation: 0,
                 textStyle: const TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: 'Vazirmatn',
                   fontSize: 15,
                   fontWeight: FontWeight.w900,
                 ),
@@ -287,7 +287,7 @@ class _CertificateActionButton extends StatelessWidget {
                 foregroundColor: _certificateOrange,
                 side: const BorderSide(color: _certificateOrange, width: 1.4),
                 textStyle: const TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: 'Vazirmatn',
                   fontSize: 15,
                   fontWeight: FontWeight.w900,
                 ),

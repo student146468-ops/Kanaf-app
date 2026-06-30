@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../utils/app_colors.dart';
 import 'volunteer_ui.dart';
@@ -144,7 +144,7 @@ class _DayPill extends StatelessWidget {
               Text(
                 item['day']!,
                 style: TextStyle(
-                  fontFamily: 'Tajawal',
+                  fontFamily: 'Vazirmatn',
                   color: selected ? Colors.white : AppColors.textDarkMuted,
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
@@ -154,7 +154,7 @@ class _DayPill extends StatelessWidget {
               Text(
                 item['date']!,
                 style: TextStyle(
-                  fontFamily: 'Cairo',
+                  fontFamily: 'Vazirmatn',
                   color: selected ? Colors.white : AppColors.textDarkPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
@@ -190,7 +190,7 @@ class _ScheduleCard extends StatelessWidget {
                 child: Text(
                   item['time']!,
                   style: const TextStyle(
-                    fontFamily: 'Cairo',
+                    fontFamily: 'Vazirmatn',
                     color: AppColors.brandOrange,
                     fontSize: 14,
                     fontWeight: FontWeight.w900,
@@ -208,7 +208,7 @@ class _ScheduleCard extends StatelessWidget {
           Text(
             item['title']!,
             style: const TextStyle(
-              fontFamily: 'Cairo',
+              fontFamily: 'Vazirmatn',
               color: AppColors.textDarkPrimary,
               fontSize: 15,
               fontWeight: FontWeight.w900,
