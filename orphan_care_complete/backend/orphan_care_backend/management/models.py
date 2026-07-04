@@ -1,45 +1,238 @@
+from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-# 1. جدول المتطوعين
+
+class UserProfile(models.Model):
+    ROLE_DONOR = 'donor'
+    ROLE_VOLUNTEER = 'volunteer'
+    ROLE_CARE_HOME = 'care_home'
+    ROLE_ADMIN = 'admin'
+    ROLE_CHOICES = [
+        (ROLE_DONOR, 'Donor'),
+        (ROLE_VOLUNTEER, 'Volunteer'),
+        (ROLE_CARE_HOME, 'Care home'),
+        (ROLE_ADMIN, 'Admin'),
+    ]
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_DONOR, db_index=True)
+    phone_number = models.CharField(max_length=20, blank=True)
+    is_verified = models.BooleanField(default=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['role', 'is_verified'], name='profile_role_verified_idx'),
+        ]
+
+    def __str__(self):
+        return f'{self.user.username} ({self.role})'
+
+
 class Volunteer(models.Model):
-    name = models.CharField(max_length=100)
-    specialty = models.CharField(max_length=100)
-    points = models.IntegerField(default=0)
+    name = models.CharField(max_length=100, db_index=True)
+    specialty = models.CharField(max_length=100, db_index=True)
+    points = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+
+    class Meta:
+        ordering = ['-points', 'name']
+        constraints = [
+            models.CheckConstraint(check=models.Q(points__gte=0), name='volunteer_points_non_negative'),
+        ]
+        indexes = [
+            models.Index(fields=['specialty', 'points'], name='volunteer_specialty_points_idx'),
+        ]
 
     def __str__(self):
         return self.name
 
-# 2. جدول الأيتام
+
 class Orphan(models.Model):
-    name = models.CharField(max_length=100)
-    age = models.IntegerField()
-    status = models.CharField(max_length=100, default='ينتظر كفالة')
+    name = models.CharField(max_length=100, db_index=True)
+    age = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(18)])
+    status = models.CharField(max_length=100, default='ينتظر كفالة', db_index=True)
+
+    class Meta:
+        ordering = ['name']
+        constraints = [
+            models.CheckConstraint(check=models.Q(age__gte=0) & models.Q(age__lte=18), name='orphan_age_between_0_18'),
+        ]
+        indexes = [
+            models.Index(fields=['status', 'age'], name='orphan_status_age_idx'),
+        ]
 
     def __str__(self):
         return self.name
 
-# 3. جدول التبرعات
+
 class Donation(models.Model):
-    donor_name = models.CharField(max_length=100)
-    item_type = models.CharField(max_length=100)
-    status = models.CharField(max_length=50, default='قيد التنفيذ')
+    donor_name = models.CharField(max_length=100, db_index=True)
+    item_type = models.CharField(max_length=100, db_index=True)
+    status = models.CharField(max_length=50, default='قيد التنفيذ', db_index=True)
+
+    class Meta:
+        ordering = ['-id']
+        indexes = [
+            models.Index(fields=['status', 'donor_name'], name='donation_status_donor_idx'),
+        ]
 
     def __str__(self):
-        return f"{self.donor_name} - {self.item_type}"
+        return f'{self.donor_name} - {self.item_type}'
 
-# 4. جدول الكفلاء
+
 class Sponsor(models.Model):
-    name = models.CharField(max_length=100)
-    phone = models.CharField(max_length=20)
-    orphan_name = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=100, db_index=True)
+    phone = models.CharField(max_length=20, db_index=True)
+    orphan_name = models.CharField(max_length=100, blank=True, db_index=True)
+
+    class Meta:
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['name', 'phone'], name='sponsor_name_phone_idx'),
+        ]
 
     def __str__(self):
         return self.name
 
-# 5. جدول إدارة المخزن
+
 class InventoryItem(models.Model):
-    item_name = models.CharField(max_length=100)
-    quantity = models.IntegerField()
+    item_name = models.CharField(max_length=100, db_index=True)
+    quantity = models.IntegerField(validators=[MinValueValidator(0)])
+
+    class Meta:
+        ordering = ['item_name']
+        constraints = [
+            models.CheckConstraint(check=models.Q(quantity__gte=0), name='inventory_quantity_non_negative'),
+        ]
+        indexes = [
+            models.Index(fields=['item_name', 'quantity'], name='inventory_item_quantity_idx'),
+        ]
 
     def __str__(self):
         return self.item_name
+
+
+class VolunteerOpportunity(models.Model):
+    STATUS_OPEN = 'open'
+    STATUS_CLOSED = 'closed'
+    STATUS_COMPLETED = 'completed'
+    STATUS_CHOICES = [
+        (STATUS_OPEN, 'Open'),
+        (STATUS_CLOSED, 'Closed'),
+        (STATUS_COMPLETED, 'Completed'),
+    ]
+
+    title = models.CharField(max_length=200, db_index=True)
+    description = models.TextField()
+    required_volunteers = models.IntegerField(default=1, validators=[MinValueValidator(1)])
+    current_volunteers = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    start_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    end_date = models.DateTimeField(null=True, blank=True)
+    location = models.CharField(max_length=200, blank=True, db_index=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_OPEN, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-start_date', '-created_at']
+        constraints = [
+            models.CheckConstraint(check=models.Q(required_volunteers__gte=1), name='opportunity_required_volunteers_positive'),
+            models.CheckConstraint(check=models.Q(current_volunteers__gte=0), name='opportunity_current_volunteers_non_negative'),
+            models.CheckConstraint(
+                check=models.Q(end_date__isnull=True) | models.Q(start_date__isnull=True) | models.Q(end_date__gte=models.F('start_date')),
+                name='opportunity_end_after_start',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['status', 'start_date'], name='opportunity_status_start_idx'),
+        ]
+
+    def __str__(self):
+        return self.title
+
+
+class VolunteerApplication(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_APPROVED = 'approved'
+    STATUS_REJECTED = 'rejected'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_APPROVED, 'Approved'),
+        (STATUS_REJECTED, 'Rejected'),
+    ]
+
+    opportunity = models.ForeignKey(VolunteerOpportunity, on_delete=models.CASCADE, related_name='applications')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='volunteer_applications')
+    message = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(fields=['opportunity', 'user'], name='unique_opportunity_user_application'),
+        ]
+        indexes = [
+            models.Index(fields=['user', 'status'], name='vol_app_user_status_idx'),
+            models.Index(fields=['opportunity', 'status'], name='vol_app_opp_status_idx'),
+        ]
+
+    def __str__(self):
+        return f'{self.user.username} -> {self.opportunity.title}'
+
+
+class CareHome(models.Model):
+    name = models.CharField(max_length=200, db_index=True)
+    address = models.TextField()
+    phone = models.CharField(max_length=20, db_index=True)
+    email = models.EmailField(blank=True)
+    manager = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='managed_care_homes')
+    description = models.TextField(blank=True)
+    orphan_count = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        constraints = [
+            models.CheckConstraint(check=models.Q(orphan_count__gte=0), name='care_home_orphan_count_non_negative'),
+        ]
+        indexes = [
+            models.Index(fields=['name', 'phone'], name='care_home_name_phone_idx'),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class Notification(models.Model):
+    TYPE_DONATION = 'donation'
+    TYPE_VOLUNTEER = 'volunteer'
+    TYPE_STATUS_UPDATE = 'status_update'
+    TYPE_MESSAGE = 'message'
+    TYPE_CHOICES = [
+        (TYPE_DONATION, 'Donation'),
+        (TYPE_VOLUNTEER, 'Volunteer'),
+        (TYPE_STATUS_UPDATE, 'Status update'),
+        (TYPE_MESSAGE, 'Message'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    notification_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default=TYPE_MESSAGE, db_index=True)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'is_read', 'created_at'], name='notif_user_read_created_idx'),
+        ]
+
+    def __str__(self):
+        return f'{self.title} - {self.user.username}'
