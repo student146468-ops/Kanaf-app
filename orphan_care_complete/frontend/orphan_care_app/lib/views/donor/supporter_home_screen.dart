@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../utils/app_colors.dart';
@@ -11,21 +13,23 @@ class SupporterHomeScreen extends StatefulWidget {
 }
 
 class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
-  String _selectedCategory = 'الكل';
-
-  final List<Map<String, dynamic>> _categories = const [
-    {'title': 'الكل', 'icon': Icons.apps_rounded},
-    {'title': 'مالي', 'icon': Icons.savings_outlined},
-    {'title': 'غذائي', 'icon': Icons.restaurant_outlined},
-    {'title': 'كسوة', 'icon': Icons.checkroom_outlined},
-    {'title': 'صحي', 'icon': Icons.health_and_safety_outlined},
+  static const int _initialSliderPage = 3000;
+  static const List<String> _sliderImages = [
+    'assets/images/a.png',
+    'assets/images/b.png',
+    'assets/images/c.png',
   ];
+
+  late final PageController _sliderController;
+  Timer? _sliderTimer;
+  int _currentSlide = _initialSliderPage;
 
   // TODO: Replace fallback needs with AppProvider/backend donor needs when available.
   final List<Map<String, dynamic>> _needs = const [
     {
       'id': '1',
-      'orphanage': 'دار الأمان لرعاية الأيتام - غريان',
+      'orphanage': 'دار الأمان لرعاية الأيتام',
+      'location': 'غريان',
       'category': 'مالي',
       'title': 'تغطية المصاريف الدراسية لخمسة طلاب',
       'progress': 0.65,
@@ -36,10 +40,12 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
       'daysLeft': '3 أيام',
       'status': 'قيد التنفيذ',
       'description': 'مساهمة تعليمية تحفظ انتظام الطلاب وتخفف العبء عن الدار.',
+      'image': 'assets/images/b.png',
     },
     {
       'id': '2',
-      'orphanage': 'جمعية كنف للأطفال - غريان',
+      'orphanage': 'جمعية كنف للأطفال',
+      'location': 'غريان',
       'category': 'غذائي',
       'title': 'توفير سلات غذائية متوازنة للأطفال',
       'progress': 0.40,
@@ -50,95 +56,107 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
       'daysLeft': '12 يوم',
       'status': 'جديد',
       'description': 'احتياج يومي يساعد الفريق على تقديم وجبات صحية ومنتظمة.',
+      'image': 'assets/images/a.png',
     },
     {
       'id': '3',
-      'orphanage': 'بيت الأمل للبنين - غريان',
+      'orphanage': 'بيت الأمل للبنين',
+      'location': 'غريان',
       'category': 'كسوة',
       'title': 'توفير كسوة مريحة للأطفال من عمر 4 إلى 10 سنوات',
       'progress': 0.85,
       'raised': '5,100 د.ل',
       'target': '6,000 د.ل',
       'remaining': '900 د.ل',
-      'urgency': 'عاجل',
+      'urgency': 'منخفض',
       'daysLeft': '5 أيام',
       'status': 'قيد التنفيذ',
       'description': 'ملابس وأحذية جديدة تحفظ كرامة الأطفال وتناسب الموسم.',
+      'image': 'assets/images/c.png',
     },
   ];
 
+  static const Color _homeBackground = Color(0xFFF5F5F5);
+
+  @override
+  void initState() {
+    super.initState();
+    _sliderController = PageController(initialPage: _initialSliderPage);
+    _sliderTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!mounted || !_sliderController.hasClients) return;
+      _sliderController.animateToPage(
+        _currentSlide + 1,
+        duration: const Duration(milliseconds: 560),
+        curve: Curves.easeInOutCubic,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _sliderTimer?.cancel();
+    _sliderController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final filteredNeeds = _selectedCategory == 'الكل'
-        ? _needs
-        : _needs
-            .where((need) => need['category'] == _selectedCategory)
-            .toList();
-
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
-        appBar: donorMobileAppBar(
-          title: 'كنف العطاء',
-          actions: [
-            DonorCircleButton(
-              icon: Icons.search_rounded,
-              tooltip: 'البحث',
-              onTap: () => Navigator.pushNamed(context, '/search_filter'),
-            ),
-            const SizedBox(width: 8),
-            DonorCircleButton(
-              icon: Icons.notifications_none_rounded,
-              tooltip: 'الإشعارات',
-              onTap: () => Navigator.pushNamed(context, '/notifications'),
-            ),
-            const SizedBox(width: 12),
-          ],
-        ),
+        backgroundColor: _homeBackground,
         body: Stack(
           children: [
-            const Positioned.fill(child: DonorBackground()),
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: _homeBackground),
+              ),
+            ),
             SafeArea(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: donorMobileMaxWidth),
-                  child: CustomScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    slivers: [
-                      SliverToBoxAdapter(child: _buildWelcomeCard()),
-                      SliverToBoxAdapter(child: _buildCategoryBar()),
-                      SliverToBoxAdapter(
-                        child: _buildSectionHeader(filteredNeeds.length),
-                      ),
-                      if (filteredNeeds.isEmpty)
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: DonorEmptyState(
-                            icon: Icons.volunteer_activism_outlined,
-                            title: 'لا توجد احتياجات ضمن هذا التصنيف',
-                            message:
-                                'غيّر التصنيف أو استخدم البحث للوصول إلى احتياج مناسب.',
-                            actionLabel: 'فتح البحث',
-                            onAction: () =>
-                                Navigator.pushNamed(context, '/search_filter'),
-                          ),
-                        )
-                      else
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                          sliver: SliverList.separated(
-                            itemCount: filteredNeeds.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              return _NeedCard(need: filteredNeeds[index]);
-                            },
-                          ),
+              child: DonorMobileFrame(
+                child: ListView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                  children: [
+                    _HomeHeader(
+                      onSearch: () =>
+                          Navigator.pushNamed(context, '/search_filter'),
+                      onNotifications: () =>
+                          Navigator.pushNamed(context, '/notifications'),
+                    ),
+                    const SizedBox(height: 16),
+                    _HeroSlider(
+                      controller: _sliderController,
+                      images: _sliderImages,
+                      currentIndex: _currentSlide % _sliderImages.length,
+                      onPageChanged: (page) {
+                        setState(() => _currentSlide = page);
+                      },
+                    ),
+                    const SizedBox(height: 22),
+                    _NeedsSectionHeader(
+                      onShowAll: () =>
+                          Navigator.pushNamed(context, '/search_filter'),
+                    ),
+                    const SizedBox(height: 16),
+                    if (_needs.isEmpty)
+                      DonorEmptyState(
+                        icon: Icons.volunteer_activism_outlined,
+                        title: 'لا توجد احتياجات ضمن هذا التصنيف',
+                        message:
+                            'غيّر التصنيف أو استخدم البحث للوصول إلى احتياج مناسب.',
+                        actionLabel: 'فتح البحث',
+                        onAction: () =>
+                            Navigator.pushNamed(context, '/search_filter'),
+                      )
+                    else
+                      ..._needs.map(
+                        (need) => Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: _UrgentNeedCard(need: need),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -146,120 +164,6 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
         ),
         bottomNavigationBar:
             donorMobileBottomBar(child: _buildBottomNavigation()),
-      ),
-    );
-  }
-
-  Widget _buildWelcomeCard() {
-    return const Padding(
-      padding: EdgeInsets.fromLTRB(20, 16, 20, 18),
-      child: DonorCard(
-        padding: EdgeInsets.all(18),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            DonorIconBox(
-              icon: Icons.volunteer_activism_outlined,
-              color: AppColors.brandOrange,
-              size: 52,
-            ),
-            SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'ساهم في احتياج حقيقي اليوم',
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.textDarkPrimary,
-                    ),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    'اختر احتياجًا موثقًا، وتابع أثر مساهمتك حتى تصل إلى دار الرعاية.',
-                    style: TextStyle(
-                      fontFamily: 'Tajawal',
-                      fontSize: 14,
-                      height: 1.55,
-                      color: AppColors.textDarkSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryBar() {
-    return SizedBox(
-      height: 48,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: _categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final category = _categories[index];
-          final isSelected = _selectedCategory == category['title'];
-
-          return ChoiceChip(
-            avatar: Icon(
-              category['icon'] as IconData,
-              size: 17,
-              color: isSelected ? Colors.white : AppColors.textDarkSecondary,
-            ),
-            label: Text(category['title'] as String),
-            selected: isSelected,
-            showCheckmark: false,
-            selectedColor: AppColors.brandOrange,
-            backgroundColor: Colors.white,
-            side: BorderSide(
-              color: isSelected ? AppColors.brandOrange : AppColors.innerBorder,
-            ),
-            labelStyle: TextStyle(
-              fontFamily: 'Cairo',
-              fontWeight: FontWeight.w800,
-              fontSize: 12.5,
-              color: isSelected ? Colors.white : AppColors.textDarkSecondary,
-            ),
-            onSelected: (_) {
-              setState(() => _selectedCategory = category['title'] as String);
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(int count) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 12),
-      child: Row(
-        children: [
-          const Expanded(
-            child: Text(
-              'احتياجات يمكن دعمها الآن',
-              style: TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                color: AppColors.textDarkPrimary,
-              ),
-            ),
-          ),
-          DonorBadge(
-            label: '$count حالة',
-            color: AppColors.brandOrangeDark,
-            icon: Icons.list_alt_outlined,
-          ),
-        ],
       ),
     );
   }
@@ -301,8 +205,253 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
   }
 }
 
-class _NeedCard extends StatelessWidget {
-  const _NeedCard({required this.need});
+class _HomeHeader extends StatelessWidget {
+  final VoidCallback onSearch;
+  final VoidCallback onNotifications;
+
+  const _HomeHeader({
+    required this.onSearch,
+    required this.onNotifications,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _HeaderIconButton(
+              icon: Icons.notifications_none_rounded,
+              tooltip: 'الإشعارات',
+              onTap: onNotifications,
+            ),
+            const SizedBox(width: 10),
+            _HeaderIconButton(
+              icon: Icons.search_rounded,
+              tooltip: 'البحث',
+              onTap: onSearch,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HeaderIconButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  const _HeaderIconButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: Container(
+            width: 46,
+            height: 46,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.055),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: AppColors.textDarkPrimary, size: 22),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroSlider extends StatelessWidget {
+  final PageController controller;
+  final List<String> images;
+  final int currentIndex;
+  final ValueChanged<int> onPageChanged;
+
+  const _HeroSlider({
+    required this.controller,
+    required this.images,
+    required this.currentIndex,
+    required this.onPageChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          height: 190,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.075),
+                blurRadius: 22,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: PageView.builder(
+              controller: controller,
+              physics: const BouncingScrollPhysics(),
+              onPageChanged: onPageChanged,
+              itemBuilder: (context, index) {
+                final imagePath = images[index % images.length];
+                return Image.asset(
+                  imagePath,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            images.length,
+            (index) {
+              final selected = currentIndex == index;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: selected ? 18 : 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? const Color(0xFFFF8C42)
+                      : const Color(0xFFD8D8D8),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NeedsSectionHeader extends StatelessWidget {
+  final VoidCallback onShowAll;
+
+  const _NeedsSectionHeader({required this.onShowAll});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'احتياجات عاجلة يمكن دعمها الآن',
+                style: DonorTextStyles.sectionTitle.copyWith(
+                  fontSize: 17,
+                  height: 1.35,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                'تصفح الاحتياجات أو اختر تصنيفًا للتركيز على ما تريد دعمه.',
+                style: DonorTextStyles.muted.copyWith(
+                  fontSize: 12.8,
+                  height: 1.4,
+                  color: AppColors.textDarkSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        _ShowAllButton(onTap: onShowAll),
+      ],
+    );
+  }
+}
+
+class _ShowAllButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _ShowAllButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Container(
+          height: 38,
+          padding: const EdgeInsets.symmetric(horizontal: 13),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.045),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.grid_view_rounded,
+                color: Color(0xFFFF8C42),
+                size: 17,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'عرض الكل',
+                style: DonorTextStyles.button.copyWith(
+                  fontSize: 12.5,
+                  color: AppColors.textDarkPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _UrgentNeedCard extends StatelessWidget {
+  const _UrgentNeedCard({required this.need});
 
   final Map<String, dynamic> need;
 
@@ -311,173 +460,261 @@ class _NeedCard extends StatelessWidget {
     final progress = (need['progress'] as num).toDouble().clamp(0.0, 1.0);
     final percentage = (progress * 100).round();
     final urgency = need['urgency'] as String;
-    final status = need['status'] as String;
-    final statusColor = donorStatusColor(status);
-    final isUrgent = urgency == 'عاجل';
+    final imagePath = need['image'] as String;
 
-    return DonorCard(
+    return _SoftCard(
       onTap: () =>
           Navigator.pushNamed(context, '/need_details', arguments: need),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              DonorBadge(
-                label: urgency,
-                color: isUrgent
-                    ? AppColors.brandOrangeDark
-                    : AppColors.skyBlueDark,
-                icon: isUrgent
-                    ? Icons.priority_high_rounded
-                    : Icons.flag_outlined,
-              ),
-              DonorBadge(
-                label: status,
-                color: statusColor,
-                icon: status == 'جديد'
-                    ? Icons.fiber_new_outlined
-                    : Icons.timelapse_outlined,
-              ),
-              DonorBadge(
-                label: need['category'] as String,
-                color: AppColors.textDarkSecondary,
-                icon: Icons.category_outlined,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            need['title'] as String,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 15.5,
-              height: 1.45,
-              fontWeight: FontWeight.w900,
-              color: AppColors.textDarkPrimary,
-            ),
-          ),
-          const SizedBox(height: 7),
-          Text(
-            need['description'] as String,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontFamily: 'Tajawal',
-              fontSize: 13.5,
-              height: 1.45,
-              color: AppColors.textDarkSecondary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          InkWell(
-            onTap: () => Navigator.pushNamed(context, '/orphanage_profile'),
-            borderRadius: BorderRadius.circular(12),
-            child: Row(
-              children: [
-                const Icon(Icons.home_work_outlined,
-                    color: AppColors.textDarkMuted, size: 18),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    need['orphanage'] as String,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: 'Tajawal',
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textDarkSecondary,
-                    ),
-                  ),
-                ),
-                const Icon(Icons.chevron_left_rounded,
-                    color: AppColors.textDarkMuted),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(
-                  'جُمع ${need['raised']}',
-                  style: const TextStyle(
-                    fontFamily: 'Tajawal',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.brandOrangeDark,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              need['title'] as String,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: DonorTextStyles.title.copyWith(
+                                fontSize: 14.8,
+                                height: 1.35,
+                                color: AppColors.textDarkPrimary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          _UrgencyBadge(label: urgency),
+                        ],
+                      ),
+                      const SizedBox(height: 7),
+                      Text(
+                        need['orphanage'] as String,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: DonorTextStyles.muted.copyWith(
+                          fontSize: 12.8,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textDarkSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        need['location'] as String,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: DonorTextStyles.muted.copyWith(
+                          fontSize: 12.5,
+                          color: AppColors.textDarkMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            const TextSpan(
+                              text: 'المبلغ الإجمالي: ',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                            TextSpan(text: need['target'] as String),
+                          ],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.right,
+                        style: DonorTextStyles.muted.copyWith(
+                          fontSize: 13,
+                          color: AppColors.textDarkSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 13),
+                      Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'المبلغ المجمع ${need['raised']}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: DonorTextStyles.muted.copyWith(
+                                  fontSize: 12.8,
+                                  fontWeight: FontWeight.w900,
+                                  color: const Color(0xFFFF8C42),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '$percentage%',
+                              textDirection: TextDirection.ltr,
+                              style: DonorTextStyles.badge.copyWith(
+                                fontSize: 12,
+                                color: AppColors.textDarkPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _RtlProgressBar(value: progress),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Text(
+                            'متبقي ${need['daysLeft']}',
+                            style: DonorTextStyles.muted.copyWith(
+                              fontSize: 12,
+                              color: AppColors.textDarkSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
-              Text(
-                '$percentage%',
-                style: const TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.textDarkPrimary,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: Image.asset(
+                  imagePath,
+                  width: 104,
+                  height: 120,
+                  fit: BoxFit.cover,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(99),
-            child: LinearProgressIndicator(
-              minHeight: 8,
-              value: progress,
-              backgroundColor: AppColors.surfaceLight,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isUrgent ? AppColors.brandOrange : AppColors.skyBlueDark,
-              ),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: () => Navigator.pushNamed(
+              context,
+              '/need_details',
+              arguments: need,
             ),
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              const Icon(Icons.timer_outlined,
-                  color: AppColors.textDarkMuted, size: 17),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'متبقي ${need['daysLeft']} • ${need['remaining']}',
-                  style: const TextStyle(
-                    fontFamily: 'Tajawal',
-                    fontSize: 13,
-                    color: AppColors.textDarkSecondary,
-                  ),
-                ),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+              backgroundColor: const Color(0xFFFF8C42),
+              foregroundColor: Colors.white,
+              textStyle: DonorTextStyles.button.copyWith(fontSize: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
               ),
-              FilledButton.icon(
-                onPressed: () => Navigator.pushNamed(
-                  context,
-                  '/need_details',
-                  arguments: need,
-                ),
-                icon: const Icon(Icons.favorite_rounded, size: 17),
-                label: const Text('ادعم الآن'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.brandOrange,
-                  foregroundColor: Colors.white,
-                  textStyle: const TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w900,
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                ),
-              ),
-            ],
+              elevation: 0,
+            ),
+            child: const Text('تبرع الآن'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SoftCard extends StatelessWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+
+  const _SoftCard({
+    required this.child,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final card = Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.045),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: child,
+    );
+
+    if (onTap == null) return card;
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: card,
+      ),
+    );
+  }
+}
+
+class _UrgencyBadge extends StatelessWidget {
+  final String label;
+
+  const _UrgencyBadge({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _badgeColor(label);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.11),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: DonorTextStyles.badge.copyWith(
+          fontSize: 11,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Color _badgeColor(String value) {
+    if (value.contains('عاجل')) return const Color(0xFFE36F25);
+    if (value.contains('متوسط')) return const Color(0xFFC98B22);
+    return const Color(0xFF3E9B62);
+  }
+}
+
+class _RtlProgressBar extends StatelessWidget {
+  final double value;
+
+  const _RtlProgressBar({required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        height: 8,
+        color: const Color(0xFFECECEC),
+        alignment: Alignment.centerRight,
+        child: FractionallySizedBox(
+          alignment: Alignment.centerRight,
+          widthFactor: value,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFFFF8C42),
+            ),
+          ),
+        ),
       ),
     );
   }

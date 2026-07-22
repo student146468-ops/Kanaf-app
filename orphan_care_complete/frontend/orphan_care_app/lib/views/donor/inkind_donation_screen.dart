@@ -18,6 +18,10 @@ class _InkindDonationScreenState extends State<InkindDonationScreen> {
   final _notesController = TextEditingController();
   String _selectedType = '';
 
+  static const Color _primaryOrange = Color(0xFFFF8C42);
+  static const Color _screenBackground = Color(0xFFF5F5F5);
+  static const Color _cardBorder = Color(0xFFEAEAEA);
+
   final List<Map<String, dynamic>> _donationTypes = const [
     {
       'id': 'food',
@@ -56,66 +60,80 @@ class _InkindDonationScreenState extends State<InkindDonationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
-        appBar: donorMobileAppBar(
-          title: 'تبرع عيني',
-          leading: donorBackButton(context),
+        resizeToAvoidBottomInset: true,
+        backgroundColor: _screenBackground,
+        appBar: DonorTopBar(
+          title: 'التبرع العيني',
+          leading: Padding(
+            padding: const EdgeInsetsDirectional.only(start: DonorSpacing.md),
+            child: DonorTopBarActionButton(
+              icon: Icons.arrow_forward_ios_rounded,
+              tooltip: 'رجوع',
+              onTap: () => Navigator.of(context).pop(),
+            ),
+          ),
         ),
-        body: Stack(
-          children: [
-            const Positioned.fill(child: DonorBackground()),
-            SafeArea(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: donorMobileMaxWidth),
-                  child: Column(
+        body: SafeArea(
+          top: false,
+          child: DonorMobileFrame(
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsetsDirectional.fromSTEB(
+                      20,
+                      16,
+                      20,
+                      24 + bottomInset,
+                    ),
                     children: [
-                      Expanded(
-                        child: ListView(
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                          children: [
-                            const _IntroCard(),
-                            const SizedBox(height: 18),
-                            const _SectionTitle('اختر نوع التبرع'),
-                            const SizedBox(height: 10),
-                            ..._donationTypes.map(_buildDonationType),
-                            if (_selectedType.isNotEmpty) ...[
-                              const SizedBox(height: 18),
-                              _buildDetailsForm(),
-                            ],
-                          ],
-                        ),
+                      const _DonationModeSelector(),
+                      const SizedBox(height: DonorSpacing.xxl),
+                      const DonorSectionTitle('اختر نوع التبرع'),
+                      const SizedBox(height: DonorSpacing.md),
+                      _DonationTypeGrid(
+                        donationTypes: _donationTypes,
+                        selectedType: _selectedType,
+                        onSelected: (typeId) {
+                          setState(() => _selectedType = typeId);
+                        },
                       ),
-                      donorMobileBottomBar(
-                        height: 84,
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            border: Border(
-                                top: BorderSide(color: AppColors.innerBorder)),
-                          ),
-                          child: DonorPrimaryButton(
-                            label: 'متابعة التبرع',
-                            icon: Icons.arrow_back_rounded,
-                            color: AppColors.successGreen,
-                            onTap: _selectedType.isNotEmpty
-                                ? _submitDonation
-                                : null,
-                          ),
-                        ),
-                      ),
+                      const SizedBox(height: DonorSpacing.xxl),
+                      _buildDetailsForm(),
                     ],
                   ),
                 ),
-              ),
+                donorMobileBottomBar(
+                  height: 86,
+                  child: Container(
+                    padding: const EdgeInsetsDirectional.fromSTEB(
+                      20,
+                      12,
+                      20,
+                      18,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                        top: BorderSide(color: AppColors.innerBorder),
+                      ),
+                    ),
+                    child: DonorPrimaryButton(
+                      label: 'إرسال الطلب',
+                      icon: Icons.send_outlined,
+                      onTap: _selectedType.isNotEmpty ? _submitDonation : null,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -127,8 +145,8 @@ class _InkindDonationScreenState extends State<InkindDonationScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SectionTitle('تفاصيل التبرع'),
-          const SizedBox(height: 10),
+          const DonorSectionTitle('تفاصيل التبرع'),
+          const SizedBox(height: DonorSpacing.md),
           _buildTextField(
             controller: _quantityController,
             label: 'الكمية',
@@ -136,7 +154,7 @@ class _InkindDonationScreenState extends State<InkindDonationScreen> {
             icon: Icons.numbers_rounded,
             requiredMessage: 'أدخل كمية التبرع',
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: DonorSpacing.md),
           _buildTextField(
             controller: _descriptionController,
             label: 'الوصف',
@@ -145,7 +163,7 @@ class _InkindDonationScreenState extends State<InkindDonationScreen> {
             requiredMessage: 'أدخل وصف التبرع',
             maxLines: 3,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: DonorSpacing.md),
           _buildTextField(
             controller: _contactController,
             label: 'وسيلة التواصل',
@@ -154,7 +172,7 @@ class _InkindDonationScreenState extends State<InkindDonationScreen> {
             requiredMessage: 'أدخل وسيلة تواصل',
             keyboardType: TextInputType.phone,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: DonorSpacing.md),
           _buildTextField(
             controller: _notesController,
             label: 'ملاحظات إضافية',
@@ -176,7 +194,7 @@ class _InkindDonationScreenState extends State<InkindDonationScreen> {
     int maxLines = 1,
     TextInputType? keyboardType,
   }) {
-    return TextFormField(
+    return DonorInputField(
       controller: controller,
       maxLines: maxLines,
       keyboardType: keyboardType,
@@ -188,91 +206,29 @@ class _InkindDonationScreenState extends State<InkindDonationScreen> {
               if (value == null || value.trim().isEmpty) return requiredMessage;
               return null;
             },
-      style: const TextStyle(fontFamily: 'Tajawal', fontSize: 14),
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(icon, color: AppColors.successGreen),
-        prefixIconConstraints: const BoxConstraints(
-          minWidth: 48,
-          minHeight: 48,
-        ),
-        labelStyle: const TextStyle(fontFamily: 'Tajawal'),
-        hintStyle: const TextStyle(
-          fontFamily: 'Tajawal',
-          color: AppColors.textDarkMuted,
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        enabledBorder: _border(AppColors.innerBorder),
-        focusedBorder: _border(AppColors.successGreen),
-        errorBorder: _border(AppColors.errorRed),
-        focusedErrorBorder: _border(AppColors.errorRed),
+      style: DonorTextStyles.body.copyWith(
+        fontSize: 14,
+        color: AppColors.textDarkPrimary,
       ),
-    );
-  }
-
-  OutlineInputBorder _border(Color color) {
-    return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide(color: color, width: 1.2),
-    );
-  }
-
-  Widget _buildDonationType(Map<String, dynamic> type) {
-    final selected = _selectedType == type['id'];
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: DonorCard(
-        color: selected
-            ? AppColors.successGreenLight.withOpacity(0.30)
-            : Colors.white,
-        onTap: () => setState(() => _selectedType = type['id'] as String),
-        child: Row(
-          children: [
-            DonorIconBox(
-              icon: type['icon'] as IconData,
-              color: selected
-                  ? AppColors.successGreen
-                  : AppColors.textDarkSecondary,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    type['title'] as String,
-                    style: const TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.textDarkPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    type['desc'] as String,
-                    style: const TextStyle(
-                      fontFamily: 'Tajawal',
-                      fontSize: 13,
-                      height: 1.45,
-                      color: AppColors.textDarkSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(
-              selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-              color:
-                  selected ? AppColors.successGreen : AppColors.textDarkMuted,
-            ),
-          ],
-        ),
+      labelText: label,
+      hintText: hint,
+      prefixIcon: icon,
+      iconColor: _primaryOrange,
+      focusedBorderColor: _primaryOrange,
+      fillColor: Colors.white,
+      labelStyle: DonorTextStyles.muted.copyWith(
+        color: AppColors.textDarkSecondary,
       ),
+      hintStyle: DonorTextStyles.muted.copyWith(
+        color: AppColors.textDarkMuted,
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: DonorSpacing.lg,
+        vertical: 15,
+      ),
+      enabledBorderWidth: 1,
+      focusedBorderWidth: 1.2,
+      useFormField: true,
     );
   }
 
@@ -299,26 +255,28 @@ class _InkindDonationScreenState extends State<InkindDonationScreen> {
   }
 }
 
-class _IntroCard extends StatelessWidget {
-  const _IntroCard();
+class _DonationModeSelector extends StatelessWidget {
+  const _DonationModeSelector();
 
   @override
   Widget build(BuildContext context) {
     return const DonorCard(
+      padding: EdgeInsets.all(5),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.inventory_2_outlined, color: AppColors.successGreen),
-          SizedBox(width: 12),
           Expanded(
-            child: Text(
-              'اختر الفئة الأقرب لما تريد تقديمه، وسيتم تنسيق الاستلام مع دار الرعاية بطريقة واضحة.',
-              style: TextStyle(
-                fontFamily: 'Tajawal',
-                fontSize: 14,
-                height: 1.5,
-                color: AppColors.textDarkSecondary,
-              ),
+            child: _DonationModeOption(
+              label: 'تقديم تبرع',
+              selected: true,
+              enabled: true,
+            ),
+          ),
+          SizedBox(width: DonorSpacing.xs),
+          Expanded(
+            child: _DonationModeOption(
+              label: 'طلب استلام',
+              selected: false,
+              enabled: false,
             ),
           ),
         ],
@@ -327,20 +285,148 @@ class _IntroCard extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.title);
+class _DonationModeOption extends StatelessWidget {
+  const _DonationModeOption({
+    required this.label,
+    required this.selected,
+    required this.enabled,
+  });
 
-  final String title;
+  final String label;
+  final bool selected;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontFamily: 'Cairo',
-        fontSize: 15,
-        fontWeight: FontWeight.w900,
-        color: AppColors.textDarkPrimary,
+    final foreground = selected
+        ? Colors.white
+        : enabled
+            ? AppColors.textDarkPrimary
+            : AppColors.textDarkMuted;
+
+    return Container(
+      height: 46,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color:
+            selected ? _InkindDonationScreenState._primaryOrange : Colors.white,
+        borderRadius: DonorRadii.medium,
+        border: Border.all(
+          color: selected
+              ? _InkindDonationScreenState._primaryOrange
+              : _InkindDonationScreenState._cardBorder,
+        ),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: DonorTextStyles.button.copyWith(
+          fontSize: 13,
+          color: foreground,
+        ),
+      ),
+    );
+  }
+}
+
+class _DonationTypeGrid extends StatelessWidget {
+  const _DonationTypeGrid({
+    required this.donationTypes,
+    required this.selectedType,
+    required this.onSelected,
+  });
+
+  final List<Map<String, dynamic>> donationTypes;
+  final String selectedType;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const spacing = DonorSpacing.sm;
+        final itemWidth = (constraints.maxWidth - spacing) / 2;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: donationTypes.map((type) {
+            final typeId = type['id'] as String;
+            return SizedBox(
+              width: itemWidth,
+              child: _DonationTypeTile(
+                title: type['title'] as String,
+                icon: type['icon'] as IconData,
+                selected: selectedType == typeId,
+                onTap: () => onSelected(typeId),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+}
+
+class _DonationTypeTile extends StatelessWidget {
+  const _DonationTypeTile({
+    required this.title,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String title;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    const activeColor = _InkindDonationScreenState._primaryOrange;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: DonorRadii.medium,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          height: 92,
+          padding: const EdgeInsets.all(DonorSpacing.md),
+          decoration: BoxDecoration(
+            color: selected ? activeColor.withOpacity(0.08) : Colors.white,
+            borderRadius: DonorRadii.medium,
+            border: Border.all(
+              color: selected
+                  ? activeColor
+                  : _InkindDonationScreenState._cardBorder,
+              width: selected ? 1.3 : 1,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: selected ? activeColor : AppColors.textDarkSecondary,
+                size: 26,
+              ),
+              const SizedBox(height: DonorSpacing.xs),
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: DonorTextStyles.button.copyWith(
+                  fontSize: 12.5,
+                  color: selected ? activeColor : AppColors.textDarkPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

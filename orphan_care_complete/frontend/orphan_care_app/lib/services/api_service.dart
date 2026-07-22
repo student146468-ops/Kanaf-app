@@ -1,22 +1,17 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// خدمة الـ API - نقطة الاتصال الموحدة بين التطبيق والمنظومة
+import '../utils/auth_navigation.dart';
+
 class ApiService {
   static final ApiService _instance = ApiService._internal();
-  late Dio _dio;
-  
-  // عنوان المنظومة الأساسي (يمكن تغييره حسب البيئة)
-static const String baseUrl1 = 'https://kanafapp.pythonanywhere.com/api';  
-  factory ApiService() {
-    return _instance;
-  }
+  static const String baseUrl1 = 'https://kanafapp.pythonanywhere.com/api';
+
+  late final Dio _dio;
+
+  factory ApiService() => _instance;
 
   ApiService._internal() {
-    _initializeDio();
-  }
-
-  void _initializeDio() {
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl1,
@@ -26,253 +21,248 @@ static const String baseUrl1 = 'https://kanafapp.pythonanywhere.com/api';
       ),
     );
 
-    // إضافة Interceptor للتعامل مع الأخطاء والتوثيق
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          // إضافة التوكن إذا كان موجوداً
           final token = await _getToken();
-          if (token != null) {
+          if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
-          options.headers['Content-Type'] = 'application/json';
-          return handler.next(options);
+          if (options.data is! FormData) {
+            options.headers['Content-Type'] = 'application/json';
+          }
+          handler.next(options);
         },
-        onError: (error, handler) {
-          // معالجة الأخطاء
-          print('❌ خطأ في الاتصال: ${error.message}');
-          return handler.next(error);
+        onError: (error, handler) async {
+          if (error.response?.statusCode == 401 && await refreshAccessToken()) {
+            final retry = await _dio.fetch(error.requestOptions);
+            return handler.resolve(retry);
+          }
+          if (error.response?.statusCode == 401) {
+            await _clearToken();
+          }
+          handler.next(error);
         },
       ),
     );
   }
 
-  // ============ عمليات المصادقة (Authentication) ============
-
-  /// تسجيل دخول المستخدم
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final response = await _dio.post(
         '/auth/login/',
-        data: {'email': email, 'password': password},
+        data: {'email': email, 'username': email, 'password': password},
       );
-      
-      if (response.statusCode == 200) {
-        // حفظ التوكن
-        await _saveToken(response.data['token']);
-        return response.data;
-      }
-      throw Exception('فشل تسجيل الدخول');
+      final responseData = Map<String, dynamic>.from(response.data as Map);
+      await _saveAuthSession(responseData);
+      return responseData;
     } on DioException catch (e) {
-      throw Exception('خطأ في الاتصال: ${e.message}');
+      throw Exception(_errorMessage(e, 'فشل تسجيل الدخول'));
     }
   }
 
-  /// تسجيل مستخدم جديد
   Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
     try {
-      final response = await _dio.post(
-        '/auth/register/',
-        data: userData,
-      );
-      
-      if (response.statusCode == 201) {
-        await _saveToken(response.data['token']);
-        return response.data;
-      }
-      throw Exception('فشل التسجيل');
+      final response = await _dio.post('/auth/register/', data: userData);
+      final responseData = Map<String, dynamic>.from(response.data as Map);
+      await _saveAuthSession(responseData);
+      return responseData;
     } on DioException catch (e) {
-      throw Exception('خطأ في الاتصال: ${e.message}');
+      throw Exception(_errorMessage(e, 'فشل التسجيل'));
     }
   }
 
-  /// تسجيل الخروج
   Future<void> logout() async {
-    try {
-      await _dio.post('/auth/logout/');
-      await _clearToken();
-    } on DioException catch (e) {
-      print('خطأ في تسجيل الخروج: ${e.message}');
-    }
+    await _clearToken();
   }
 
-  // ============ عمليات الأيتام (Orphans) ============
-
-  /// الحصول على قائمة الأيتام
-  Future<List<dynamic>> getOrphans() async {
-    try {
-      final response = await _dio.get('/orphans/');
-      return response.data is List ? response.data : [];
-    } on DioException catch (e) {
-      throw Exception('خطأ في جلب الأيتام: ${e.message}');
-    }
-  }
-
-  /// الحصول على تفاصيل يتيم محدد
-  Future<Map<String, dynamic>> getOrphanDetails(int id) async {
-    try {
-      final response = await _dio.get('/orphans/$id/');
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('خطأ في جلب البيانات: ${e.message}');
-    }
-  }
-
-  /// إضافة يتيم جديد (للمسؤولين فقط)
-  Future<Map<String, dynamic>> addOrphan(Map<String, dynamic> orphanData) async {
-    try {
-      final response = await _dio.post('/orphans/', data: orphanData);
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('خطأ في إضافة اليتيم: ${e.message}');
-    }
-  }
-
-  /// تحديث بيانات يتيم
-  Future<Map<String, dynamic>> updateOrphan(int id, Map<String, dynamic> orphanData) async {
-    try {
-      final response = await _dio.put('/orphans/$id/', data: orphanData);
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('خطأ في تحديث البيانات: ${e.message}');
-    }
-  }
-
-  // ============ عمليات التبرعات (Donations) ============
-
-  /// الحصول على قائمة التبرعات
-  Future<List<dynamic>> getDonations() async {
-    try {
-      final response = await _dio.get('/donations/');
-      return response.data is List ? response.data : [];
-    } on DioException catch (e) {
-      throw Exception('خطأ في جلب التبرعات: ${e.message}');
-    }
-  }
-
-  /// إنشاء تبرع جديد
-  Future<Map<String, dynamic>> createDonation(Map<String, dynamic> donationData) async {
-    try {
-      final response = await _dio.post('/donations/', data: donationData);
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('خطأ في إنشاء التبرع: ${e.message}');
-    }
-  }
-
-  /// الحصول على سجل التبرعات الخاص بي
-  Future<List<dynamic>> getMyDonations() async {
-    try {
-      final response = await _dio.get('/donations/my-donations/');
-      return response.data is List ? response.data : [];
-    } on DioException catch (e) {
-      throw Exception('خطأ في جلب التبرعات: ${e.message}');
-    }
-  }
-
-  // ============ عمليات المتطوعين (Volunteers) ============
-
-  /// الحصول على قائمة المتطوعين
-  Future<List<dynamic>> getVolunteers() async {
-    try {
-      final response = await _dio.get('/volunteers/');
-      return response.data is List ? response.data : [];
-    } on DioException catch (e) {
-      throw Exception('خطأ في جلب المتطوعين: ${e.message}');
-    }
-  }
-
-  /// التقديم للتطوع
-  Future<Map<String, dynamic>> applyAsVolunteer(Map<String, dynamic> volunteerData) async {
-    try {
-      final response = await _dio.post('/volunteers/apply/', data: volunteerData);
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('خطأ في التقديم: ${e.message}');
-    }
-  }
-
-  /// الحصول على فرص التطوع المتاحة
-  Future<List<dynamic>> getVolunteerOpportunities() async {
-    try {
-      final response = await _dio.get('/volunteer-opportunities/');
-      return response.data is List ? response.data : [];
-    } on DioException catch (e) {
-      throw Exception('خطأ في جلب الفرص: ${e.message}');
-    }
-  }
-
-  // ============ عمليات الكفلاء (Sponsors) ============
-
-  /// الحصول على قائمة الكفلاء
-  Future<List<dynamic>> getSponsors() async {
-    try {
-      final response = await _dio.get('/sponsors/');
-      return response.data is List ? response.data : [];
-    } on DioException catch (e) {
-      throw Exception('خطأ في جلب الكفلاء: ${e.message}');
-    }
-  }
-
-  /// إضافة كفيل جديد
-  Future<Map<String, dynamic>> addSponsor(Map<String, dynamic> sponsorData) async {
-    try {
-      final response = await _dio.post('/sponsors/', data: sponsorData);
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('خطأ في إضافة الكفيل: ${e.message}');
-    }
-  }
-
-  // ============ عمليات المخزن (Inventory) ============
-
-  /// الحصول على قائمة المخزن
-  Future<List<dynamic>> getInventory() async {
-    try {
-      final response = await _dio.get('/inventory/');
-      return response.data is List ? response.data : [];
-    } on DioException catch (e) {
-      throw Exception('خطأ في جلب المخزن: ${e.message}');
-    }
-  }
-
-  /// إضافة صنف للمخزن
-  Future<Map<String, dynamic>> addInventoryItem(Map<String, dynamic> itemData) async {
-    try {
-      final response = await _dio.post('/inventory/', data: itemData);
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('خطأ في إضافة الصنف: ${e.message}');
-    }
-  }
-
-  // ============ عمليات الإحصائيات (Statistics) ============
-
-  /// الحصول على إحصائيات لوحة التحكم
-  Future<Map<String, dynamic>> getDashboardStats() async {
-    try {
-      final response = await _dio.get('/stats/dashboard/');
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('خطأ في جلب الإحصائيات: ${e.message}');
-    }
-  }
-
-  /// الحصول على التقارير
-  Future<Map<String, dynamic>> getReports() async {
-    try {
-      final response = await _dio.get('/reports/');
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('خطأ في جلب التقارير: ${e.message}');
-    }
-  }
-
-  // ============ عمليات التخزين المحلي (Local Storage) ============
-
-  Future<void> _saveToken(String token) async {
+  Future<bool> refreshAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
+    final refreshToken = prefs.getString('refresh_token');
+    if (refreshToken == null || refreshToken.isEmpty) return false;
+
+    try {
+      final response =
+          await _dio.post('/auth/refresh/', data: {'refresh': refreshToken});
+      final access = response.data['access'] ?? response.data['access_token'];
+      if (access == null) return false;
+      await _saveToken(access,
+          refreshToken: response.data['refresh'] ?? refreshToken);
+      return true;
+    } on DioException {
+      await _clearToken();
+      return false;
+    }
+  }
+
+  Future<List<dynamic>> getOrphans() => _getList('/orphans/');
+  Future<Map<String, dynamic>> getOrphanDetails(int id) =>
+      _getMap('/orphans/$id/');
+  Future<Map<String, dynamic>> addOrphan(Map<String, dynamic> data) =>
+      _postMap('/orphans/', data);
+  Future<Map<String, dynamic>> updateOrphan(
+          int id, Map<String, dynamic> data) =>
+      _putMap('/orphans/$id/', data);
+
+  Future<List<dynamic>> getDonations() => _getList('/donations/');
+  Future<Map<String, dynamic>> createDonation(Map<String, dynamic> data) =>
+      _postMap('/donations/', data);
+  Future<List<dynamic>> getMyDonations() =>
+      _getList('/donations/my_donations/');
+  Future<Map<String, dynamic>> confirmDonationReceived(int id) =>
+      _postMap('/donations/$id/confirm_received/', const {});
+
+  Future<List<dynamic>> getVolunteers() => _getList('/volunteers/');
+  Future<Map<String, dynamic>> applyAsVolunteer(Map<String, dynamic> data) =>
+      _postMap('/volunteers/apply/', data);
+  Future<List<dynamic>> getVolunteerOpportunities() =>
+      _getList('/volunteer-opportunities/');
+
+  Future<List<dynamic>> getSponsors() => _getList('/sponsors/');
+  Future<Map<String, dynamic>> addSponsor(Map<String, dynamic> data) =>
+      _postMap('/sponsors/', data);
+
+  Future<List<dynamic>> getInventory() => _getList('/inventory/');
+  Future<Map<String, dynamic>> addInventoryItem(Map<String, dynamic> data) =>
+      _postMap('/inventory/', data);
+
+  Future<Map<String, dynamic>> getDashboardStats() =>
+      _getMap('/stats/dashboard/');
+  Future<Map<String, dynamic>> getReports() => _getMap('/reports/');
+
+  Future<List<dynamic>> getNeeds() => _getList('/needs/');
+  Future<Map<String, dynamic>> getNeedDetails(int id) => _getMap('/needs/$id/');
+  Future<Map<String, dynamic>> createNeed(Map<String, dynamic> data) =>
+      _postMap('/needs/', data);
+  Future<Map<String, dynamic>> updateNeed(int id, Map<String, dynamic> data) =>
+      _patchMap('/needs/$id/', data);
+  Future<void> archiveNeed(int id) async => _dio.post('/needs/$id/archive/');
+
+  Future<Map<String, dynamic>> getCareHomeProfile() =>
+      _getMap('/care-home/profile/me/');
+  Future<Map<String, dynamic>> updateCareHomeProfile(
+          Map<String, dynamic> data) =>
+      _patchMap('/care-home/profile/me/', data);
+
+  Future<List<dynamic>> getVisitHours() => _getList('/visit-hours/');
+  Future<Map<String, dynamic>> createVisitHour(Map<String, dynamic> data) =>
+      _postMap('/visit-hours/', data);
+  Future<Map<String, dynamic>> updateVisitHour(
+          int id, Map<String, dynamic> data) =>
+      _patchMap('/visit-hours/$id/', data);
+  Future<void> deleteVisitHour(int id) async =>
+      _dio.delete('/visit-hours/$id/');
+
+  Future<List<dynamic>> getNotifications() => _getList('/notifications/');
+  Future<void> markNotificationRead(int id) async =>
+      _dio.post('/notifications/$id/mark_as_read/');
+  Future<void> markAllNotificationsRead() async =>
+      _dio.post('/notifications/mark_all_as_read/');
+
+  Future<List<dynamic>> getVolunteerRequests() =>
+      _getList('/volunteer-requests/');
+  Future<Map<String, dynamic>> acceptVolunteerRequest(int id) =>
+      _postMap('/volunteer-requests/$id/accept/', const {});
+  Future<Map<String, dynamic>> rejectVolunteerRequest(int id) =>
+      _postMap('/volunteer-requests/$id/reject/', const {});
+  Future<Map<String, dynamic>> completeVolunteerRequest(
+          int id, Map<String, dynamic> data) =>
+      _postMap('/volunteer-requests/$id/complete/', data);
+  Future<Map<String, dynamic>> rateVolunteerRequest(
+          int id, Map<String, dynamic> data) =>
+      _postMap('/volunteer-requests/$id/rate/', data);
+
+  Future<List<dynamic>> _getList(String path) async {
+    try {
+      final response = await _dio.get(path);
+      return _extractList(response.data);
+    } on DioException catch (e) {
+      throw Exception(_errorMessage(e, 'تعذر جلب البيانات'));
+    }
+  }
+
+  Future<Map<String, dynamic>> _getMap(String path) async {
+    try {
+      final response = await _dio.get(path);
+      return Map<String, dynamic>.from(response.data as Map);
+    } on DioException catch (e) {
+      throw Exception(_errorMessage(e, 'تعذر جلب البيانات'));
+    }
+  }
+
+  Future<Map<String, dynamic>> _postMap(
+      String path, Map<String, dynamic> data) async {
+    try {
+      final response = await _dio.post(path, data: data);
+      return Map<String, dynamic>.from(response.data as Map);
+    } on DioException catch (e) {
+      throw Exception(_errorMessage(e, 'تعذر حفظ البيانات'));
+    }
+  }
+
+  Future<Map<String, dynamic>> _putMap(
+      String path, Map<String, dynamic> data) async {
+    try {
+      final response = await _dio.put(path, data: data);
+      return Map<String, dynamic>.from(response.data as Map);
+    } on DioException catch (e) {
+      throw Exception(_errorMessage(e, 'تعذر تحديث البيانات'));
+    }
+  }
+
+  Future<Map<String, dynamic>> _patchMap(
+      String path, Map<String, dynamic> data) async {
+    try {
+      final response = await _dio.patch(path, data: data);
+      return Map<String, dynamic>.from(response.data as Map);
+    } on DioException catch (e) {
+      throw Exception(_errorMessage(e, 'تعذر تحديث البيانات'));
+    }
+  }
+
+  List<dynamic> _extractList(dynamic data) {
+    if (data is List) return data;
+    if (data is Map && data['results'] is List) return data['results'] as List;
+    return [];
+  }
+
+  String _errorMessage(DioException e, String fallback) {
+    final data = e.response?.data;
+    if (data is Map && data.isNotEmpty) return data.toString();
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout) {
+      return 'انتهت مهلة الاتصال';
+    }
+    return e.message ?? fallback;
+  }
+
+  Future<void> _saveToken(dynamic token, {dynamic refreshToken}) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (token != null) {
+      await prefs.setString('auth_token', token.toString());
+    }
+    if (refreshToken != null) {
+      await prefs.setString('refresh_token', refreshToken.toString());
+    }
+  }
+
+  Future<void> _saveAuthSession(Map<String, dynamic> data) async {
+    await _saveToken(
+      data['access'] ?? data['access_token'] ?? data['token'],
+      refreshToken: data['refresh'] ?? data['refresh_token'],
+    );
+
+    final role = AuthNavigation.roleFromAuthResponse(data);
+    if (role != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_role', role);
+    }
+  }
+
+  Future<String?> getSavedRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return AuthNavigation.normalizeRole(prefs.getString('user_role'));
   }
 
   Future<String?> _getToken() async {
@@ -283,11 +273,12 @@ static const String baseUrl1 = 'https://kanafapp.pythonanywhere.com/api';
   Future<void> _clearToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
+    await prefs.remove('refresh_token');
+    await prefs.remove('user_role');
   }
 
-  /// التحقق من حالة المصادقة
   Future<bool> isAuthenticated() async {
     final token = await _getToken();
-    return token != null;
+    return token != null && token.isNotEmpty;
   }
 }

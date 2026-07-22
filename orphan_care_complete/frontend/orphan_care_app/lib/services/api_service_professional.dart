@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 
@@ -6,12 +9,12 @@ import '../models/user_model.dart';
 class ApiService {
   static final ApiService _instance = ApiService._internal();
   late Dio _dio;
-  
+
   // عنوان المنظومة الأساسي (يمكن تغييره حسب البيئة)
-  static const String baseUrl = 'https://kanafapp.pythonanywhere.com/api';  
+  static const String baseUrl = 'https://kanafapp.pythonanywhere.com/api';
   // متغير لتخزين المستخدم الحالي
   UserModel? _currentUser;
-  
+
   factory ApiService() {
     return _instance;
   }
@@ -44,7 +47,7 @@ class ApiService {
         },
         onError: (error, handler) {
           // معالجة الأخطاء
-          print('❌ خطأ في الاتصال: ${error.message}');
+          debugPrint('❌ خطأ في الاتصال: ${error.message}');
           return handler.next(error);
         },
       ),
@@ -60,16 +63,16 @@ class ApiService {
         '/auth/login/',
         data: {'email': email, 'password': password},
       );
-      
+
       if (response.statusCode == 200) {
         // حفظ التوكن والمستخدم
         final token = response.data['token'] ?? response.data['access_token'];
         await _saveToken(token);
-        
+
         // حفظ بيانات المستخدم
         _currentUser = UserModel.fromJson(response.data['user'] ?? {});
         await _saveUser(_currentUser!);
-        
+
         return response.data;
       }
       throw Exception('فشل تسجيل الدخول');
@@ -85,16 +88,16 @@ class ApiService {
         '/auth/register/',
         data: userData,
       );
-      
+
       if (response.statusCode == 201) {
         // حفظ التوكن والمستخدم
         final token = response.data['token'] ?? response.data['access_token'];
         await _saveToken(token);
-        
+
         // حفظ بيانات المستخدم
         _currentUser = UserModel.fromJson(response.data['user'] ?? {});
         await _saveUser(_currentUser!);
-        
+
         return response.data;
       }
       throw Exception('فشل التسجيل');
@@ -111,7 +114,7 @@ class ApiService {
       await _clearUser();
       _currentUser = null;
     } on DioException catch (e) {
-      print('خطأ في تسجيل الخروج: ${e.message}');
+      debugPrint('خطأ في تسجيل الخروج: ${e.message}');
     }
   }
 
@@ -153,7 +156,8 @@ class ApiService {
   }
 
   /// إضافة يتيم جديد (للمسؤولين فقط)
-  Future<Map<String, dynamic>> addOrphan(Map<String, dynamic> orphanData) async {
+  Future<Map<String, dynamic>> addOrphan(
+      Map<String, dynamic> orphanData) async {
     try {
       final response = await _dio.post('/orphans/', data: orphanData);
       return response.data;
@@ -163,7 +167,8 @@ class ApiService {
   }
 
   /// تحديث بيانات يتيم
-  Future<Map<String, dynamic>> updateOrphan(int id, Map<String, dynamic> orphanData) async {
+  Future<Map<String, dynamic>> updateOrphan(
+      int id, Map<String, dynamic> orphanData) async {
     try {
       final response = await _dio.put('/orphans/$id/', data: orphanData);
       return response.data;
@@ -185,7 +190,8 @@ class ApiService {
   }
 
   /// إنشاء تبرع جديد
-  Future<Map<String, dynamic>> createDonation(Map<String, dynamic> donationData) async {
+  Future<Map<String, dynamic>> createDonation(
+      Map<String, dynamic> donationData) async {
     try {
       final response = await _dio.post('/donations/', data: donationData);
       return response.data;
@@ -217,9 +223,11 @@ class ApiService {
   }
 
   /// التقديم للتطوع
-  Future<Map<String, dynamic>> applyAsVolunteer(Map<String, dynamic> volunteerData) async {
+  Future<Map<String, dynamic>> applyAsVolunteer(
+      Map<String, dynamic> volunteerData) async {
     try {
-      final response = await _dio.post('/volunteers/apply/', data: volunteerData);
+      final response =
+          await _dio.post('/volunteers/apply/', data: volunteerData);
       return response.data;
     } on DioException catch (e) {
       throw Exception('خطأ في التقديم: ${e.message}');
@@ -249,7 +257,8 @@ class ApiService {
   }
 
   /// إضافة كفيل جديد
-  Future<Map<String, dynamic>> addSponsor(Map<String, dynamic> sponsorData) async {
+  Future<Map<String, dynamic>> addSponsor(
+      Map<String, dynamic> sponsorData) async {
     try {
       final response = await _dio.post('/sponsors/', data: sponsorData);
       return response.data;
@@ -271,7 +280,8 @@ class ApiService {
   }
 
   /// إضافة صنف للمخزن
-  Future<Map<String, dynamic>> addInventoryItem(Map<String, dynamic> itemData) async {
+  Future<Map<String, dynamic>> addInventoryItem(
+      Map<String, dynamic> itemData) async {
     try {
       final response = await _dio.post('/inventory/', data: itemData);
       return response.data;
@@ -329,9 +339,11 @@ class ApiService {
     final userJson = prefs.getString('current_user');
     if (userJson != null) {
       try {
-        return UserModel.fromJson(Map<String, dynamic>.from(userJson as Map));
+        return UserModel.fromJson(
+          Map<String, dynamic>.from(jsonDecode(userJson) as Map),
+        );
       } catch (e) {
-        print('خطأ في تحميل بيانات المستخدم: $e');
+        debugPrint('خطأ في تحميل بيانات المستخدم: $e');
         return null;
       }
     }

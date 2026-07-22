@@ -110,7 +110,8 @@ class MyApp extends StatelessWidget {
       case '/login':
         return const LoginScreen();
       case '/register':
-        return const RegisterScreen();
+        final role = settings.arguments;
+        return RegisterScreen(selectedRole: role is String ? role : null);
       case '/forgot_password':
         return const ForgotPasswordScreen();
       case '/reset_password':

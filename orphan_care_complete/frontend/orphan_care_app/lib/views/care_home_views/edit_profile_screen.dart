@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'care_home_light_widgets.dart';
 
@@ -12,121 +13,139 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController =
-      TextEditingController(text: 'دار الأمان لرعاية الأيتام');
-  final _locationController = TextEditingController(text: 'غريان - ليبيا');
-  final _phoneController = TextEditingController(text: '+218 91 000 0000');
-  final _summaryController = TextEditingController(
-    text:
-        'تنظيم دعم دور رعاية الأيتام وربط المتبرعين والمتطوعين بالاحتياجات الحقيقية داخل الدار.',
-  );
+  final _controllers = <String, TextEditingController>{
+    'name': TextEditingController(),
+    'email': TextEditingController(),
+    'phone': TextEditingController(),
+    'city': TextEditingController(),
+    'address': TextEditingController(),
+    'description': TextEditingController(),
+    'manager_name': TextEditingController(),
+    'license_number': TextEditingController(),
+    'children_count': TextEditingController(),
+    'visit_hours': TextEditingController(),
+  };
+  bool _filled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider = AppProviderScope.of(context);
+      await provider.fetchCareHomeProfile();
+      if (mounted) _fill(provider.careHomeProfile);
+    });
+  }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _locationController.dispose();
-    _phoneController.dispose();
-    _summaryController.dispose();
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
-  void _saveProfile() {
-    if (!_formKey.currentState!.validate()) return;
+  void _fill(Map<String, dynamic> profile) {
+    if (_filled) return;
+    _filled = true;
+    for (final entry in _controllers.entries) {
+      entry.value.text = profile[entry.key]?.toString() ?? '';
+    }
+    setState(() {});
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'تم حفظ بيانات الملف محليًا وهي جاهزة للربط الحقيقي لاحقًا.',
-          style: TextStyle(fontFamily: 'Tajawal'),
-        ),
-        backgroundColor: Color(0xFF10B981),
-      ),
-    );
-    Navigator.of(context).pop();
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    final provider = AppProviderScope.of(context);
+    final data = <String, dynamic>{
+      for (final entry in _controllers.entries)
+        entry.key: entry.value.text.trim(),
+    };
+    data['children_count'] =
+        int.tryParse(_controllers['children_count']?.text.trim() ?? '0') ?? 0;
+    final success = await provider.updateCareHomeProfile(data);
+    if (!mounted) return;
+    if (success) {
+      Navigator.of(context).pop(true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(provider.errorMessage ?? 'تعذر تحديث الملف'),
+            backgroundColor: AppColors.errorRed),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isWebOrDesktop = size.width > 600;
+    final provider = AppProviderScope.of(context);
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: AppColors.scaffoldBackground,
         body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 430),
-            child: Stack(
-              children: [
-                const Positioned.fill(child: _CareHomeBackground()),
-                SafeArea(
-                  child: Column(
-                    children: [
-                      _HeaderBar(
-                        title: 'تعديل ملف الدار',
-                        onBack: () => Navigator.of(context).pop(),
-                        onSave: _saveProfile,
-                      ),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                          child: Form(
-                            key: _formKey,
-                            child: CareHomeCard(
-                              padding: const EdgeInsets.all(18),
+          child: Container(
+            width: isWebOrDesktop ? 430 : double.infinity,
+            height: double.infinity,
+            color: Colors.white,
+            child: SafeArea(
+              child: Column(
+                children: [
+                  CareHomeTopBar(
+                    title: 'تعديل ملف الدار',
+                    onBack: () => Navigator.of(context).pop(),
+                    includeSafeArea: false,
+                  ),
+                  Expanded(
+                    child: provider.isLoading && !_filled
+                        ? const Center(child: CircularProgressIndicator())
+                        : SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: CareHomeSpacing.lg,
+                                vertical: CareHomeSpacing.md),
+                            child: Form(
+                              key: _formKey,
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  const Text(
-                                    'البيانات الأساسية',
-                                    style: TextStyle(
-                                      fontFamily: 'Cairo',
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w900,
-                                      color: AppColors.textDarkPrimary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  _InputField(
-                                    controller: _nameController,
-                                    label: 'اسم دار الرعاية',
-                                    icon: Icons.home_work_outlined,
-                                    validator: _required,
-                                  ),
-                                  const SizedBox(height: 14),
-                                  _InputField(
-                                    controller: _locationController,
-                                    label: 'الموقع',
-                                    icon: Icons.location_on_outlined,
-                                    validator: _required,
-                                  ),
-                                  const SizedBox(height: 14),
-                                  _InputField(
-                                    controller: _phoneController,
-                                    label: 'رقم التواصل',
-                                    icon: Icons.phone_outlined,
-                                    keyboardType: TextInputType.phone,
-                                    validator: _required,
-                                  ),
-                                  const SizedBox(height: 14),
-                                  _InputField(
-                                    controller: _summaryController,
-                                    label: 'نبذة مختصرة',
-                                    icon: Icons.notes_outlined,
-                                    maxLines: 5,
-                                    validator: _required,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  _SaveButton(onTap: _saveProfile),
+                                  _field('name', 'اسم الدار',
+                                      Icons.home_work_rounded,
+                                      requiredField: true),
+                                  _field('email', 'البريد الإلكتروني',
+                                      Icons.email_outlined),
+                                  _field('phone', 'رقم الهاتف',
+                                      Icons.phone_outlined),
+                                  _field('city', 'المدينة',
+                                      Icons.location_city_outlined),
+                                  _field('address', 'العنوان',
+                                      Icons.place_outlined,
+                                      maxLines: 2),
+                                  _field('description', 'الوصف',
+                                      Icons.description_outlined,
+                                      maxLines: 4),
+                                  _field('manager_name', 'اسم المسؤول',
+                                      Icons.person_outline_rounded),
+                                  _field('license_number', 'رقم الترخيص',
+                                      Icons.badge_outlined),
+                                  _field('children_count', 'عدد الأطفال',
+                                      Icons.groups_outlined,
+                                      keyboardType: TextInputType.number),
+                                  _field('visit_hours', 'ساعات الزيارة',
+                                      Icons.schedule_outlined),
+                                  const SizedBox(height: CareHomeSpacing.lg),
+                                  CareHomePrimaryButton(
+                                      label: 'حفظ التعديلات',
+                                      loading: provider.isSaving,
+                                      onPressed: _save),
                                 ],
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -134,193 +153,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  String? _required(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'هذا الحقل مطلوب';
-    }
-    return null;
-  }
-}
-
-class _CareHomeBackground extends StatelessWidget {
-  const _CareHomeBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    return const DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topRight,
-          end: Alignment.bottomLeft,
-          colors: [Colors.white, AppColors.scaffoldBackground],
-        ),
-      ),
-    );
-  }
-}
-
-class _HeaderBar extends StatelessWidget {
-  final String title;
-  final VoidCallback onBack;
-  final VoidCallback onSave;
-
-  const _HeaderBar({
-    required this.title,
-    required this.onBack,
-    required this.onSave,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _field(String key, String hint, IconData icon,
+      {int maxLines = 1,
+      bool requiredField = false,
+      TextInputType? keyboardType}) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: Row(
-        children: [
-          _RoundIconButton(
-              icon: Icons.arrow_back_ios_new_rounded, onTap: onBack),
-          Expanded(
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                color: AppColors.textDarkPrimary,
-              ),
-            ),
-          ),
-          _RoundIconButton(icon: Icons.check_rounded, onTap: onSave),
-        ],
-      ),
-    );
-  }
-}
-
-class _RoundIconButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _RoundIconButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(22),
-      child: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.innerBorder),
-        ),
-        child: Icon(icon, color: AppColors.textDarkPrimary, size: 19),
-      ),
-    );
-  }
-}
-
-class _InputField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-  final IconData icon;
-  final TextInputType? keyboardType;
-  final int maxLines;
-  final String? Function(String?) validator;
-
-  const _InputField({
-    required this.controller,
-    required this.label,
-    required this.icon,
-    required this.validator,
-    this.keyboardType,
-    this.maxLines = 1,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      validator: validator,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      style: const TextStyle(
-        fontFamily: 'Tajawal',
-        color: AppColors.textDarkPrimary,
-        fontSize: 14,
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.brandOrange, size: 20),
-        prefixIconConstraints: const BoxConstraints(
-          minWidth: 48,
-          minHeight: 48,
-        ),
-        labelStyle: TextStyle(
-          fontFamily: 'Tajawal',
-          color: AppColors.textDarkSecondary,
-        ),
-        errorStyle: const TextStyle(fontFamily: 'Tajawal'),
-        filled: true,
-        fillColor: AppColors.surfaceLight,
-        border: _border(AppColors.innerBorder),
-        enabledBorder: _border(AppColors.innerBorder),
-        focusedBorder: _border(AppColors.brandOrange.withOpacity(0.85)),
-        errorBorder: _border(AppColors.errorRed.withOpacity(0.7)),
-        focusedErrorBorder: _border(AppColors.errorRed),
-      ),
-    );
-  }
-
-  OutlineInputBorder _border(Color color) {
-    return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: color),
-    );
-  }
-}
-
-class _SaveButton extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _SaveButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        height: 54,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: AppColors.orangeGradient),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.brandOrange.withOpacity(0.18),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.save_outlined, color: Colors.white, size: 20),
-            SizedBox(width: 8),
-            Text(
-              'حفظ التعديلات',
-              style: TextStyle(
-                fontFamily: 'Cairo',
-                color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
-        ),
+      padding: const EdgeInsets.only(bottom: CareHomeSpacing.md),
+      child: CareHomeInputField(
+        controller: _controllers[key],
+        label: '',
+        hint: hint,
+        icon: icon,
+        maxLines: maxLines,
+        keyboardType: keyboardType,
+        validator: (value) =>
+            requiredField && (value == null || value.trim().isEmpty)
+                ? 'هذا الحقل مطلوب'
+                : null,
       ),
     );
   }

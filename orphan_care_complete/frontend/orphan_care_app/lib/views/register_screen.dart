@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/auth_navigation.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  final String? selectedRole;
+
+  const RegisterScreen({super.key, this.selectedRole});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final ApiService _apiService = ApiService();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
@@ -52,7 +57,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _handleRegister() {
+  String? _selectedRoleFromRoute() {
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+    final routeRole = arguments is String ? arguments : null;
+    return AuthNavigation.normalizeRole(widget.selectedRole ?? routeRole);
+  }
+
+  Future<void> _handleRegister() async {
     if (_nameController.text.isEmpty ||
         _phoneController.text.isEmpty ||
         _emailController.text.isEmpty ||
@@ -70,23 +81,70 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'كلمة المرور وتأكيدها غير متطابقين',
+            style: TextStyle(fontFamily: 'Cairo'),
+          ),
+          backgroundColor: AppColors.errorRed,
+        ),
+      );
+      return;
+    }
+
+    final selectedRole = _selectedRoleFromRoute();
+    if (selectedRole == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'الرجاء اختيار نوع الحساب قبل إنشاء الحساب',
+            style: TextStyle(fontFamily: 'Cairo'),
+          ),
+          backgroundColor: AppColors.brandOrange,
+        ),
+      );
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/role_selection',
+        (route) => false,
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'تمت معالجة البيانات بنجاح وتأكيد الحساب',
-              style: TextStyle(fontFamily: 'Cairo'),
-            ),
-            backgroundColor: Colors.green,
+    try {
+      final fullName = _nameController.text.trim();
+      final response = await _apiService.register({
+        'username': _emailController.text.trim(),
+        'email': _emailController.text.trim(),
+        'password': _passwordController.text,
+        'password_confirm': _confirmPasswordController.text,
+        'first_name': fullName,
+        'phone_number': _phoneController.text.trim(),
+        'role': selectedRole,
+      });
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      AuthNavigation.navigateByRole(
+        context,
+        AuthNavigation.roleFromAuthResponse(response),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error.toString(),
+            style: const TextStyle(fontFamily: 'Cairo'),
           ),
-        );
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
-    });
+          backgroundColor: AppColors.errorRed,
+        ),
+      );
+    }
   }
 
   @override
@@ -253,7 +311,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          const _LoginFooter(),
+                          _LoginFooter(selectedRole: _selectedRoleFromRoute()),
                         ],
                       ),
                     ),
@@ -348,7 +406,9 @@ class _RegisterInputField extends StatelessWidget {
 }
 
 class _LoginFooter extends StatelessWidget {
-  const _LoginFooter();
+  final String? selectedRole;
+
+  const _LoginFooter({this.selectedRole});
 
   @override
   Widget build(BuildContext context) {
@@ -369,7 +429,10 @@ class _LoginFooter extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (ctx) => const LoginScreen()),
+              MaterialPageRoute(
+                builder: (ctx) => const LoginScreen(),
+                settings: RouteSettings(arguments: selectedRole),
+              ),
             );
           },
           style: TextButton.styleFrom(

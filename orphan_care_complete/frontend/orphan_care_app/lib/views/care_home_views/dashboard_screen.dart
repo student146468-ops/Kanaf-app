@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'care_home_light_widgets.dart';
 
-/// [CareHomeDashboardScreen] - ط§ظ„ظˆط§ط¬ظ‡ط© ط±ظ‚ظ… 27: ظ„ظˆط­ط© ط§ظ„طھط­ظƒظ… ط§ظ„ط±ط¦ظٹط³ظٹط© ظ„ط¯ط§ط± ط§ظ„ط±ط¹ط§ظٹط© ظ„ط¹ط§ظ… 2026.
-/// ظ…طµظ…ظ…ط© ط¨ظˆط§ط¬ظ‡ط© ظ…ظˆط¨ط§ظٹظ„ ط¨ظٹط¶ط§ط، ظˆظ†ط¸ظٹظپط© ظ„طھظ†ط¸ظٹظ… ط¯ط¹ظ… ط¯ط§ط± ط§ظ„ط±ط¹ط§ظٹط© ط¨ظˆط¶ظˆط­.
 class CareHomeDashboardScreen extends StatefulWidget {
   const CareHomeDashboardScreen({super.key});
 
@@ -13,466 +12,1029 @@ class CareHomeDashboardScreen extends StatefulWidget {
       _CareHomeDashboardScreenState();
 }
 
+enum _DashboardMenuAction { volunteers, visitHours, reports, rating, profile }
+
 class _CareHomeDashboardScreenState extends State<CareHomeDashboardScreen> {
-  // TODO: Replace fallback dashboard numbers with live AppProvider/backend data.
-  final int _activeNeedsCount = 14;
-  final int _newVolunteersCount = 8;
-  final String _totalDonations = "4,250 د.ل";
+  static const Color _primaryOrange = Color(0xFFFF8C42);
+  static const Color _background = Colors.white;
+  static const double _radius = 22;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppProviderScope.of(context).fetchDashboardStats();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isWebOrDesktop = size.width > 600;
-    final containerWidth = isWebOrDesktop ? 430.0 : double.infinity;
+    final provider = AppProviderScope.of(context);
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
+        backgroundColor: _background,
         body: Center(
-          child: Container(
-            width: containerWidth,
+          child: SizedBox(
+            width: isWebOrDesktop ? 430 : double.infinity,
             height: double.infinity,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: AppColors.scaffoldBackground,
-              boxShadow: isWebOrDesktop
-                  ? [
-                      BoxShadow(
-                          color: AppColors.innerShadow,
-                          blurRadius: 24,
-                          spreadRadius: 0)
-                    ]
-                  : [],
-            ),
-            child: Stack(
-              children: [
-                // 1ï¸ڈâƒ£ ط®ظ„ظپظٹط© ظ‡ط§ط¯ط¦ط© ظ„طھط·ط¨ظٹظ‚ ظƒظژظ†ظژظپظ’
-                Positioned.fill(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                        colors: [
-                          Colors.white,
-                          AppColors.scaffoldBackground,
-                          AppColors.scaffoldBackground,
-                        ],
-                        stops: [0.0, 0.52, 1.0],
-                      ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  CareHomeAppBar(
+                    title: 'دار الرعاية',
+                    showBackButton: false,
+                    leading: _CareHomeLogoButton(
+                      onTap: () =>
+                          Navigator.of(context).pushNamed('/care_home_profile'),
                     ),
-                  ),
-                ),
-
-                // 2ï¸ڈâƒ£ ط؛ط·ط§ط، ط­ظ…ط§ظٹط© ط§ظ„ظ†طµ ظˆط§ظ„طھط¹طھظٹظ… ط§ظ„ظ…طھط¯ط±ط¬ ط§ظ„ط§ط­طھط±ط§ظپظٹ ظ„ط±ط§ط­ط© ط§ظ„ط¹ظٹظ†
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.white,
-                          Colors.white,
-                          Colors.white,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // 3ï¸ڈâƒ£ ط§ظ„ظ…ط­طھظˆظ‰ ط§ظ„ط¨ط±ظ…ط¬ظٹ ظ…ظ‚ط³ظ… ظˆظ…ظˆط²ط¹ ظ‡ظ†ط¯ط³ظٹط§ظ‹ ط¨ط¯ظˆظ† طھط´طھظٹطھ
-                SafeArea(
-                  child: Column(
-                    children: [
-                      _buildHeader(),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 10.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildWelcomeSection(),
-                              const SizedBox(height: 24),
-                              _buildStatisticsGrid(),
-                              const SizedBox(height: 28),
-                              _buildSectionTitle('إجراءات سريعة'),
-                              const SizedBox(height: 14),
-                              _buildQuickActionsGrid(),
-                              const SizedBox(height: 28),
-                              _buildSectionTitle('آخر التحديثات'),
-                              const SizedBox(height: 14),
-                              _buildRecentActivitiesList(),
-                              const SizedBox(height: 20),
-                            ],
+                    actions: [
+                      _menu(),
+                      const SizedBox(width: 10),
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          CareHomeTopBarActionButton(
+                            icon: Icons.notifications_none_rounded,
+                            tooltip: 'الإشعارات',
+                            onTap: () => Navigator.of(context)
+                                .pushNamed('/care_home_notifications'),
                           ),
-                        ),
+                          if (_hasNewNotifications(provider.dashboardStats))
+                            PositionedDirectional(
+                              top: 5,
+                              end: 6,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: _CareHomeDashboardScreenState
+                                      ._primaryOrange,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ],
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: RefreshIndicator(
+                      color: _primaryOrange,
+                      onRefresh: provider.fetchDashboardStats,
+                      child: provider.isLoading
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                color: _primaryOrange,
+                                strokeWidth: 2.6,
+                              ),
+                            )
+                          : TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0, end: 1),
+                              duration: const Duration(milliseconds: 360),
+                              curve: Curves.easeOutCubic,
+                              builder: (context, value, child) {
+                                return Opacity(
+                                  opacity: value,
+                                  child: Transform.translate(
+                                    offset: Offset(0, 12 * (1 - value)),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: SingleChildScrollView(
+                                physics: const AlwaysScrollableScrollPhysics(
+                                  parent: BouncingScrollPhysics(),
+                                ),
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  10,
+                                  20,
+                                  22,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Hero(
+                                      tag: 'care-home-dashboard-banner',
+                                      child: _WelcomeBanner(),
+                                    ),
+                                    const SizedBox(height: 18),
+                                    _ImportantInfoCard(
+                                      stats: provider.dashboardStats,
+                                      onNeeds: () => Navigator.of(context)
+                                          .pushNamed('/care_home_needs_list'),
+                                      onDonations: () =>
+                                          Navigator.of(context).pushNamed(
+                                        '/care_home_incoming_donations',
+                                      ),
+                                      onVolunteers: () =>
+                                          Navigator.of(context).pushNamed(
+                                        '/care_home_manage_volunteers',
+                                      ),
+                                    ),
+                                    const SizedBox(height: 22),
+                                    const _SectionTitle('إجراءات سريعة'),
+                                    const SizedBox(height: 12),
+                                    _QuickActionsGrid(
+                                      actions: [
+                                        _QuickActionData(
+                                          label: 'إضافة احتياج',
+                                          icon:
+                                              Icons.add_circle_outline_rounded,
+                                          onTap: () =>
+                                              Navigator.of(context).pushNamed(
+                                            '/care_home_add_need',
+                                          ),
+                                        ),
+                                        _QuickActionData(
+                                          label: 'الاحتياجات',
+                                          icon: Icons.inventory_2_outlined,
+                                          onTap: () =>
+                                              Navigator.of(context).pushNamed(
+                                            '/care_home_needs_list',
+                                          ),
+                                        ),
+                                        _QuickActionData(
+                                          label: 'الطلبات',
+                                          icon: Icons.assignment_outlined,
+                                          onTap: () =>
+                                              Navigator.of(context).pushNamed(
+                                            '/care_home_incoming_donations',
+                                          ),
+                                        ),
+                                        _QuickActionData(
+                                          label: 'المتطوعون',
+                                          icon: Icons.groups_2_outlined,
+                                          onTap: () =>
+                                              Navigator.of(context).pushNamed(
+                                            '/care_home_manage_volunteers',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 22),
+                                    const _SectionTitle('آخر التحديثات'),
+                                    const SizedBox(height: 12),
+                                    _UpdatesSection(
+                                      stats: provider.dashboardStats,
+                                      onViewAll: () =>
+                                          Navigator.of(context).pushNamed(
+                                        '/care_home_notifications',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+        ),
+        bottomNavigationBar: CareHomeBottomNavigation(
+          currentIndex: 0,
+          items: const [
+            CareHomeBottomNavigationItem(
+              icon: Icons.dashboard_outlined,
+              selectedIcon: Icons.dashboard_rounded,
+              label: 'الرئيسية',
+            ),
+            CareHomeBottomNavigationItem(
+              icon: Icons.inventory_2_outlined,
+              selectedIcon: Icons.inventory_2_rounded,
+              label: 'الاحتياجات',
+            ),
+            CareHomeBottomNavigationItem(
+              icon: Icons.assignment_outlined,
+              selectedIcon: Icons.assignment_rounded,
+              label: 'التبرعات',
+            ),
+            CareHomeBottomNavigationItem(
+              icon: Icons.groups_2_outlined,
+              selectedIcon: Icons.groups_2_rounded,
+              label: 'المتطوعون',
+            ),
+            CareHomeBottomNavigationItem(
+              icon: Icons.person_outline_rounded,
+              selectedIcon: Icons.person_rounded,
+              label: 'الملف',
+            ),
+          ],
+          onTap: (index) {
+            if (index == 1) {
+              Navigator.of(context).pushNamed('/care_home_needs_list');
+            } else if (index == 2) {
+              Navigator.of(context).pushNamed('/care_home_incoming_donations');
+            } else if (index == 3) {
+              Navigator.of(context).pushNamed('/care_home_manage_volunteers');
+            } else if (index == 4) {
+              Navigator.of(context).pushNamed('/care_home_profile');
+            }
+          },
         ),
       ),
     );
   }
 
-  /// ظ‹ع؛â€؛آ أ¯آ¸عˆ ط§ظ„ط¬ط²ط، 1: ط§ظ„طھط±ظˆظٹط³ط© ط§ظ„ط¹ظ„ظˆظٹط© ط§ظ„ظˆط§ط¶ط­ط© ط§ظ„ظ…ط±طھط¨ط·ط© ط¨ط§ظ„ط¥ط´ط¹ط§ط±ط§طھ ظˆط§ظ„ظ…ظ„ظپ ط§ظ„ط´ط®طµظٹ
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () =>
-                    Navigator.of(context).pushNamed('/care_home_profile'),
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                        color: AppColors.brandOrange.withOpacity(0.6),
-                        width: 1.5),
-                    color: AppColors.brandOrange.withOpacity(0.12),
-                  ),
-                  child: const Icon(
-                    Icons.home_work_rounded,
-                    color: AppColors.brandOrange,
-                    size: 24,
-                  ),
+  bool _hasNewNotifications(Map<String, dynamic> stats) {
+    final notifications = (stats['latest_notifications'] as List?) ?? const [];
+    return notifications.isNotEmpty;
+  }
+
+  Widget _menu() {
+    return PopupMenuButton<_DashboardMenuAction>(
+      tooltip: 'القائمة',
+      color: Colors.white,
+      surfaceTintColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      position: PopupMenuPosition.under,
+      onSelected: (action) {
+        switch (action) {
+          case _DashboardMenuAction.volunteers:
+            Navigator.of(context).pushNamed('/care_home_manage_volunteers');
+            break;
+          case _DashboardMenuAction.visitHours:
+            Navigator.of(context).pushNamed('/care_home_visit_hours');
+            break;
+          case _DashboardMenuAction.reports:
+            Navigator.of(context).pushNamed('/care_home_reports');
+            break;
+          case _DashboardMenuAction.rating:
+            Navigator.of(context).pushNamed('/care_home_rate_volunteers');
+            break;
+          case _DashboardMenuAction.profile:
+            Navigator.of(context).pushNamed('/care_home_profile');
+            break;
+        }
+      },
+      itemBuilder: (context) => const [
+        PopupMenuItem(
+          value: _DashboardMenuAction.volunteers,
+          child: Text('المتطوعون'),
+        ),
+        PopupMenuItem(
+          value: _DashboardMenuAction.visitHours,
+          child: Text('مواعيد الزيارة'),
+        ),
+        PopupMenuItem(
+          value: _DashboardMenuAction.reports,
+          child: Text('التقارير'),
+        ),
+        PopupMenuItem(
+          value: _DashboardMenuAction.rating,
+          child: Text('تقييم الأداء'),
+        ),
+        PopupMenuItem(
+          value: _DashboardMenuAction.profile,
+          child: Text('ملف الدار'),
+        ),
+      ],
+      child: const _CircleIconButton(
+        icon: Icons.more_horiz_rounded,
+      ),
+    );
+  }
+}
+
+class _CircleIconButton extends StatelessWidget {
+  const _CircleIconButton({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: 44,
+          height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.innerBorder.withOpacity(0.8)),
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.textDarkPrimary,
+            size: 21,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CareHomeLogoButton extends StatelessWidget {
+  const _CareHomeLogoButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: 44,
+          height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color:
+                _CareHomeDashboardScreenState._primaryOrange.withOpacity(0.11),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.home_work_rounded,
+            color: _CareHomeDashboardScreenState._primaryOrange,
+            size: 23,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WelcomeBanner extends StatelessWidget {
+  const _WelcomeBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return _SoftCard(
+      padding: const EdgeInsets.all(12),
+      child: SizedBox(
+        height: 170,
+        child: Row(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(8, 10, 12, 10),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'مرحباً بك',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: _DashboardText.title.copyWith(fontSize: 21),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'إدارة احتياجات الدار ومتابعة التبرعات والمتطوعين بسهولة.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: _DashboardText.body.copyWith(height: 1.55),
+                    ),
+                    const SizedBox(height: 7),
+                    Text(
+                      'اطلع على آخر الأنشطة والإحصائيات في مكان واحد.',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: _DashboardText.muted.copyWith(fontSize: 12),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+            const SizedBox(width: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Stack(
                 children: [
-                  const Text(
-                    'دار الأمان لرعاية الأيتام',
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textDarkPrimary,
-                    ),
+                  Image.asset(
+                    'assets/images/d.png',
+                    width: 148,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
                   ),
-                  Text(
-                    'فرع غريان الرئيسي',
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 12,
-                      color: AppColors.textDarkSecondary,
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Colors.white.withOpacity(0.16),
+                            Colors.white.withOpacity(0),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-          // ط²ط± ط§ظ„ط¥ط´ط¹ط§ط±ط§طھ ط§ظ„ظ…ط±ط¨ظˆط· ط¨ط§ظ„ظˆط§ط¬ظ‡ط© ط±ظ‚ظ… 37 طھظ„ظ‚ط§ط¦ظٹط§ظ‹
-          GestureDetector(
-            onTap: () =>
-                Navigator.of(context).pushNamed('/care_home_notifications'),
-            child: Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.innerBorder, width: 1),
-              ),
-              child: const Icon(
-                Icons.notifications_none_rounded,
-                color: AppColors.textDarkPrimary,
-                size: 22,
-              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ImportantInfoCard extends StatelessWidget {
+  const _ImportantInfoCard({
+    required this.stats,
+    required this.onNeeds,
+    required this.onDonations,
+    required this.onVolunteers,
+  });
+
+  final Map<String, dynamic> stats;
+  final VoidCallback onNeeds;
+  final VoidCallback onDonations;
+  final VoidCallback onVolunteers;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SoftCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SectionTitle('أهم المعلومات'),
+          const SizedBox(height: 15),
+          Row(
+            children: [
+              Expanded(
+                child: _MetricItem(
+                  label: 'الاحتياجات النشطة',
+                  value: '${stats['active_needs'] ?? 0}',
+                  icon: Icons.inventory_2_outlined,
+                  onTap: onNeeds,
+                ),
+              ),
+              const _VerticalDivider(),
+              Expanded(
+                child: _MetricItem(
+                  label: 'التبرعات الواردة',
+                  value: '${stats['incoming_donations'] ?? 0}',
+                  icon: Icons.assignment_outlined,
+                  onTap: onDonations,
+                ),
+              ),
+              const _VerticalDivider(),
+              Expanded(
+                child: _MetricItem(
+                  label: 'طلبات التطوع',
+                  value: '${stats['pending_volunteer_requests'] ?? 0}',
+                  icon: Icons.groups_2_outlined,
+                  onTap: onVolunteers,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+}
 
-  /// ظ‹ع؛â€؛آ أ¯آ¸عˆ ط§ظ„ط¬ط²ط، 2: ط§ظ„ظ…ظ‚ط·ط¹ ط§ظ„طھط±ط­ظٹط¨ظٹ ط§ظ„طھظپط§ط¹ظ„ظٹ
-  Widget _buildWelcomeSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'مرحبًا بك مجددًا',
-          style: TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: 16,
-            color: AppColors.textDarkSecondary,
-          ),
-        ),
-        const SizedBox(height: 2),
-        const Text(
-          'نظّم احتياجات الدار بوضوح',
-          style: TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            color: AppColors.textDarkPrimary,
-          ),
-        ),
-      ],
-    );
-  }
+class _MetricItem extends StatelessWidget {
+  const _MetricItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.onTap,
+  });
 
-  /// ظ‹ع؛â€؛آ أ¯آ¸عˆ ط§ظ„ط¬ط²ط، 3: ط´ط¨ظƒط© ط§ظ„ط¥ط­طµط§ط¦ظٹط§طھ ط§ظ„ظˆط§ط¶ط­ط© ط¨ظ„ظ…ط³ط© ط£ظ„ظˆط§ظ† ط¹طµط±ظٹط© ط·ط§ظپظٹط© ظˆظ…ط±ظٹط­ط©
-  Widget _buildStatisticsGrid() {
-    final stats = AppProviderScope.of(context).dashboardStats;
-    final activeNeeds =
-        stats['active_needs']?.toString() ?? '$_activeNeedsCount';
-    final totalDonations =
-        stats['monthly_support']?.toString() ?? _totalDonations;
+  final String label;
+  final String value;
+  final IconData icon;
+  final VoidCallback onTap;
 
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            'احتياجات نشطة',
-            activeNeeds,
-            Icons.analytics_outlined,
-            AppColors.brandOrange,
-            () => Navigator.of(context).pushNamed('/care_home_needs_list'),
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: _buildStatCard(
-            'تبرعات واردة',
-            totalDonations,
-            Icons.account_balance_wallet_outlined,
-            const Color(
-                0xFF10B981), // طھظ… ط§ط³طھط¨ط¯ط§ظ„ ط§ظ„ط³ظ…ط© ط؛ظٹط± ط§ظ„ظ…ط¹ط±ظپط© ط¨ط§ظ„ظƒظˆط¯ ط§ظ„ط³ط¯ط§ط³ظٹ ط§ظ„طµط§ظپظٹ ظ„ظ„ظˆظ† ط§ظ„ط²ظ…ط±ط¯ظٹ
-            () => Navigator.of(context)
-                .pushNamed('/care_home_incoming_donations'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(String title, String value, IconData icon,
-      Color accentColor, VoidCallback onTap) {
-    return GestureDetector(
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
       onTap: onTap,
-      child: CareHomeCard(
-        padding: const EdgeInsets.all(16.0),
+      borderRadius: BorderRadius.circular(18),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Icon(icon, color: accentColor, size: 24),
-                Icon(Icons.arrow_outward_rounded,
-                    color: AppColors.textDarkMuted.withOpacity(0.45), size: 16),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              value,
-              style: const TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: AppColors.textDarkPrimary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              style: TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textDarkSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// ظ‹ع؛â€؛آ أ¯آ¸عˆ ط§ظ„ط¬ط²ط، 4: ط´ط¨ظƒط© ط£ط²ط±ط§ط± ط§ظ„ط¹ظ…ظ„ظٹط§طھ ط§ظ„ط³ط±ظٹط¹ط© ط§ظ„ظ…ط±ط¨ظˆط·ط© ظ‡ظ†ط¯ط³ظٹط§ظ‹ ط¨ط¨ظ‚ظٹط© ط§ظ„ظ…ظ„ظپط§طھ ط§ظ„ظ€ 13
-  Widget _buildQuickActionsGrid() {
-    final width = MediaQuery.of(context).size.width;
-    final crossAxisCount = width < 380 ? 2 : 3;
-
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: crossAxisCount,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: crossAxisCount == 2 ? 1.45 : 0.95,
-      children: [
-        _buildActionItem(
-          'إضافة احتياج',
-          Icons.add_circle_outline_rounded,
-          AppColors.brandOrange,
-          () => Navigator.of(context).pushNamed('/care_home_add_need'),
-        ),
-        _buildActionItem(
-          'المتطوعون',
-          Icons.groups_2_outlined,
-          Colors.blueAccent,
-          () => Navigator.of(context).pushNamed('/care_home_manage_volunteers'),
-        ),
-        _buildActionItem(
-          'مواعيد الزيارة',
-          Icons.event_available_outlined,
-          const Color(0xFF8B5CF6),
-          () => Navigator.of(context).pushNamed('/care_home_visit_hours'),
-        ),
-        _buildActionItem(
-          'التقارير',
-          Icons.query_stats_outlined,
-          const Color(0xFF0F766E),
-          () => Navigator.of(context).pushNamed('/care_home_reports'),
-        ),
-        _buildActionItem(
-          'تقييم الأداء',
-          Icons.star_half_rounded,
-          Colors.amber,
-          () => Navigator.of(context).pushNamed('/care_home_rate_volunteers'),
-        ),
-        _buildActionItem(
-          'ملف الدار',
-          Icons.home_work_outlined,
-          const Color(0xFFDB2777),
-          () => Navigator.of(context).pushNamed('/care_home_profile'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionItem(
-      String label, IconData icon, Color iconColor, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: CareHomeCard(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              width: 42,
+              height: 42,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.15),
+                color: _CareHomeDashboardScreenState._primaryOrange
+                    .withOpacity(0.10),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: iconColor, size: 22),
+              child: Icon(
+                icon,
+                color: _CareHomeDashboardScreenState._primaryOrange,
+                size: 21,
+              ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
+            TweenAnimationBuilder<double>(
+              tween: Tween(
+                begin: 0,
+                end: double.tryParse(value) ?? 0,
+              ),
+              duration: const Duration(milliseconds: 420),
+              curve: Curves.easeOutCubic,
+              builder: (context, animatedValue, _) {
+                return Text(
+                  animatedValue.round().toString(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: _DashboardText.number,
+                );
+              },
+            ),
+            const SizedBox(height: 3),
             Text(
               label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontFamily: 'Cairo',
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDarkPrimary,
-              ),
+              style: _DashboardText.muted.copyWith(fontSize: 11.3),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  /// ظ‹ع؛â€؛آ أ¯آ¸عˆ ط§ظ„ط¬ط²ط، 5: ط§ظ„طھط­ط¯ظٹط«ط§طھ ظˆط§ظ„ظ†ط´ط§ط·ط§طھ ط§ظ„ط£ط®ظٹط±ط© ط¯ط§ط®ظ„ ط§ظ„ط¯ط§ط±
-  Widget _buildRecentActivitiesList() {
-    final activities = [
-      {
-        'title': 'تمت كفالة احتياج كسوة العيد',
-        'time': 'منذ 10 دقائق',
-        'type': 'donation'
-      },
-      {
-        'title': 'طلب تطوع جديد بانتظار المراجعة',
-        'time': 'منذ ساعة',
-        'type': 'volunteer'
-      },
-      // ط¯ظ…ط¬ ط§ظ„ظ…طھط؛ظٹط± ط§ظ„ط°ظƒظٹ ظ‡ظ†ط§ ظ„ط¥ظ†ظ‡ط§ط، طھط­ط°ظٹط± ط§ظ„ظƒظˆظ…ط¨ط§ظٹظ„ط± ط§ظ„ط£طµظپط± طھظ…ط§ظ…ط§ظ‹
-      {
-        'title': 'يوجد حاليًا $_newVolunteersCount طلبات تطوع تحتاج قرارًا',
-        'time': 'منذ ساعتين',
-        'type': 'system'
-      },
-    ];
+class _VerticalDivider extends StatelessWidget {
+  const _VerticalDivider();
 
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: activities.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        final activity = activities[index];
-        IconData leadingIcon = Icons.info_outline_rounded;
-        Color iconColor = Colors.grey;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 72,
+      margin: const EdgeInsets.symmetric(horizontal: 6),
+      color: AppColors.innerBorder.withOpacity(0.72),
+    );
+  }
+}
 
-        if (activity['type'] == 'donation') {
-          leadingIcon = Icons.favorite_rounded;
-          iconColor = AppColors.brandOrange;
-        } else if (activity['type'] == 'volunteer') {
-          leadingIcon = Icons.person_add_alt_1_rounded;
-          iconColor = Colors.blueAccent;
-        }
+class _QuickActionsGrid extends StatelessWidget {
+  const _QuickActionsGrid({required this.actions});
 
-        return CareHomeCard(
-          padding: const EdgeInsets.all(14.0),
-          child: Row(
-            children: [
-              Icon(leadingIcon, color: iconColor, size: 20),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  activity['title']!,
-                  style: const TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textDarkPrimary,
-                  ),
-                ),
-              ),
-              Text(
-                activity['time']!,
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize: 11,
-                  color: AppColors.textDarkSecondary,
-                ),
-              ),
-            ],
-          ),
+  final List<_QuickActionData> actions;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const spacing = 12.0;
+        final itemWidth = (constraints.maxWidth - spacing) / 2;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: actions.map((action) {
+            return SizedBox(
+              width: itemWidth,
+              child: _QuickActionCard(action: action),
+            );
+          }).toList(),
         );
       },
     );
   }
+}
 
-  /// ط¹ظ†ظˆط§ظ† ط¬ط§ظ†ط¨ظٹ ظ…ظ†ط³ظ‚ ظˆظ…ظˆط­ط¯ ظ„ظ…ظ†ط¹ ط§ظ„ظ‡ط²ط© ظˆط§ظ„طھط´طھطھ ط§ظ„ط¨طµط±ظٹ
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontFamily: 'Cairo',
-        fontSize: 16,
-        fontWeight: FontWeight.w800,
-        color: AppColors.textDarkPrimary,
+class _QuickActionCard extends StatelessWidget {
+  const _QuickActionCard({required this.action});
+
+  final _QuickActionData action;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SoftCard(
+      onTap: action.onTap,
+      borderRadius: 18,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      child: AspectRatio(
+        aspectRatio: 1.28,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              action.icon,
+              color: _CareHomeDashboardScreenState._primaryOrange,
+              size: 34,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              action.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: _DashboardText.title.copyWith(fontSize: 13.8),
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+class _UpdatesSection extends StatelessWidget {
+  const _UpdatesSection({
+    required this.stats,
+    required this.onViewAll,
+  });
+
+  final Map<String, dynamic> stats;
+  final VoidCallback onViewAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasDonation =
+        ((stats['latest_donations'] as List?) ?? const []).isNotEmpty;
+    final hasNeed = ((stats['latest_needs'] as List?) ?? const []).isNotEmpty;
+
+    if (!hasDonation && !hasNeed) {
+      return _SoftCard(
+        padding: const EdgeInsets.fromLTRB(18, 22, 18, 22),
+        child: Column(
+          children: [
+            Container(
+              width: 58,
+              height: 58,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: _CareHomeDashboardScreenState._primaryOrange
+                    .withOpacity(0.10),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.update_rounded,
+                color: _CareHomeDashboardScreenState._primaryOrange,
+                size: 28,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'لا توجد تحديثات بعد',
+              style: _DashboardText.title.copyWith(fontSize: 15),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'ستظهر هنا أحدث التبرعات والاحتياجات عند توفرها.',
+              textAlign: TextAlign.center,
+              style: _DashboardText.body,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        if (hasDonation)
+          const _UpdateCard(
+            imagePath: 'assets/images/e.png',
+            fallbackIcon: Icons.volunteer_activism_outlined,
+            title: 'تبرع جديد',
+            description: 'وصل تبرع جديد عبارة عن مياه النبع.',
+            time: 'منذ 15 دقيقة',
+          ),
+        if (hasDonation && hasNeed) const SizedBox(height: 12),
+        if (hasNeed)
+          const _UpdateCard(
+            imagePath: 'assets/images/f.png',
+            fallbackIcon: Icons.medical_services_outlined,
+            title: 'احتياج جديد',
+            description: 'تمت إضافة احتياج جديد لأجهزة طبية.',
+            time: 'منذ 3 ساعات',
+          ),
+        const SizedBox(height: 12),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton.icon(
+            onPressed: onViewAll,
+            icon: const Icon(Icons.arrow_back_rounded, size: 17),
+            label: const Text('عرض جميع التحديثات'),
+            style: TextButton.styleFrom(
+              foregroundColor: _CareHomeDashboardScreenState._primaryOrange,
+              textStyle: _DashboardText.button.copyWith(fontSize: 13),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _UpdateCard extends StatelessWidget {
+  const _UpdateCard({
+    required this.imagePath,
+    required this.fallbackIcon,
+    required this.title,
+    required this.description,
+    required this.time,
+  });
+
+  final String imagePath;
+  final IconData fallbackIcon;
+  final String title;
+  final String description;
+  final String time;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SoftCard(
+      padding: const EdgeInsets.all(12),
+      child: SizedBox(
+        height: 92,
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: Image.asset(
+                  imagePath,
+                  width: 92,
+                  height: 92,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) {
+                    return Container(
+                      width: 92,
+                      height: 92,
+                      alignment: Alignment.center,
+                      color: _CareHomeDashboardScreenState._primaryOrange
+                          .withOpacity(0.10),
+                      child: Icon(
+                        fallbackIcon,
+                        color: _CareHomeDashboardScreenState._primaryOrange,
+                        size: 30,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: _CareHomeDashboardScreenState._primaryOrange
+                              .withOpacity(0.10),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          fallbackIcon,
+                          color: _CareHomeDashboardScreenState._primaryOrange,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  _DashboardText.title.copyWith(fontSize: 15),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              description,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  _DashboardText.body.copyWith(fontSize: 12.8),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              time,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  _DashboardText.muted.copyWith(fontSize: 11.8),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CareHomeDashboardLegacyBottomNavigation extends StatelessWidget {
+  const CareHomeDashboardLegacyBottomNavigation({
+    super.key,
+    required this.onSelected,
+  });
+
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: NavigationBar(
+        selectedIndex: 0,
+        height: 72,
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        shadowColor: Colors.transparent,
+        indicatorColor:
+            _CareHomeDashboardScreenState._primaryOrange.withOpacity(0.10),
+        onDestinationSelected: onSelected,
+        destinations: const [
+          NavigationDestination(
+            icon:
+                Icon(Icons.dashboard_outlined, color: AppColors.textDarkMuted),
+            selectedIcon: Icon(
+              Icons.dashboard_rounded,
+              color: _CareHomeDashboardScreenState._primaryOrange,
+            ),
+            label: 'الرئيسية',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.inventory_2_outlined,
+                color: AppColors.textDarkMuted),
+            selectedIcon: Icon(
+              Icons.inventory_2_rounded,
+              color: _CareHomeDashboardScreenState._primaryOrange,
+            ),
+            label: 'الاحتياجات',
+          ),
+          NavigationDestination(
+            icon: Icon(
+              Icons.assignment_outlined,
+              color: AppColors.textDarkMuted,
+            ),
+            selectedIcon: Icon(
+              Icons.assignment_rounded,
+              color: _CareHomeDashboardScreenState._primaryOrange,
+            ),
+            label: 'التبرعات',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.groups_2_outlined, color: AppColors.textDarkMuted),
+            selectedIcon: Icon(
+              Icons.groups_2_rounded,
+              color: _CareHomeDashboardScreenState._primaryOrange,
+            ),
+            label: 'المتطوعون',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline_rounded,
+                color: AppColors.textDarkMuted),
+            selectedIcon: Icon(
+              Icons.person_rounded,
+              color: _CareHomeDashboardScreenState._primaryOrange,
+            ),
+            label: 'الملف الشخصي',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SoftCard extends StatelessWidget {
+  const _SoftCard({
+    required this.child,
+    this.padding = const EdgeInsets.all(16),
+    this.onTap,
+    this.borderRadius = _CareHomeDashboardScreenState._radius,
+  });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final VoidCallback? onTap;
+  final double borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(borderRadius);
+    final card = Container(
+      width: double.infinity,
+      padding: padding,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: radius,
+        border: Border.all(color: AppColors.innerBorder.withOpacity(0.55)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.035),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: child,
+    );
+
+    if (onTap == null) return card;
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: radius,
+      child: InkWell(
+        onTap: onTap,
+        hoverColor:
+            _CareHomeDashboardScreenState._primaryOrange.withOpacity(0.05),
+        splashColor:
+            _CareHomeDashboardScreenState._primaryOrange.withOpacity(0.10),
+        borderRadius: radius,
+        child: card,
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.title);
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      title,
+      style: _DashboardText.title.copyWith(fontSize: 17),
+    );
+  }
+}
+
+class _QuickActionData {
+  const _QuickActionData({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+}
+
+class _DashboardText {
+  static const TextStyle title = TextStyle(
+    fontFamily: careHomeFontFamily,
+    color: AppColors.textDarkPrimary,
+    fontSize: 18,
+    fontWeight: FontWeight.w900,
+  );
+
+  static const TextStyle body = TextStyle(
+    fontFamily: careHomeFontFamily,
+    color: AppColors.textDarkSecondary,
+    fontSize: 13.5,
+    height: 1.5,
+    fontWeight: FontWeight.w600,
+  );
+
+  static const TextStyle muted = TextStyle(
+    fontFamily: careHomeFontFamily,
+    color: AppColors.textDarkMuted,
+    fontSize: 12.3,
+    height: 1.4,
+    fontWeight: FontWeight.w600,
+  );
+
+  static const TextStyle number = TextStyle(
+    fontFamily: careHomeFontFamily,
+    color: AppColors.textDarkPrimary,
+    fontSize: 19,
+    fontWeight: FontWeight.w700,
+  );
+
+  static const TextStyle button = TextStyle(
+    fontFamily: careHomeFontFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.w900,
+  );
+
+  const _DashboardText._();
 }

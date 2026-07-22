@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../utils/app_colors.dart';
-import '../volunteer/volunteer_ui.dart';
+import '../donor/donor_mobile_chrome.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -13,6 +13,9 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _darkModeEnabled = false;
 
+  static const Color _primaryOrange = Color(0xFFFF8C42);
+  static const Color _screenBackground = Color(0xFFF5F5F5);
+
   void _showSoonMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -21,7 +24,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           style: const TextStyle(fontFamily: 'Tajawal'),
         ),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.brandOrange,
+        backgroundColor: _primaryOrange,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
@@ -31,105 +34,99 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: VolunteerMobileFrame(
-        child: Scaffold(
-          backgroundColor: Colors.white,
-          appBar: const PreferredSize(
-            preferredSize: Size.fromHeight(volunteerAppBarHeight),
-            child: VolunteerTopBar(title: 'الإعدادات'),
+      child: Scaffold(
+        backgroundColor: _screenBackground,
+        appBar: DonorTopBar(
+          title: 'الإعدادات',
+          leading: Padding(
+            padding: const EdgeInsetsDirectional.only(start: DonorSpacing.md),
+            child: DonorTopBarActionButton(
+              icon: Icons.arrow_forward_ios_rounded,
+              tooltip: 'رجوع',
+              onTap: () => Navigator.of(context).pop(),
+            ),
           ),
-          body: Container(
-            color: Colors.white,
-            child: SafeArea(
-              top: false,
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        body: SafeArea(
+          top: false,
+          child: DonorMobileFrame(
+            child: ListView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 28),
+              children: [
+                _DonorSettingsSection(
+                  title: 'الإعدادات الأساسية',
                   children: [
-                    _SettingsGroup(
+                    _DonorSettingsTile(
+                      icon: Icons.person_outline_rounded,
                       title: 'الحساب',
-                      children: [
-                        _SettingsTile(
-                          icon: Icons.person_outline_rounded,
-                          title: 'الحساب',
-                          onTap: () => _showSoonMessage(
-                            'تعديل بيانات الحساب قريبًا',
-                          ),
-                        ),
-                        _SettingsTile(
-                          icon: Icons.lock_outline_rounded,
-                          title: 'تغيير كلمة المرور',
-                          onTap: () => Navigator.of(context)
-                              .pushNamed('/change_password'),
-                        ),
-                      ],
+                      subtitle: 'تعديل بيانات الحساب قريبًا',
+                      onTap: () => _showSoonMessage(
+                        'تعديل بيانات الحساب قريبًا',
+                      ),
                     ),
-                    const SizedBox(height: 18),
-                    _SettingsGroup(
-                      title: 'التفضيلات',
-                      children: [
-                        _SettingsTile(
-                          icon: Icons.language_rounded,
-                          title: 'اللغة',
-                          trailing: const Text(
-                            'العربية',
-                            style: TextStyle(
-                              fontFamily: 'Tajawal',
-                              color: Color(0xFF8A8F98),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          onTap: () => _showSoonMessage(
-                            'اللغة العربية مفعلة حاليًا',
-                          ),
-                        ),
-                        _SettingsTile(
-                          icon: Icons.dark_mode_outlined,
-                          title: 'الوضع الداكن',
-                          trailing: Switch(
-                            value: _darkModeEnabled,
-                            activeColor: AppColors.brandOrange,
-                            onChanged: (value) {
-                              setState(() => _darkModeEnabled = value);
-                            },
-                          ),
-                        ),
-                      ],
+                    _DonorSettingsTile(
+                      icon: Icons.language_rounded,
+                      title: 'اللغة',
+                      subtitle: 'العربية',
+                      onTap: () => _showSoonMessage(
+                        'اللغة العربية مفعلة حاليًا',
+                      ),
                     ),
-                    const SizedBox(height: 18),
-                    _SettingsGroup(
-                      title: 'الدعم والمعلومات',
-                      children: [
-                        _SettingsTile(
-                          icon: Icons.help_outline_rounded,
-                          title: 'مركز المساعدة',
-                          onTap: () => _showSoonMessage(
-                            'مركز المساعدة سيتوفر قريبًا',
-                          ),
-                        ),
-                        _SettingsTile(
-                          icon: Icons.privacy_tip_outlined,
-                          title: 'سياسة الخصوصية',
-                          onTap: () => _showSoonMessage(
-                            'سياسة الخصوصية ستتوفر قريبًا',
-                          ),
-                        ),
-                      ],
+                    _DonorSettingsSwitchTile(
+                      icon: Icons.dark_mode_outlined,
+                      title: 'الوضع الداكن',
+                      subtitle: 'تخصيص مظهر التطبيق',
+                      value: _darkModeEnabled,
+                      onChanged: (value) {
+                        setState(() => _darkModeEnabled = value);
+                      },
                     ),
-                    const SizedBox(height: 26),
-                    _LogoutButton(
+                  ],
+                ),
+                const SizedBox(height: DonorSpacing.lg),
+                _DonorSettingsSection(
+                  title: 'الخصوصية والأمان',
+                  children: [
+                    _DonorSettingsTile(
+                      icon: Icons.lock_outline_rounded,
+                      title: 'تغيير كلمة المرور',
+                      subtitle: 'إدارة حماية الحساب',
                       onTap: () =>
-                          Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/login',
-                        (route) => false,
+                          Navigator.of(context).pushNamed('/change_password'),
+                    ),
+                    _DonorSettingsTile(
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'سياسة الخصوصية',
+                      subtitle: 'تفاصيل حماية بياناتك',
+                      onTap: () => _showSoonMessage(
+                        'سياسة الخصوصية ستتوفر قريبًا',
                       ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: DonorSpacing.lg),
+                _DonorSettingsSection(
+                  title: 'الدعم والمعلومات',
+                  children: [
+                    _DonorSettingsTile(
+                      icon: Icons.help_outline_rounded,
+                      title: 'مركز المساعدة',
+                      subtitle: 'الدعم والأسئلة الشائعة',
+                      onTap: () => _showSoonMessage(
+                        'مركز المساعدة سيتوفر قريبًا',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: DonorSpacing.xxl),
+                _DonorLogoutAction(
+                  onTap: () => Navigator.of(context).pushNamedAndRemoveUntil(
+                    '/login',
+                    (route) => false,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -138,14 +135,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
-class _SettingsGroup extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-
-  const _SettingsGroup({
+class _DonorSettingsSection extends StatelessWidget {
+  const _DonorSettingsSection({
     required this.title,
     required this.children,
   });
+
+  final String title;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
@@ -156,39 +153,23 @@ class _SettingsGroup extends StatelessWidget {
           padding: const EdgeInsetsDirectional.only(start: 4, bottom: 10),
           child: Text(
             title,
-            style: const TextStyle(
-              fontFamily: 'Cairo',
-              color: Color(0xFF1F2937),
-              fontSize: 15,
-              fontWeight: FontWeight.w900,
-            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: DonorTextStyles.sectionTitle.copyWith(fontSize: 15),
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: const Color(0xFFF0F0F0)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.035),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
+        DonorCard(
+          padding: EdgeInsets.zero,
           child: Column(
             children: [
-              for (int i = 0; i < children.length; i++) ...[
-                children[i],
-                if (i != children.length - 1)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 18),
-                    child: Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: Color(0xFFF1F1F1),
-                    ),
+              for (var index = 0; index < children.length; index++) ...[
+                children[index],
+                if (index != children.length - 1)
+                  const Divider(
+                    height: 1,
+                    indent: 16,
+                    endIndent: 16,
+                    color: AppColors.divider,
                   ),
               ],
             ],
@@ -199,59 +180,71 @@ class _SettingsGroup extends StatelessWidget {
   }
 }
 
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-
-  const _SettingsTile({
+class _DonorSettingsTile extends StatelessWidget {
+  const _DonorSettingsTile({
     required this.icon,
     required this.title,
-    this.trailing,
+    this.subtitle,
     this.onTap,
+    this.trailing,
   });
+
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final VoidCallback? onTap;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
-    final showArrow = trailing == null;
-
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: SizedBox(
-          height: 62,
+        borderRadius: DonorRadii.large,
+        child: Padding(
+          padding: const EdgeInsetsDirectional.symmetric(
+            horizontal: 16,
+            vertical: 11,
+          ),
           child: Row(
-            textDirection: TextDirection.rtl,
             children: [
-              const SizedBox(width: 18),
-              Icon(icon, color: const Color(0xFF6B7280), size: 23),
-              const SizedBox(width: 12),
+              Icon(icon, color: AppColors.textDarkSecondary, size: 22),
+              const SizedBox(width: DonorSpacing.md),
               Expanded(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontFamily: 'Cairo',
-                    color: Color(0xFF1F2937),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: DonorTextStyles.sectionTitle.copyWith(
+                        fontSize: 14.5,
+                        color: AppColors.textDarkPrimary,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: DonorTextStyles.muted.copyWith(
+                          color: AppColors.textDarkSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              const SizedBox(width: 10),
-              if (showArrow)
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: Color(0xFFB5BAC3),
-                  size: 24,
-                )
-              else
-                trailing!,
-              const SizedBox(width: 14),
+              const SizedBox(width: DonorSpacing.sm),
+              trailing ??
+                  const Icon(
+                    Icons.chevron_left_rounded,
+                    color: AppColors.textDarkMuted,
+                    size: 24,
+                  ),
             ],
           ),
         ),
@@ -260,48 +253,51 @@ class _SettingsTile extends StatelessWidget {
   }
 }
 
-class _LogoutButton extends StatelessWidget {
-  final VoidCallback onTap;
+class _DonorSettingsSwitchTile extends StatelessWidget {
+  const _DonorSettingsSwitchTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.onChanged,
+    this.subtitle,
+  });
 
-  const _LogoutButton({required this.onTap});
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          width: double.infinity,
-          height: 54,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF2F0),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFFFD6D0)),
-          ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.logout_rounded,
-                color: Color(0xFFE05243),
-                size: 21,
-              ),
-              SizedBox(width: 8),
-              Text(
-                'تسجيل الخروج',
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  color: Color(0xFFE05243),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-        ),
+    return _DonorSettingsTile(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      trailing: Switch(
+        value: value,
+        activeColor: _SettingsScreenState._primaryOrange,
+        activeTrackColor: _SettingsScreenState._primaryOrange.withOpacity(0.28),
+        inactiveThumbColor: AppColors.textDarkMuted,
+        inactiveTrackColor: AppColors.innerBorder,
+        onChanged: onChanged,
       ),
+    );
+  }
+}
+
+class _DonorLogoutAction extends StatelessWidget {
+  const _DonorLogoutAction({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return DonorSecondaryButton(
+      label: 'تسجيل الخروج',
+      icon: Icons.logout_rounded,
+      color: AppColors.errorRed,
+      onTap: onTap,
     );
   }
 }

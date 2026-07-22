@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../utils/app_colors.dart';
+import '../utils/auth_navigation.dart';
 import 'onboarding_screen.dart'; // لربط الحركة الانسيابية بالشاشة الثانية مباشرة
 
 class SplashScreen extends StatefulWidget {
@@ -66,40 +68,55 @@ class _SplashScreenState extends State<SplashScreen>
     }
 
     // 🌌 4. الانتقال التلقائي السلس، والمريح جداً للعين إلى الـ Onboarding بعد 4 ثوانٍ
-    Timer(const Duration(seconds: 4), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                const OnboardingScreen(),
-            transitionDuration: const Duration(
-              milliseconds: 1100,
-            ), // ثانية ومئة جزء لضمان تداخل لوني ناعم وسينمائي
-            reverseTransitionDuration: const Duration(milliseconds: 1100),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-              // منحنى حركة فيزيائي ناعم جداً مريح للعين البشرية
-              final curvedAnimation = CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeInOutCubic,
-              );
+    Timer(const Duration(seconds: 4), _openInitialDestination);
+  }
 
-              // تلاشي متداخل يدمج الأبيض مع صورة الطفل باحترافية
-              return FadeTransition(
-                opacity: curvedAnimation,
-                child: ScaleTransition(
-                  scale: Tween<double>(
-                    begin: 0.97,
-                    end: 1.0,
-                  ).animate(curvedAnimation),
-                  child: child,
-                ),
-              );
-            },
-          ),
-        );
-      }
-    });
+  Future<void> _openInitialDestination() async {
+    final apiService = ApiService();
+    final isAuthenticated = await apiService.isAuthenticated();
+
+    if (!mounted) return;
+
+    if (isAuthenticated) {
+      final savedRole = await apiService.getSavedRole();
+      if (!mounted) return;
+      AuthNavigation.navigateByRole(
+        context,
+        savedRole,
+        showUnknownRoleMessage: false,
+      );
+      return;
+    }
+
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const OnboardingScreen(),
+        transitionDuration: const Duration(
+          milliseconds: 1100,
+        ), // ثانية ومئة جزء لضمان تداخل لوني ناعم وسينمائي
+        reverseTransitionDuration: const Duration(milliseconds: 1100),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          // منحنى حركة فيزيائي ناعم جداً مريح للعين البشرية
+          final curvedAnimation = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOutCubic,
+          );
+
+          // تلاشي متداخل يدمج الأبيض مع صورة الطفل باحترافية
+          return FadeTransition(
+            opacity: curvedAnimation,
+            child: ScaleTransition(
+              scale: Tween<double>(
+                begin: 0.97,
+                end: 1.0,
+              ).animate(curvedAnimation),
+              child: child,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override

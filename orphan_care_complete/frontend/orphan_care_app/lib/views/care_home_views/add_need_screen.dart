@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../utils/app_colors.dart';
 
-/// [AddNeedScreen] - ط§ظ„ظˆط§ط¬ظ‡ط© ط±ظ‚ظ… 28: ظ†ظ…ظˆط°ط¬ ط¥ط¶ط§ظپط© ط§ط­طھظٹط§ط¬ ط¬ط¯ظٹط¯ ظ„ط¯ط§ط± ط§ظ„ط±ط¹ط§ظٹط© ظ„ط¹ط§ظ… 2026.
-/// ظ…طµظ…ظ… ط¨ط§ظ„ظƒط§ظ…ظ„ ظ„طھظˆظپظٹط± طھط¬ط±ط¨ط© ظ…ط³طھط®ط¯ظ… ط³ظ„ط³ط© ظˆظ…ط¨ظ‡ط±ط© ط®ط§ظ„ظٹط© ظ…ظ† ط§ظ„طھط¹ظ‚ظٹط¯ ظˆط§ظ„طھط´طھطھ.
+import '../../providers/app_provider_scope.dart';
+import '../../utils/app_colors.dart';
+import 'care_home_light_widgets.dart';
+
 class AddNeedScreen extends StatefulWidget {
   const AddNeedScreen({super.key});
 
@@ -10,215 +11,356 @@ class AddNeedScreen extends StatefulWidget {
   State<AddNeedScreen> createState() => _AddNeedScreenState();
 }
 
-class _AddNeedScreenState extends State<AddNeedScreen> {
+class _AddNeedScreenState extends State<AddNeedScreen>
+    with SingleTickerProviderStateMixin {
+  static const Color _primaryOrange = AppColors.brandOrange;
+  static const Color _background = Colors.white;
+  static const Color _softGray = Color(0xFFF7F7F7);
+  static const Color _borderGray = Color(0xFFEDEDED);
+  static const double _mobileMaxWidth = 480;
+
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _quantityController = TextEditingController();
   final _detailsController = TextEditingController();
-
-  final FocusNode _titleFocusNode = FocusNode();
-  final FocusNode _quantityFocusNode = FocusNode();
-  final FocusNode _detailsFocusNode = FocusNode();
-
+  late final AnimationController _fadeController;
+  late final Animation<double> _fadeAnimation;
   String _selectedCategory = 'غذائي';
-  String _priorityLevel = 'متوسط';
-  bool _issubmitting = false;
-
-  final List<Map<String, dynamic>> _categories = [
-    {
-      'name': 'غذائي',
-      'icon': Icons.bakery_dining_rounded,
-      'color': Colors.amber
-    },
-    {
-      'name': 'طبي',
-      'icon': Icons.health_and_safety_rounded,
-      'color': Colors.redAccent
-    },
-    {
-      'name': 'كسوة',
-      'icon': Icons.checkroom_rounded,
-      'color': const Color(0xFF14B8A6)
-    },
-    {
-      'name': 'تعليمي',
-      'icon': Icons.school_rounded,
-      'color': Colors.blueAccent
-    },
-  ];
+  String _priorityLevel = 'medium';
 
   @override
   void initState() {
     super.initState();
-    _titleFocusNode.addListener(() => setState(() {}));
-    _quantityFocusNode.addListener(() => setState(() {}));
-    _detailsFocusNode.addListener(() => setState(() {}));
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 420),
+    )..forward();
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
   void dispose() {
+    _fadeController.dispose();
     _titleController.dispose();
     _quantityController.dispose();
     _detailsController.dispose();
-    _titleFocusNode.dispose();
-    _quantityFocusNode.dispose();
-    _detailsFocusNode.dispose();
     super.dispose();
   }
 
   Future<void> _submitNeed() async {
-    if (!_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى إكمال الحقول الأساسية لوصف الاحتياج',
-              style: TextStyle(fontFamily: 'Cairo')),
-          backgroundColor: AppColors.brandOrange,
-        ),
-      );
-      return;
-    }
-
-    setState(() => _issubmitting = true);
-    await Future.delayed(const Duration(
-        milliseconds:
-            1500)); // ظ…ط­ط§ظƒط§ط© ط§ظ„ط±ظپط¹ ط§ظ„ط¨ط±ظ…ط¬ظٹ ظ„ظ„ط³ظٹط±ظپط±
-
-    if (mounted) {
-      setState(() => _issubmitting = false);
+    if (!_formKey.currentState!.validate()) return;
+    final provider = AppProviderScope.of(context);
+    final success = await provider.createNeed({
+      'title': _titleController.text.trim(),
+      'required_quantity': _quantityController.text.trim(),
+      'description': _detailsController.text.trim(),
+      'category': _selectedCategory,
+      'priority': _priorityLevel,
+      'status': 'active',
+    });
+    if (!mounted) return;
+    if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-              'تم نشر الاحتياج بنجاح، وسيظهر للمتبرعين والمتطوعين المناسبين.',
-              style: TextStyle(fontFamily: 'Cairo')),
-          backgroundColor: Color(
-              0xFF10B981), // ط§ط³طھط®ط¯ط§ظ… ط§ظ„ظ‚ظٹظ…ط© ط§ظ„ظ„ظˆظ†ظٹط© ط§ظ„طµط§ظپظٹط© ط¨ط¯ظ„ط§ظ‹ ظ…ظ† ط§ظ„ط³ظ…ط© ط§ظ„ظ…ظپظ‚ظˆط¯ط©
+            'تم نشر الاحتياج بنجاح.',
+            style:
+                TextStyle(fontFamily: careHomeFontFamily, color: Colors.white),
+          ),
         ),
       );
-      Navigator.of(context)
-          .pop(); // ط§ظ„ط¹ظˆط¯ط© ط§ظ„طھظ„ظ‚ط§ط¦ظٹط© ظ„ظ„ظˆط­ط© ط§ظ„طھط­ظƒظ…
+      Navigator.of(context).pop(true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            provider.errorMessage ?? 'تعذر حفظ الاحتياج',
+            style: const TextStyle(
+                fontFamily: careHomeFontFamily, color: Colors.white),
+          ),
+          backgroundColor: AppColors.errorRed,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isWebOrDesktop = size.width > 600;
-    final containerWidth = isWebOrDesktop ? 430.0 : double.infinity;
+    final provider = AppProviderScope.of(context);
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
+        backgroundColor: _background,
         body: Center(
-          child: Container(
-            width: containerWidth,
-            height: double.infinity,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: AppColors.scaffoldBackground,
-              boxShadow: isWebOrDesktop
-                  ? [
-                      BoxShadow(
-                          color: AppColors.innerShadow,
-                          blurRadius: 24,
-                          spreadRadius: 0)
-                    ]
-                  : [],
-            ),
-            child: Stack(
-              children: [
-                // ط§ظ„ط®ظ„ظپظٹط© ط§ظ„ط¬ظ…ط§ظ„ظٹط© ط§ظ„ظ…ظˆط­ط¯ط© ظ„ظ„طھط·ط¨ظٹظ‚
-                Positioned.fill(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                        colors: [
-                          Colors.white,
-                          AppColors.scaffoldBackground,
-                          AppColors.scaffoldBackground,
-                        ],
-                        stops: [0.0, 0.52, 1.0],
-                      ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _mobileMaxWidth),
+            child: SafeArea(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    CareHomeAppBar(
+                      title: 'إضافة احتياج جديد',
+                      onBack: () => Navigator.of(context).pop(),
+                      showShadow: false,
                     ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.white,
-                          Colors.white,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // ط§ظ„ظ…ط­طھظˆظ‰ ط§ظ„ظ‡ظٹظƒظ„ظٹ ظ„ظ„ظ†ظ…ظˆط°ط¬
-                SafeArea(
-                  child: Column(
-                    children: [
-                      _buildAppBar(),
-                      Expanded(
+                    Expanded(
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
                         child: SingleChildScrollView(
                           physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24.0, vertical: 10.0),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 10),
-                                _buildSectionLabel('تصنيف الاحتياج'),
-                                const SizedBox(height: 12),
-                                _buildCategorySelector(),
-                                const SizedBox(height: 24),
-                                _buildSectionLabel('بيانات الاحتياج'),
-                                const SizedBox(height: 14),
-                                _buildInputField(
-                                  controller: _titleController,
-                                  focusNode: _titleFocusNode,
-                                  hint:
-                                      'عنوان الاحتياج، مثل: أحذية شتوية للأطفال',
-                                  icon: Icons.title_rounded,
-                                ),
-                                const SizedBox(height: 16),
-                                _buildInputField(
-                                  controller: _quantityController,
-                                  focusNode: _quantityFocusNode,
-                                  hint: 'الكمية أو العدد المطلوب، مثل: 25 طقم',
-                                  icon: Icons.numbers_rounded,
-                                  keyboardType: TextInputType.text,
-                                ),
-                                const SizedBox(height: 16),
-                                _buildInputField(
-                                  controller: _detailsController,
-                                  focusNode: _detailsFocusNode,
-                                  hint:
-                                      'تفاصيل تساعد المتبرع: المقاسات، النوع، أو الأولوية...',
-                                  icon: Icons.description_rounded,
-                                  maxLines: 4,
-                                ),
-                                const SizedBox(height: 24),
-                                _buildSectionLabel('مستوى أولوية الاحتياج'),
-                                const SizedBox(height: 12),
-                                _buildPrioritySelector(),
-                                const SizedBox(height: 40),
-                                _buildSubmitButton(),
-                                const SizedBox(height: 24),
-                              ],
-                            ),
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const _SectionTitle(title: 'تصنيف الاحتياج'),
+                              const SizedBox(height: 12),
+                              _CategorySelector(
+                                selectedCategory: _selectedCategory,
+                                onChanged: (category) {
+                                  setState(() => _selectedCategory = category);
+                                },
+                              ),
+                              const SizedBox(height: 20),
+                              _FormCard(
+                                children: [
+                                  _NeedTextField(
+                                    controller: _titleController,
+                                    label: 'عنوان الاحتياج',
+                                    hint: 'مثال: حليب أطفال',
+                                    icon: Icons.edit_note_rounded,
+                                    textInputAction: TextInputAction.next,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _NeedTextField(
+                                    controller: _quantityController,
+                                    label: 'الكمية المطلوبة',
+                                    hint: 'مثال: 25 صندوق',
+                                    icon: Icons.numbers_rounded,
+                                    keyboardType: TextInputType.number,
+                                    textInputAction: TextInputAction.next,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _NeedTextField(
+                                    controller: _detailsController,
+                                    label: 'تفاصيل الاحتياج',
+                                    hint:
+                                        'اكتب تفاصيل إضافية عن الاحتياج (اختياري).',
+                                    icon: Icons.notes_rounded,
+                                    requiredField: false,
+                                    minLines: 4,
+                                    maxLines: 5,
+                                    keyboardType: TextInputType.multiline,
+                                    textInputAction: TextInputAction.newline,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              const _SectionTitle(title: 'مستوى الأولوية'),
+                              const SizedBox(height: 12),
+                              _PrioritySelector(
+                                selectedPriority: _priorityLevel,
+                                onChanged: (priority) {
+                                  setState(() => _priorityLevel = priority);
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                            ],
                           ),
                         ),
                       ),
-                    ],
+                    ),
+                    _BottomSubmitBar(
+                      loading: provider.isSaving,
+                      onSubmit: _submitNeed,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AddNeedLegacyAppBar extends StatelessWidget {
+  const AddNeedLegacyAppBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 64,
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          PositionedDirectional(
+            start: 0,
+            top: 0,
+            bottom: 0,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => Navigator.of(context).pop(),
+                borderRadius: BorderRadius.circular(18),
+                splashColor: _AddNeedScreenState._primaryOrange.withAlpha(24),
+                child: const SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.textDarkPrimary,
+                    size: 32,
                   ),
+                ),
+              ),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 58),
+            child: Text(
+              'إضافة احتياج جديد',
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: _AddNeedText.title,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const _SectionTitle({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(title, style: _AddNeedText.sectionTitle);
+  }
+}
+
+class _CategorySelector extends StatelessWidget {
+  final String selectedCategory;
+  final ValueChanged<String> onChanged;
+
+  const _CategorySelector({
+    required this.selectedCategory,
+    required this.onChanged,
+  });
+
+  static const _categories = [
+    _CategoryItem('غذائي', Icons.restaurant_rounded),
+    _CategoryItem('طبي', Icons.medical_services_rounded),
+    _CategoryItem('تعليمي', Icons.school_rounded),
+    _CategoryItem('ملابس', Icons.checkroom_rounded),
+    _CategoryItem('ترفيهي', Icons.sports_esports_rounded),
+    _CategoryItem('تنظيف', Icons.cleaning_services_rounded),
+    _CategoryItem('أخرى', Icons.category_rounded),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: _categories.map((category) {
+        return _CategoryChipCard(
+          label: category.label,
+          icon: category.icon,
+          selected: selectedCategory == category.label,
+          onTap: () => onChanged(category.label),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _CategoryChipCard extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _CategoryChipCard({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground =
+        selected ? Colors.white : _AddNeedScreenState._primaryOrange;
+    final textColor = selected ? Colors.white : AppColors.textDarkPrimary;
+
+    return AnimatedScale(
+      scale: selected ? 1.02 : 1,
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          splashColor: _AddNeedScreenState._primaryOrange.withAlpha(24),
+          child: AnimatedContainer(
+            width: 88,
+            height: 84,
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            decoration: BoxDecoration(
+              color:
+                  selected ? _AddNeedScreenState._primaryOrange : Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: selected
+                    ? _AddNeedScreenState._primaryOrange
+                    : _AddNeedScreenState._borderGray,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(selected ? 18 : 10),
+                  blurRadius: selected ? 18 : 14,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? Colors.white.withAlpha(34)
+                        : _AddNeedScreenState._primaryOrange.withAlpha(22),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: foreground, size: 19),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: _AddNeedText.chip.copyWith(color: textColor),
                 ),
               ],
             ),
@@ -227,261 +369,345 @@ class _AddNeedScreenState extends State<AddNeedScreen> {
       ),
     );
   }
+}
 
-  Widget _buildAppBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+class _FormCard extends StatelessWidget {
+  final List<Widget> children;
+
+  const _FormCard({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _AddNeedScreenState._borderGray),
+        boxShadow: _softShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
+      ),
+    );
+  }
+}
+
+class _NeedTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final IconData icon;
+  final bool requiredField;
+  final int maxLines;
+  final int? minLines;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+
+  const _NeedTextField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+    required this.icon,
+    this.requiredField = true,
+    this.maxLines = 1,
+    this.minLines,
+    this.keyboardType,
+    this.textInputAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(label, style: _AddNeedText.fieldLabel),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          maxLines: maxLines,
+          minLines: minLines,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          cursorColor: _AddNeedScreenState._primaryOrange,
+          style: _AddNeedText.input,
+          validator: (value) {
+            if (!requiredField) return null;
+            return value == null || value.trim().isEmpty
+                ? 'هذا الحقل مطلوب'
+                : null;
+          },
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: _AddNeedText.hint,
+            errorStyle: _AddNeedText.error,
+            prefixIcon: Icon(
+              icon,
+              color: _AddNeedScreenState._primaryOrange,
+              size: 20,
+            ),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 48,
+              minHeight: 48,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            constraints: BoxConstraints(minHeight: maxLines == 1 ? 56 : 116),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: maxLines == 1 ? 14 : 16,
+            ),
+            border: _inputBorder(_AddNeedScreenState._borderGray),
+            enabledBorder: _inputBorder(_AddNeedScreenState._borderGray),
+            focusedBorder: _inputBorder(
+              _AddNeedScreenState._primaryOrange,
+              width: 1.35,
+            ),
+            errorBorder: _inputBorder(AppColors.errorRed),
+            focusedErrorBorder: _inputBorder(AppColors.errorRed, width: 1.35),
+          ),
+        ),
+      ],
+    );
+  }
+
+  OutlineInputBorder _inputBorder(Color color, {double width = 1}) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide(color: color, width: width),
+    );
+  }
+}
+
+class _PrioritySelector extends StatelessWidget {
+  final String selectedPriority;
+  final ValueChanged<String> onChanged;
+
+  const _PrioritySelector({
+    required this.selectedPriority,
+    required this.onChanged,
+  });
+
+  static const _priorities = [
+    _PriorityItem('urgent', 'عاجل'),
+    _PriorityItem('medium', 'متوسط'),
+    _PriorityItem('low', 'منخفض'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: _AddNeedScreenState._softGray,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _AddNeedScreenState._borderGray),
+      ),
       child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.innerBorder),
-              ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: AppColors.textDarkPrimary, size: 18),
-            ),
-          ),
-          const Expanded(
-            child: Center(
-              child: Text(
-                'إضافة احتياج جديد',
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDarkPrimary,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(
-              width: 40), // ظ…ظˆط§ط²ظ† ط¨طµط±ظٹ ظ„ط¶ط¨ط· ط§ظ„ط³ظ†طھط±ط©
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionLabel(String label) {
-    return Text(
-      label,
-      style: const TextStyle(
-        fontFamily: 'Cairo',
-        fontSize: 15,
-        fontWeight: FontWeight.w700,
-        color: AppColors.textDarkPrimary,
-      ),
-    );
-  }
-
-  Widget _buildCategorySelector() {
-    return SizedBox(
-      height: 48,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: _categories.length,
-        itemBuilder: (context, index) {
-          final cat = _categories[index];
-          final isSelected = _selectedCategory == cat['name'];
-          return GestureDetector(
-            onTap: () => setState(() => _selectedCategory = cat['name']),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              margin: const EdgeInsets.only(left: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.brandOrange.withOpacity(0.2)
-                    : AppColors.surfaceLight,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: isSelected
-                      ? AppColors.brandOrange
-                      : AppColors.innerBorder,
-                  width: 1.2,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(cat['icon'],
-                      color: isSelected
-                          ? AppColors.brandOrange
-                          : AppColors.textDarkSecondary,
-                      size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    cat['name'],
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 13,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isSelected
-                          ? AppColors.brandOrange
-                          : AppColors.textDarkPrimary,
-                    ),
-                  ),
-                ],
+        children: _priorities.map((priority) {
+          final selected = selectedPriority == priority.value;
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: _PrioritySegment(
+                label: priority.label,
+                selected: selected,
+                onTap: () => onChanged(priority.value),
               ),
             ),
           );
-        },
+        }).toList(),
       ),
     );
   }
+}
 
-  Widget _buildInputField({
-    required TextEditingController controller,
-    required FocusNode focusNode,
-    required String hint,
-    required IconData icon,
-    int maxLines = 1,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    final bool isFocused = focusNode.hasFocus;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isFocused ? AppColors.brandOrange : AppColors.innerBorder,
-          width: isFocused ? 1.5 : 1.0,
-        ),
-      ),
-      child: TextFormField(
-        controller: controller,
-        focusNode: focusNode,
-        maxLines: maxLines,
-        keyboardType: keyboardType,
-        cursorColor: AppColors.brandOrange,
-        validator: (value) {
-          if (controller == _detailsController) return null;
-          if (value == null || value.trim().isEmpty) {
-            return 'هذا الحقل مطلوب';
-          }
-          return null;
-        },
-        style: const TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: 14,
-            color: AppColors.textDarkPrimary),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(
-              fontFamily: 'Cairo',
-              fontSize: 13,
-              color: AppColors.textDarkSecondary),
-          prefixIcon: Padding(
-            padding: EdgeInsets.only(bottom: maxLines > 1 ? 60 : 0),
-            key: const ValueKey('icon_prefix'),
-            child: Icon(icon,
-                color:
-                    isFocused ? AppColors.brandOrange : AppColors.textDarkMuted,
-                size: 20),
-          ),
-          prefixIconConstraints: const BoxConstraints(
-            minWidth: 48,
-            minHeight: 48,
-          ),
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        ),
-      ),
-    );
-  }
+class _PrioritySegment extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
 
-  Widget _buildPrioritySelector() {
-    final priorities = ['منخفض', 'متوسط', 'عاجل'];
-    return Row(
-      children: priorities.map((p) {
-        final isSelected = _priorityLevel == p;
-        Color pColor = AppColors.textDarkMuted;
-        if (isSelected) {
-          if (p == 'منخفض') pColor = const Color(0xFF10B981);
-          if (p == 'متوسط') pColor = Colors.orange;
-          if (p == 'عاجل') pColor = Colors.red;
-        }
+  const _PrioritySegment({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
-        return Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _priorityLevel = p),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              height: 44,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? pColor.withOpacity(0.15)
-                    : AppColors.surfaceLight,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected ? pColor : AppColors.cardBackground,
-                  width: isSelected ? 1.5 : 1.0,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  p,
-                  style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? pColor : AppColors.textDarkSecondary,
-                  ),
-                ),
-              ),
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        splashColor: _AddNeedScreenState._primaryOrange.withAlpha(24),
+        child: AnimatedContainer(
+          height: 44,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected ? _AddNeedScreenState._primaryOrange : Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: selected
+                  ? _AddNeedScreenState._primaryOrange
+                  : _AddNeedScreenState._borderGray,
             ),
           ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    return GestureDetector(
-      onTap: _issubmitting ? null : _submitNeed,
-      child: Container(
-        width: double.infinity,
-        height: 54,
-        decoration: BoxDecoration(
-          color: AppColors.brandOrange,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.brandOrange.withOpacity(0.18),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            )
-          ],
-        ),
-        child: Center(
-          child: _issubmitting
-              ? const SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
-                )
-              : const Text(
-                  'نشر الاحتياج',
-                  style: TextStyle(
-                    fontFamily: 'Cairo',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+          child: Text(
+            label,
+            style: _AddNeedText.segment.copyWith(
+              color: selected ? Colors.white : AppColors.textDarkSecondary,
+              fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
+            ),
+          ),
         ),
       ),
     );
   }
+}
+
+class _BottomSubmitBar extends StatelessWidget {
+  final bool loading;
+  final VoidCallback onSubmit;
+
+  const _BottomSubmitBar({
+    required this.loading,
+    required this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(10),
+            blurRadius: 18,
+            offset: const Offset(0, -8),
+          ),
+        ],
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        height: 56,
+        child: ElevatedButton.icon(
+          onPressed: loading ? null : onSubmit,
+          icon: loading
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.2,
+                  ),
+                )
+              : const Icon(Icons.send_rounded, size: 19),
+          label: Text(loading ? 'جار النشر...' : 'نشر الاحتياج'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _AddNeedScreenState._primaryOrange,
+            foregroundColor: Colors.white,
+            disabledBackgroundColor:
+                _AddNeedScreenState._primaryOrange.withAlpha(150),
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            textStyle: _AddNeedText.button,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryItem {
+  final String label;
+  final IconData icon;
+
+  const _CategoryItem(this.label, this.icon);
+}
+
+class _PriorityItem {
+  final String value;
+  final String label;
+
+  const _PriorityItem(this.value, this.label);
+}
+
+const List<BoxShadow> _softShadow = [
+  BoxShadow(
+    color: Color(0x0F000000),
+    blurRadius: 18,
+    offset: Offset(0, 8),
+  ),
+];
+
+class _AddNeedText {
+  static const TextStyle title = TextStyle(
+    fontFamily: careHomeFontFamily,
+    color: AppColors.textDarkPrimary,
+    fontSize: 18,
+    fontWeight: FontWeight.w900,
+  );
+
+  static const TextStyle sectionTitle = TextStyle(
+    fontFamily: careHomeFontFamily,
+    color: AppColors.textDarkPrimary,
+    fontSize: 16,
+    fontWeight: FontWeight.w900,
+  );
+
+  static const TextStyle fieldLabel = TextStyle(
+    fontFamily: careHomeFontFamily,
+    color: AppColors.textDarkPrimary,
+    fontSize: 13.5,
+    fontWeight: FontWeight.w800,
+  );
+
+  static const TextStyle input = TextStyle(
+    fontFamily: careHomeFontFamily,
+    color: AppColors.textDarkPrimary,
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+  );
+
+  static const TextStyle hint = TextStyle(
+    fontFamily: careHomeFontFamily,
+    color: AppColors.textDarkMuted,
+    fontSize: 13.5,
+    fontWeight: FontWeight.w600,
+  );
+
+  static const TextStyle chip = TextStyle(
+    fontFamily: careHomeFontFamily,
+    fontSize: 12.5,
+    fontWeight: FontWeight.w800,
+  );
+
+  static const TextStyle segment = TextStyle(
+    fontFamily: careHomeFontFamily,
+    fontSize: 13,
+  );
+
+  static const TextStyle button = TextStyle(
+    fontFamily: careHomeFontFamily,
+    fontSize: 15,
+    fontWeight: FontWeight.w900,
+  );
+
+  static const TextStyle error = TextStyle(
+    fontFamily: careHomeFontFamily,
+    color: AppColors.errorRed,
+    fontSize: 11.5,
+    fontWeight: FontWeight.w600,
+  );
+
+  const _AddNeedText._();
 }

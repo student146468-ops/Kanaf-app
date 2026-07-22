@@ -31,15 +31,15 @@ class UserModel {
       email: json['email'] ?? '',
       password: json['password'] ?? '',
       fullName: json['full_name'] ?? json['name'] ?? '',
-      role: json['role'] ?? 'donor',
+      role: json['role']?.toString() ?? '',
       phoneNumber: json['phone_number'],
       profileImage: json['profile_image'],
       isVerified: json['is_verified'] ?? false,
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : null,
-      lastLogin: json['last_login'] != null 
-          ? DateTime.parse(json['last_login']) 
+      lastLogin: json['last_login'] != null
+          ? DateTime.parse(json['last_login'])
           : null,
     );
   }
@@ -88,5 +88,6 @@ class UserModel {
   }
 
   @override
-  String toString() => 'UserModel(id: $id, email: $email, fullName: $fullName, role: $role)';
+  String toString() =>
+      'UserModel(id: $id, email: $email, fullName: $fullName, role: $role)';
 }

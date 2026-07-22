@@ -14,16 +14,39 @@ class FinancialDonationScreen extends StatefulWidget {
 class _FinancialDonationScreenState extends State<FinancialDonationScreen> {
   final TextEditingController _amountController = TextEditingController();
   String _selectedQuickAmount = '';
-  String _selectedPaymentMethod = 'سداد';
+  String _selectedPaymentMethod = 'السداد عبر المصرف';
+  String _selectedDonationMode = 'تبرع مرة واحدة';
   String? _amountError;
   bool _isProcessing = false;
 
-  final List<String> _quickAmounts = const ['20', '50', '100', '200', '500'];
+  static const Color _primaryOrange = Color(0xFFFF8C42);
+  static const Color _screenBackground = Color(0xFFF5F5F5);
+  static const Color _cardBorder = Color(0xFFEAEAEA);
+
+  final List<String> _donationModes = const [
+    'تبرع مرة واحدة',
+    'تبرع شهري',
+  ];
+
+  final List<String> _quickAmounts = const ['20', '50', '100', '200'];
+
   final List<Map<String, dynamic>> _paymentMethods = const [
-    {'name': 'سداد', 'icon': Icons.phone_iphone_rounded},
-    {'name': 'تداول', 'icon': Icons.credit_card_rounded},
-    {'name': 'إدفع لي', 'icon': Icons.account_balance_wallet_outlined},
-    {'name': 'بطاقة مصرفية', 'icon': Icons.payments_outlined},
+    {
+      'name': 'السداد عبر المصرف',
+      'icon': Icons.account_balance_outlined,
+    },
+    {
+      'name': 'بطاقة مدى المحلية',
+      'icon': Icons.credit_card_rounded,
+    },
+    {
+      'name': 'تحويل مصرفي',
+      'icon': Icons.swap_horiz_rounded,
+    },
+    {
+      'name': 'محفظة إلكترونية',
+      'icon': Icons.account_balance_wallet_outlined,
+    },
   ];
 
   @override
@@ -37,73 +60,77 @@ class _FinancialDonationScreenState extends State<FinancialDonationScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
-        appBar: donorMobileAppBar(
-          title: 'تبرع مالي آمن',
-          leading: donorBackButton(context),
+        backgroundColor: _screenBackground,
+        appBar: DonorTopBar(
+          title: 'التبرع المالي',
+          leading: Padding(
+            padding: const EdgeInsetsDirectional.only(start: DonorSpacing.md),
+            child: DonorTopBarActionButton(
+              icon: Icons.arrow_forward_ios_rounded,
+              tooltip: 'رجوع',
+              onTap: () => Navigator.of(context).pop(),
+            ),
+          ),
         ),
-        body: Stack(
-          children: [
-            const Positioned.fill(child: DonorBackground()),
-            SafeArea(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: donorMobileMaxWidth),
-                  child: Column(
+        body: SafeArea(
+          top: false,
+          child: DonorMobileFrame(
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                     children: [
-                      Expanded(
-                        child: ListView(
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                          children: [
-                            const _HeaderNote(),
-                            const SizedBox(height: 18),
-                            const _SectionTitle('قيمة التبرع'),
-                            const SizedBox(height: 10),
-                            _buildAmountField(),
-                            const SizedBox(height: 12),
-                            _buildQuickAmounts(),
-                            const SizedBox(height: 24),
-                            const _SectionTitle('وسيلة الدفع'),
-                            const SizedBox(height: 10),
-                            _buildPaymentMethods(),
-                          ],
-                        ),
+                      _DonationModeTabs(
+                        modes: _donationModes,
+                        selectedMode: _selectedDonationMode,
+                        onSelected: (mode) {
+                          setState(() => _selectedDonationMode = mode);
+                        },
                       ),
-                      donorMobileBottomBar(
-                        height: 84,
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            border: Border(
-                                top: BorderSide(color: AppColors.innerBorder)),
-                          ),
-                          child: DonorPrimaryButton(
-                            label: _isProcessing
-                                ? 'جاري التأكيد...'
-                                : 'مراجعة التبرع',
-                            icon: _isProcessing
-                                ? Icons.hourglass_top_rounded
-                                : Icons.lock_outline_rounded,
-                            onTap: _isProcessing ? null : _submit,
-                          ),
-                        ),
-                      ),
+                      const SizedBox(height: DonorSpacing.xxl),
+                      const DonorSectionTitle('اختر مبلغ التبرع'),
+                      const SizedBox(height: DonorSpacing.md),
+                      _buildQuickAmounts(),
+                      const SizedBox(height: DonorSpacing.lg),
+                      _buildAmountField(),
+                      const SizedBox(height: DonorSpacing.xxl),
+                      const DonorSectionTitle('اختر طريقة الدفع'),
+                      const SizedBox(height: DonorSpacing.md),
+                      _buildPaymentMethods(),
                     ],
                   ),
                 ),
-              ),
+                donorMobileBottomBar(
+                  height: 86,
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                        top: BorderSide(color: AppColors.innerBorder),
+                      ),
+                    ),
+                    child: DonorPrimaryButton(
+                      label: _isProcessing ? 'جاري التأكيد...' : 'متابعة الدفع',
+                      icon: _isProcessing
+                          ? Icons.hourglass_top_rounded
+                          : Icons.lock_outline_rounded,
+                      onTap: _isProcessing ? null : _submit,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildAmountField() {
-    return TextField(
+    return DonorInputField(
       controller: _amountController,
       keyboardType: TextInputType.number,
       textAlign: TextAlign.center,
@@ -113,73 +140,60 @@ class _FinancialDonationScreenState extends State<FinancialDonationScreen> {
           _amountError = null;
         });
       },
-      style: const TextStyle(
-        fontFamily: 'Cairo',
-        fontSize: 28,
-        fontWeight: FontWeight.w900,
-        color: AppColors.brandOrangeDark,
+      style: DonorTextStyles.title.copyWith(
+        fontSize: 25,
+        color: AppColors.textDarkPrimary,
       ),
-      decoration: InputDecoration(
-        hintText: '0 د.ل',
-        errorText: _amountError,
-        errorStyle: const TextStyle(fontFamily: 'Tajawal'),
-        suffixIcon:
-            const Icon(Icons.savings_outlined, color: AppColors.brandOrange),
-        suffixIconConstraints: const BoxConstraints(
-          minWidth: 48,
-          minHeight: 48,
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-        enabledBorder: _border(AppColors.innerBorder),
-        focusedBorder: _border(AppColors.brandOrange),
-        errorBorder: _border(AppColors.errorRed),
-        focusedErrorBorder: _border(AppColors.errorRed),
+      hintText: 'أدخل مبلغًا آخر',
+      hintStyle: DonorTextStyles.muted.copyWith(
+        color: AppColors.textDarkMuted,
       ),
-    );
-  }
-
-  OutlineInputBorder _border(Color color) {
-    return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: BorderSide(color: color, width: 1.2),
+      errorText: _amountError,
+      errorStyle: const TextStyle(fontFamily: 'Tajawal'),
+      suffixIconWidget: const Icon(
+        Icons.savings_outlined,
+        color: _primaryOrange,
+      ),
+      focusedBorderColor: _primaryOrange,
+      fillColor: Colors.white,
+      enabledBorderWidth: 1,
+      focusedBorderWidth: 1.2,
+      contentPadding: const EdgeInsets.symmetric(
+        vertical: 17,
+        horizontal: 16,
+      ),
     );
   }
 
   Widget _buildQuickAmounts() {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: _quickAmounts.map((amount) {
-        final selected = _selectedQuickAmount == amount;
-        return ChoiceChip(
-          label: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-            child: Text('$amount د.ل'),
-          ),
-          selected: selected,
-          showCheckmark: false,
-          selectedColor: AppColors.brandOrange,
-          backgroundColor: Colors.white,
-          side: BorderSide(
-              color: selected ? AppColors.brandOrange : AppColors.innerBorder),
-          labelStyle: TextStyle(
-            fontFamily: 'Cairo',
-            fontWeight: FontWeight.w900,
-            fontSize: 13.5,
-            color: selected ? Colors.white : AppColors.textDarkSecondary,
-          ),
-          onSelected: (_) {
-            setState(() {
-              _selectedQuickAmount = amount;
-              _amountController.text = amount;
-              _amountError = null;
-            });
-          },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const spacing = DonorSpacing.sm;
+        final itemWidth = (constraints.maxWidth - spacing) / 2;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: _quickAmounts.map((amount) {
+            final selected = _selectedQuickAmount == amount;
+            return SizedBox(
+              width: itemWidth,
+              height: 50,
+              child: _AmountChoiceButton(
+                label: '$amount د.ل',
+                selected: selected,
+                onTap: () {
+                  setState(() {
+                    _selectedQuickAmount = amount;
+                    _amountController.text = amount;
+                    _amountError = null;
+                  });
+                },
+              ),
+            );
+          }).toList(),
         );
-      }).toList(),
+      },
     );
   }
 
@@ -188,44 +202,13 @@ class _FinancialDonationScreenState extends State<FinancialDonationScreen> {
       children: _paymentMethods.map((method) {
         final selected = _selectedPaymentMethod == method['name'];
         return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: DonorCard(
-            padding: const EdgeInsets.all(14),
-            color: selected
-                ? AppColors.brandOrangeLight.withOpacity(0.34)
-                : Colors.white,
+          padding: const EdgeInsets.only(bottom: DonorSpacing.sm),
+          child: _PaymentMethodCard(
+            name: method['name'] as String,
+            icon: method['icon'] as IconData,
+            selected: selected,
             onTap: () => setState(
-                () => _selectedPaymentMethod = method['name'] as String),
-            child: Row(
-              children: [
-                DonorIconBox(
-                  icon: method['icon'] as IconData,
-                  color: selected
-                      ? AppColors.brandOrange
-                      : AppColors.textDarkSecondary,
-                  size: 42,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    method['name'] as String,
-                    style: const TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.textDarkPrimary,
-                    ),
-                  ),
-                ),
-                Icon(
-                  selected
-                      ? Icons.radio_button_checked_rounded
-                      : Icons.radio_button_off_rounded,
-                  color: selected
-                      ? AppColors.brandOrangeDark
-                      : AppColors.textDarkMuted,
-                ),
-              ],
+              () => _selectedPaymentMethod = method['name'] as String,
             ),
           ),
         );
@@ -270,20 +253,19 @@ class _FinancialDonationScreenState extends State<FinancialDonationScreen> {
                     ),
                   ),
                   const SizedBox(height: 18),
-                  const Text(
+                  Text(
                     'مراجعة التبرع',
-                    style: TextStyle(
-                      fontFamily: 'Cairo',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.textDarkPrimary,
-                    ),
+                    style: DonorTextStyles.title.copyWith(fontSize: 18),
                   ),
                   const SizedBox(height: 14),
                   _SummaryRow(
-                      label: 'القيمة', value: '${_formatAmount(amount)} د.ل'),
+                    label: 'القيمة',
+                    value: '${_formatAmount(amount)} د.ل',
+                  ),
                   _SummaryRow(
-                      label: 'وسيلة الدفع', value: _selectedPaymentMethod),
+                    label: 'وسيلة الدفع',
+                    value: _selectedPaymentMethod,
+                  ),
                   const SizedBox(height: 14),
                   DonorPrimaryButton(
                     label: 'تأكيد وإتمام التبرع',
@@ -337,6 +319,177 @@ class _FinancialDonationScreenState extends State<FinancialDonationScreen> {
   }
 }
 
+class _DonationModeTabs extends StatelessWidget {
+  const _DonationModeTabs({
+    required this.modes,
+    required this.selectedMode,
+    required this.onSelected,
+  });
+
+  final List<String> modes;
+  final String selectedMode;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return DonorCard(
+      padding: const EdgeInsets.all(5),
+      child: Row(
+        children: modes.map((mode) {
+          final selected = mode == selectedMode;
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: InkWell(
+                onTap: () => onSelected(mode),
+                borderRadius: DonorRadii.medium,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  height: 46,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? _FinancialDonationScreenState._primaryOrange
+                        : Colors.transparent,
+                    borderRadius: DonorRadii.medium,
+                  ),
+                  child: Text(
+                    mode,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: DonorTextStyles.button.copyWith(
+                      fontSize: 13,
+                      color:
+                          selected ? Colors.white : AppColors.textDarkPrimary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _AmountChoiceButton extends StatelessWidget {
+  const _AmountChoiceButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: DonorRadii.medium,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected
+                ? _FinancialDonationScreenState._primaryOrange
+                : Colors.white,
+            borderRadius: DonorRadii.medium,
+            border: Border.all(
+              color: selected
+                  ? _FinancialDonationScreenState._primaryOrange
+                  : _FinancialDonationScreenState._cardBorder,
+            ),
+          ),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: DonorTextStyles.button.copyWith(
+              fontSize: 14,
+              color: selected ? Colors.white : AppColors.textDarkPrimary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PaymentMethodCard extends StatelessWidget {
+  const _PaymentMethodCard({
+    required this.name,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String name;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    const activeColor = _FinancialDonationScreenState._primaryOrange;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: DonorRadii.medium,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: selected ? activeColor.withOpacity(0.08) : Colors.white,
+            borderRadius: DonorRadii.medium,
+            border: Border.all(
+              color: selected
+                  ? activeColor
+                  : _FinancialDonationScreenState._cardBorder,
+              width: selected ? 1.2 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              DonorIconBox(
+                icon: icon,
+                color: selected ? activeColor : AppColors.textDarkSecondary,
+                size: 42,
+              ),
+              const SizedBox(width: DonorSpacing.md),
+              Expanded(
+                child: Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: DonorTextStyles.sectionTitle.copyWith(
+                    fontSize: 14,
+                    color: AppColors.textDarkPrimary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: DonorSpacing.xs),
+              Icon(
+                selected
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_off_rounded,
+                color: selected ? activeColor : AppColors.textDarkMuted,
+                size: 22,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _SummaryRow extends StatelessWidget {
   const _SummaryRow({required this.label, required this.value});
 
@@ -353,9 +506,7 @@ class _SummaryRow extends StatelessWidget {
             width: 88,
             child: Text(
               label,
-              style: const TextStyle(
-                fontFamily: 'Tajawal',
-                fontSize: 13,
+              style: DonorTextStyles.muted.copyWith(
                 color: AppColors.textDarkMuted,
               ),
             ),
@@ -363,62 +514,15 @@ class _SummaryRow extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                fontFamily: 'Tajawal',
-                fontSize: 14,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: DonorTextStyles.body.copyWith(
                 fontWeight: FontWeight.w800,
                 color: AppColors.textDarkPrimary,
               ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _HeaderNote extends StatelessWidget {
-  const _HeaderNote();
-
-  @override
-  Widget build(BuildContext context) {
-    return const DonorCard(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.shield_outlined, color: AppColors.skyBlueDark),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'اختر قيمة مناسبة، وسيتم تسجيل مساهمتك وربطها بالاحتياج المحدد.',
-              style: TextStyle(
-                fontFamily: 'Tajawal',
-                fontSize: 14,
-                height: 1.5,
-                color: AppColors.textDarkSecondary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.title);
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontFamily: 'Cairo',
-        fontSize: 15,
-        fontWeight: FontWeight.w900,
-        color: AppColors.textDarkPrimary,
       ),
     );
   }

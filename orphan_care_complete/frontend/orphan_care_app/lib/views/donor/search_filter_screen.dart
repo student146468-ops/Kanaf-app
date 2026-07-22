@@ -12,24 +12,18 @@ class SearchFilterScreen extends StatefulWidget {
 
 class _SearchFilterScreenState extends State<SearchFilterScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _activeUrgencyFilter = 'الكل';
-  String _activeCityFilter = 'الكل';
-  String _activeDonationTypeFilter = 'الكل';
-  String _activeProgressFilter = 'الكل';
+  String _activeFilter = 'الكل';
 
-  final List<String> _urgencies = const [
+  static const Color _primaryOrange = Color(0xFFFF8C42);
+  static const Color _screenBackground = Color(0xFFF5F5F5);
+  static const Color _softUrgent = Color(0xFFE36F25);
+  static const Color _softCompleted = Color(0xFF4F8A64);
+
+  final List<String> _filters = const [
     'الكل',
     'عاجل',
-    'متوسط',
-    'مكتمل جزئيًا'
-  ];
-  final List<String> _cities = const ['الكل', 'غريان', 'طرابلس', 'مصراتة'];
-  final List<String> _donationTypes = const ['الكل', 'مالي', 'عيني'];
-  final List<String> _progressFilters = const [
-    'الكل',
-    'أقل من 50%',
-    '50% فأكثر',
-    'قريب من الاكتمال',
+    'قيد التنفيذ',
+    'مكتمل',
   ];
 
   // TODO: Replace mock search results with backend/AppProvider donor needs.
@@ -48,6 +42,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
       'daysLeft': '3 أيام',
       'status': 'قيد التنفيذ',
       'description': 'دعم تعليمي مباشر يساعد الأطفال على مواصلة الدراسة.',
+      'image': 'assets/images/b.png',
     },
     {
       'orphanage': 'جمعية كنف للأطفال',
@@ -63,6 +58,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
       'daysLeft': '12 يوم',
       'status': 'جديد',
       'description': 'مواد غذائية أساسية لوجبات الأطفال اليومية.',
+      'image': 'assets/images/c.png',
     },
     {
       'orphanage': 'بيت الأمل للبنين',
@@ -78,6 +74,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
       'daysLeft': '5 أيام',
       'status': 'قيد التنفيذ',
       'description': 'ملابس وأحذية مناسبة تحفظ راحة الأطفال وكرامتهم.',
+      'image': 'assets/images/a.png',
     },
   ];
 
@@ -94,112 +91,61 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
-        appBar: donorMobileAppBar(
-          title: 'البحث عن احتياج',
-          leading: donorBackButton(context),
+        backgroundColor: _screenBackground,
+        appBar: DonorTopBar(
+          title: 'قائمة الاحتياجات',
+          leading: Padding(
+            padding: const EdgeInsetsDirectional.only(start: DonorSpacing.md),
+            child: DonorTopBarActionButton(
+              icon: Icons.arrow_forward_ios_rounded,
+              tooltip: 'رجوع',
+              onTap: () => Navigator.of(context).pop(),
+            ),
+          ),
         ),
-        body: Stack(
-          children: [
-            const Positioned.fill(child: DonorBackground()),
-            SafeArea(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: donorMobileMaxWidth),
-                  child: ListView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                    children: [
-                      _buildSearchField(),
-                      const SizedBox(height: 14),
-                      _FilterSection(
-                        title: 'المدينة',
-                        children: _buildFilterChips(
-                          values: _cities,
-                          activeValue: _activeCityFilter,
-                          onSelected: (value) =>
-                              setState(() => _activeCityFilter = value),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _FilterSection(
-                        title: 'نوع التبرع',
-                        children: _buildFilterChips(
-                          values: _donationTypes,
-                          activeValue: _activeDonationTypeFilter,
-                          onSelected: (value) =>
-                              setState(() => _activeDonationTypeFilter = value),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _FilterSection(
-                        title: 'الأولوية',
-                        children: _buildFilterChips(
-                          values: _urgencies,
-                          activeValue: _activeUrgencyFilter,
-                          onSelected: (value) =>
-                              setState(() => _activeUrgencyFilter = value),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _FilterSection(
-                        title: 'نسبة الإنجاز',
-                        children: _buildFilterChips(
-                          values: _progressFilters,
-                          activeValue: _activeProgressFilter,
-                          onSelected: (value) =>
-                              setState(() => _activeProgressFilter = value),
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              results.isEmpty
-                                  ? 'لا توجد نتائج مطابقة'
-                                  : '${results.length} نتائج مناسبة',
-                              style: const TextStyle(
-                                fontFamily: 'Cairo',
-                                fontSize: 15,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.textDarkPrimary,
-                              ),
-                            ),
-                          ),
-                          TextButton.icon(
-                            onPressed: _resetFilters,
-                            icon: const Icon(Icons.refresh_rounded, size: 17),
-                            label: const Text('مسح الفلاتر'),
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.brandOrangeDark,
-                              textStyle: const TextStyle(
-                                fontFamily: 'Cairo',
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      if (results.isEmpty)
-                        DonorEmptyState(
+        body: SafeArea(
+          top: false,
+          child: DonorMobileFrame(
+            child: Column(
+              children: [
+                _NeedsFilterBar(
+                  filters: _filters,
+                  activeFilter: _activeFilter,
+                  onSelected: (value) => setState(() => _activeFilter = value),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    20,
+                    DonorSpacing.md,
+                    20,
+                    DonorSpacing.sm,
+                  ),
+                  child: _buildSearchField(),
+                ),
+                Expanded(
+                  child: results.isEmpty
+                      ? DonorEmptyState(
                           icon: Icons.search_off_rounded,
                           title: 'لم نجد احتياجًا مطابقًا',
-                          message: 'جرّب كلمة أبسط أو امسح الفلاتر الحالية.',
+                          message:
+                              'جرّب كلمة أبسط أو اختر فلترًا آخر من القائمة.',
                           actionLabel: 'إعادة ضبط البحث',
                           onAction: _resetFilters,
                         )
-                      else
-                        ...results.map(_buildResultCard),
-                    ],
-                  ),
+                      : ListView.separated(
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+                          itemBuilder: (context, index) {
+                            return _NeedListCard(need: results[index]);
+                          },
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: DonorSpacing.lg),
+                          itemCount: results.length,
+                        ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -208,244 +154,473 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
   List<Map<String, dynamic>> get _filteredResults {
     final query = _searchController.text.trim();
     return _needs.where((need) {
-      final matchesUrgency = _activeUrgencyFilter == 'الكل' ||
-          need['urgency'] == _activeUrgencyFilter;
-      final matchesCity =
-          _activeCityFilter == 'الكل' || need['city'] == _activeCityFilter;
-      final matchesDonationType = _activeDonationTypeFilter == 'الكل' ||
-          need['donationType'] == _activeDonationTypeFilter;
-      final matchesProgress = _matchesProgress(need['progress'] as double);
+      final status = need['status'].toString();
+      final urgency = need['urgency'].toString();
+      final progress = (need['progress'] as num).toDouble();
+      final matchesFilter = switch (_activeFilter) {
+        'عاجل' => urgency == 'عاجل',
+        'قيد التنفيذ' => status == 'قيد التنفيذ',
+        'مكتمل' => status.contains('مكتمل') || progress >= 1,
+        _ => true,
+      };
       final matchesQuery = query.isEmpty ||
           need['title'].toString().contains(query) ||
-          need['orphanage'].toString().contains(query);
-      return matchesUrgency &&
-          matchesCity &&
-          matchesDonationType &&
-          matchesProgress &&
-          matchesQuery;
+          need['orphanage'].toString().contains(query) ||
+          need['category'].toString().contains(query);
+      return matchesFilter && matchesQuery;
     }).toList();
-  }
-
-  bool _matchesProgress(double progress) {
-    switch (_activeProgressFilter) {
-      case 'أقل من 50%':
-        return progress < 0.5;
-      case '50% فأكثر':
-        return progress >= 0.5;
-      case 'قريب من الاكتمال':
-        return progress >= 0.8;
-      default:
-        return true;
-    }
   }
 
   void _resetFilters() {
     setState(() {
       _searchController.clear();
-      _activeUrgencyFilter = 'الكل';
-      _activeCityFilter = 'الكل';
-      _activeDonationTypeFilter = 'الكل';
-      _activeProgressFilter = 'الكل';
+      _activeFilter = 'الكل';
     });
   }
 
   Widget _buildSearchField() {
-    return TextField(
-      controller: _searchController,
-      onChanged: (_) => setState(() {}),
-      style: const TextStyle(fontFamily: 'Tajawal', fontSize: 15),
-      decoration: InputDecoration(
-        hintText: 'ابحث باسم الدار أو نوع الاحتياج',
-        hintStyle: const TextStyle(
-            fontFamily: 'Tajawal', color: AppColors.textDarkMuted),
-        prefixIcon:
-            const Icon(Icons.search_rounded, color: AppColors.brandOrange),
-        prefixIconConstraints: const BoxConstraints(
-          minWidth: 48,
-          minHeight: 48,
-        ),
-        suffixIcon: _searchController.text.isEmpty
-            ? null
-            : IconButton(
-                tooltip: 'مسح البحث',
-                icon: const Icon(Icons.close_rounded,
-                    color: AppColors.textDarkMuted),
-                onPressed: () {
-                  _searchController.clear();
-                  setState(() {});
-                },
-              ),
-        suffixIconConstraints: const BoxConstraints(
-          minWidth: 48,
-          minHeight: 48,
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.innerBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide:
-              const BorderSide(color: AppColors.brandOrange, width: 1.4),
-        ),
+    return Container(
+      height: 52,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(999),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.045),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-    );
-  }
-
-  List<Widget> _buildFilterChips({
-    required List<String> values,
-    required String activeValue,
-    required ValueChanged<String> onSelected,
-  }) {
-    return values.map((value) {
-      final selected = activeValue == value;
-      return ChoiceChip(
-        label: Text(value),
-        selected: selected,
-        showCheckmark: false,
-        selectedColor: AppColors.brandOrange,
-        backgroundColor: Colors.white,
-        side: BorderSide(
-            color: selected ? AppColors.brandOrange : AppColors.innerBorder),
-        labelStyle: TextStyle(
-          fontFamily: 'Cairo',
-          fontSize: 12.5,
-          fontWeight: FontWeight.w800,
-          color: selected ? Colors.white : AppColors.textDarkSecondary,
+      child: TextField(
+        controller: _searchController,
+        onChanged: (_) => setState(() {}),
+        textAlign: TextAlign.start,
+        style: DonorTextStyles.body.copyWith(
+          fontSize: 14.5,
+          color: AppColors.textDarkPrimary,
         ),
-        onSelected: (_) => onSelected(value),
-      );
-    }).toList();
-  }
-
-  Widget _buildResultCard(Map<String, dynamic> need) {
-    final progress = (need['progress'] as num).toDouble().clamp(0.0, 1.0);
-    final percentage = (progress * 100).round();
-    final urgency = need['urgency'] as String;
-    final donationType = need['donationType'] as String;
-    final priorityColor = donorStatusColor(urgency);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: DonorCard(
-        onTap: () =>
-            Navigator.pushNamed(context, '/need_details', arguments: need),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                DonorIconBox(
-                  icon: donationType == 'مالي'
-                      ? Icons.savings_outlined
-                      : Icons.inventory_2_outlined,
-                  color: donationType == 'مالي'
-                      ? AppColors.brandOrange
-                      : AppColors.successGreen,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        need['title'] as String,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.textDarkPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        need['orphanage'] as String,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontFamily: 'Tajawal',
-                          fontSize: 13,
-                          color: AppColors.textDarkSecondary,
-                        ),
-                      ),
-                    ],
+        decoration: InputDecoration(
+          hintText: 'ابحث باسم الدار أو نوع الاحتياج',
+          hintStyle: DonorTextStyles.muted.copyWith(
+            color: AppColors.textDarkMuted,
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: _primaryOrange,
+            size: 21,
+          ),
+          suffixIcon: _searchController.text.isEmpty
+              ? null
+              : IconButton(
+                  tooltip: 'مسح البحث',
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: AppColors.textDarkMuted,
                   ),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() {});
+                  },
                 ),
-                const Icon(Icons.chevron_left_rounded,
-                    color: AppColors.textDarkMuted),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                DonorBadge(
-                  label: urgency,
-                  color: priorityColor,
-                  icon: urgency == 'عاجل'
-                      ? Icons.priority_high_rounded
-                      : Icons.flag_outlined,
-                ),
-                DonorBadge(
-                  label: '$percentage% مكتمل',
-                  color: AppColors.skyBlueDark,
-                  icon: Icons.insights_outlined,
-                ),
-                DonorBadge(
-                  label: donationType == 'مالي'
-                      ? 'متبقي ${need['remaining']}'
-                      : 'متبقي ${need['daysLeft']}',
-                  color: AppColors.textDarkSecondary,
-                  icon: Icons.timer_outlined,
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(99),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 7,
-                backgroundColor: AppColors.surfaceLight,
-                valueColor: AlwaysStoppedAnimation<Color>(priorityColor),
-              ),
-            ),
-          ],
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(999),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(999),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(999),
+            borderSide: const BorderSide(color: _primaryOrange, width: 1),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: 14,
+          ),
         ),
       ),
     );
   }
 }
 
-class _FilterSection extends StatelessWidget {
-  const _FilterSection({required this.title, required this.children});
+class _NeedsFilterBar extends StatelessWidget {
+  final List<String> filters;
+  final String activeFilter;
+  final ValueChanged<String> onSelected;
 
-  final String title;
-  final List<Widget> children;
+  const _NeedsFilterBar({
+    required this.filters,
+    required this.activeFilter,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 58,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsetsDirectional.fromSTEB(20, 10, 20, 6),
+        itemBuilder: (context, index) {
+          final label = filters[index];
+          final selected = label == activeFilter;
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => onSelected(label),
+              borderRadius: BorderRadius.circular(999),
+              child: Container(
+                height: 42,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? _SearchFilterScreenState._primaryOrange
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(999),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 14,
+                      offset: const Offset(0, 7),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  label,
+                  style: DonorTextStyles.button.copyWith(
+                    fontSize: 12.5,
+                    color:
+                        selected ? Colors.white : AppColors.textDarkSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+        separatorBuilder: (_, __) => const SizedBox(width: DonorSpacing.xs),
+        itemCount: filters.length,
+      ),
+    );
+  }
+}
+
+class _NeedListCard extends StatelessWidget {
+  final Map<String, dynamic> need;
+
+  const _NeedListCard({required this.need});
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = (need['progress'] as num).toDouble().clamp(0.0, 1.0);
+    final percentage = (progress * 100).round();
+    final status = need['status'] as String;
+    final urgency = need['urgency'] as String;
+    final badgeLabel = status.contains('مكتمل') ? 'مكتمل' : urgency;
+    final badgeColor = _badgeColor(badgeLabel);
+
+    return _SoftCard(
+      onTap: () =>
+          Navigator.pushNamed(context, '/need_details', arguments: need),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _NeedCardContent(
+                  need: need,
+                  badgeLabel: badgeLabel,
+                  badgeColor: badgeColor,
+                  progress: progress,
+                  percentage: percentage,
+                ),
+              ),
+              const SizedBox(width: 12),
+              _NeedImage(imagePath: need['image'] as String),
+            ],
+          ),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: () => Navigator.pushNamed(
+              context,
+              '/need_details',
+              arguments: need,
+            ),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+              backgroundColor: _SearchFilterScreenState._primaryOrange,
+              foregroundColor: Colors.white,
+              textStyle: DonorTextStyles.button.copyWith(fontSize: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
+              ),
+              elevation: 0,
+            ),
+            child: const Text('تبرع الآن'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _badgeColor(String label) {
+    if (label.contains('مكتمل')) {
+      return _SearchFilterScreenState._softCompleted;
+    }
+    if (label.contains('عاجل') || label.contains('قيد التنفيذ')) {
+      return _SearchFilterScreenState._softUrgent;
+    }
+    return AppColors.textDarkSecondary;
+  }
+}
+
+class _NeedCardContent extends StatelessWidget {
+  final Map<String, dynamic> need;
+  final String badgeLabel;
+  final Color badgeColor;
+  final double progress;
+  final int percentage;
+
+  const _NeedCardContent({
+    required this.need,
+    required this.badgeLabel,
+    required this.badgeColor,
+    required this.progress,
+    required this.percentage,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                need['title'] as String,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.start,
+                style: DonorTextStyles.title.copyWith(
+                  fontSize: 14.8,
+                  height: 1.35,
+                  color: AppColors.textDarkPrimary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            _NeedStatusBadge(label: badgeLabel, color: badgeColor),
+          ],
+        ),
+        const SizedBox(height: 7),
         Text(
-          title,
-          style: const TextStyle(
-            fontFamily: 'Cairo',
-            fontSize: 13.5,
-            fontWeight: FontWeight.w900,
-            color: AppColors.textDarkPrimary,
+          need['orphanage'] as String,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.start,
+          style: DonorTextStyles.muted.copyWith(
+            color: AppColors.textDarkSecondary,
+            fontSize: 12.8,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          need['city'] as String,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.start,
+          style: DonorTextStyles.muted.copyWith(
+            color: AppColors.textDarkMuted,
+            fontSize: 12.5,
           ),
         ),
         const SizedBox(height: 8),
-        Wrap(spacing: 8, runSpacing: 8, children: children),
+        Text.rich(
+          TextSpan(
+            children: [
+              const TextSpan(
+                text: 'المبلغ الإجمالي: ',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              TextSpan(text: need['target'] as String),
+            ],
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.start,
+          style: DonorTextStyles.muted.copyWith(
+            fontSize: 13,
+            color: AppColors.textDarkSecondary,
+          ),
+        ),
+        const SizedBox(height: 13),
+        Directionality(
+          textDirection: TextDirection.rtl,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  'المبلغ المجمع ${need['raised']}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: DonorTextStyles.muted.copyWith(
+                    fontSize: 12.8,
+                    fontWeight: FontWeight.w900,
+                    color: _SearchFilterScreenState._primaryOrange,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '$percentage%',
+                textDirection: TextDirection.ltr,
+                style: DonorTextStyles.badge.copyWith(
+                  fontSize: 12,
+                  color: AppColors.textDarkPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        _RtlProgressBar(value: progress),
+        const SizedBox(height: 8),
+        Text(
+          'متبقي ${need['daysLeft']}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: DonorTextStyles.muted.copyWith(
+            fontSize: 12,
+            color: AppColors.textDarkSecondary,
+          ),
+        ),
       ],
+    );
+  }
+}
+
+class _SoftCard extends StatelessWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+
+  const _SoftCard({
+    required this.child,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final card = Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.045),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: child,
+    );
+
+    if (onTap == null) return card;
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: card,
+      ),
+    );
+  }
+}
+
+class _NeedStatusBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _NeedStatusBadge({
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.11),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: DonorTextStyles.badge.copyWith(
+          fontSize: 11,
+          color: color,
+        ),
+      ),
+    );
+  }
+}
+
+class _RtlProgressBar extends StatelessWidget {
+  final double value;
+
+  const _RtlProgressBar({required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        height: 8,
+        color: const Color(0xFFECECEC),
+        alignment: Alignment.centerRight,
+        child: FractionallySizedBox(
+          alignment: Alignment.centerRight,
+          widthFactor: value,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: _SearchFilterScreenState._primaryOrange,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NeedImage extends StatelessWidget {
+  final String imagePath;
+
+  const _NeedImage({required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: Image.asset(
+        imagePath,
+        width: 104,
+        height: 120,
+        fit: BoxFit.cover,
+      ),
     );
   }
 }

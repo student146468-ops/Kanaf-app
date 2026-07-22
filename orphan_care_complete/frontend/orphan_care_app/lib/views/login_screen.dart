@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../services/api_service.dart';
 import '../utils/app_colors.dart';
-import 'register_screen.dart';
+import '../utils/auth_navigation.dart';
 
 /// [LoginScreen] - واجهة تسجيل الدخول لـ "تطبيق كَنَفْ".
 class LoginScreen extends StatefulWidget {
@@ -12,6 +13,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final ApiService _apiService = ApiService();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final FocusNode _emailFocusNode = FocusNode();
@@ -51,21 +53,30 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1500));
 
-    if (mounted) {
+    try {
+      final response = await _apiService.login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+      if (!mounted) return;
       setState(() => _isLoading = false);
-
-      final String selectedRole =
-          ModalRoute.of(context)?.settings.arguments as String? ?? 'donor';
-
-      if (selectedRole == 'care_home') {
-        Navigator.of(context).pushReplacementNamed('/care_home_home');
-      } else if (selectedRole == 'volunteer') {
-        Navigator.of(context).pushReplacementNamed('/volunteer_home');
-      } else {
-        Navigator.of(context).pushReplacementNamed('/supporter_home');
-      }
+      AuthNavigation.navigateByRole(
+        context,
+        AuthNavigation.roleFromAuthResponse(response),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error.toString(),
+            style: const TextStyle(fontFamily: 'Cairo'),
+          ),
+          backgroundColor: AppColors.errorRed,
+        ),
+      );
     }
   }
 
@@ -221,11 +232,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             height: 54,
                             child: OutlinedButton(
                               onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (ctx) => const RegisterScreen(),
-                                  ),
+                                Navigator.of(context).pushNamed(
+                                  '/register',
+                                  arguments: ModalRoute.of(context)
+                                      ?.settings
+                                      .arguments,
                                 );
                               },
                               style: OutlinedButton.styleFrom(
