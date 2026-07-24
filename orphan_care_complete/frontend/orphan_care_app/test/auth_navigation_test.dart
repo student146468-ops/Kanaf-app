@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kanaf/services/api_config.dart';
 import 'package:kanaf/services/api_service.dart';
 import 'package:kanaf/utils/auth_navigation.dart';
 
@@ -50,6 +52,36 @@ void main() {
   });
 
   group('Auth API error messages', () {
+    test('resolves API base URL by platform', () {
+      expect(
+        ApiConfig.resolveBaseUrl(
+          configuredBaseUrl: '',
+          isWeb: true,
+          isDebug: true,
+          targetPlatform: TargetPlatform.windows,
+        ),
+        'http://127.0.0.1:8000/api',
+      );
+      expect(
+        ApiConfig.resolveBaseUrl(
+          configuredBaseUrl: '',
+          isWeb: false,
+          isDebug: true,
+          targetPlatform: TargetPlatform.android,
+        ),
+        'http://10.23.134.228:8000/api',
+      );
+      expect(
+        ApiConfig.resolveBaseUrl(
+          configuredBaseUrl: 'http://192.168.1.10:8000/api/',
+          isWeb: false,
+          isDebug: true,
+          targetPlatform: TargetPlatform.android,
+        ),
+        'http://192.168.1.10:8000/api',
+      );
+    });
+
     test('does not expose technical details for missing login endpoint', () {
       final message = ApiService.friendlyMessageForDioException(
         DioException(

@@ -17,4 +17,10 @@ Write-Host "Building debug APK with API_BASE_URL=$apiBaseUrl"
 flutter build apk --debug --dart-define=API_BASE_URL=$apiBaseUrl
 
 $apkPath = Join-Path $projectRoot 'build/app/outputs/flutter-apk/app-debug.apk'
+$readyApkDir = Join-Path $projectRoot 'READY_APK'
+$readyApkPath = Join-Path $readyApkDir 'Kanaf.apk'
+New-Item -ItemType Directory -Force -Path $readyApkDir | Out-Null
+Copy-Item -Force -Path $apkPath -Destination $readyApkPath
+
 Write-Host "APK ready: $apkPath"
+Write-Host "READY_APK copy: $readyApkPath"

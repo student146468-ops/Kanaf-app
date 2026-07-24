@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/auth_navigation.dart';
+import 'api_config.dart';
 
 class ApiServiceException implements Exception {
   final String message;
@@ -15,25 +16,18 @@ class ApiServiceException implements Exception {
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
-  static const String _configuredBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-  );
-  static const String _localWebBaseUrl = 'http://127.0.0.1:8000/api';
-  static const String _productionBaseUrl =
-      'https://kanafapp.pythonanywhere.com/api';
 
-  static String get baseUrl1 {
-    if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
-    if (kDebugMode && kIsWeb) return _localWebBaseUrl;
-    return _productionBaseUrl;
-  }
+  static String get baseUrl1 => ApiConfig.baseUrl;
 
   late final Dio _dio;
 
   factory ApiService() => _instance;
 
   ApiService._internal() {
-    debugPrint('Kanaf API baseUrl=$baseUrl1');
+    debugPrint(
+      'Kanaf API baseUrl=$baseUrl1 '
+      'connectTimeout=30s receiveTimeout=30s',
+    );
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl1,

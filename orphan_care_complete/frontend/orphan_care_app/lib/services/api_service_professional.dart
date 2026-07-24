@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
+import 'api_config.dart';
 import 'api_service.dart' as standard_api;
 
 /// خدمة الـ API المحسّنة - نقطة الاتصال الموحدة بين التطبيق والمنظومة
@@ -12,18 +13,7 @@ class ApiService {
   late Dio _dio;
 
   // عنوان المنظومة الأساسي (يمكن تغييره حسب البيئة)
-  static const String _configuredBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-  );
-  static const String _localWebBaseUrl = 'http://127.0.0.1:8000/api';
-  static const String _productionBaseUrl =
-      'https://kanafapp.pythonanywhere.com/api';
-
-  static String get baseUrl {
-    if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
-    if (kDebugMode && kIsWeb) return _localWebBaseUrl;
-    return _productionBaseUrl;
-  }
+  static String get baseUrl => ApiConfig.baseUrl;
 
   // متغير لتخزين المستخدم الحالي
   UserModel? _currentUser;
@@ -37,7 +27,10 @@ class ApiService {
   }
 
   void _initializeDio() {
-    debugPrint('Kanaf professional API baseUrl=$baseUrl');
+    debugPrint(
+      'Kanaf professional API baseUrl=$baseUrl '
+      'connectTimeout=30s receiveTimeout=30s',
+    );
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
