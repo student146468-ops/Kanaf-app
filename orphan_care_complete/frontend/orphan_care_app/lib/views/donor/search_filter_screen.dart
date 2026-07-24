@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../utils/app_colors.dart';
 import 'donor_mobile_chrome.dart';
@@ -92,16 +92,9 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _screenBackground,
-        appBar: DonorTopBar(
+        appBar: DonorAppBar(
           title: 'قائمة الاحتياجات',
-          leading: Padding(
-            padding: const EdgeInsetsDirectional.only(start: DonorSpacing.md),
-            child: DonorTopBarActionButton(
-              icon: Icons.arrow_forward_ios_rounded,
-              tooltip: 'رجوع',
-              onTap: () => Navigator.of(context).pop(),
-            ),
-          ),
+          leading: donorBackButton(context),
         ),
         body: SafeArea(
           top: false,

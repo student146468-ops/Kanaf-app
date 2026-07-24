@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kanaf/services/api_service.dart';
 import 'package:kanaf/utils/auth_navigation.dart';
 
 void main() {
@@ -44,6 +46,91 @@ void main() {
         AuthNavigation.roleFromAuthResponse({'access': 'token'}),
         isNull,
       );
+    });
+  });
+
+  group('Auth API error messages', () {
+    test('does not expose technical details for missing login endpoint', () {
+      final message = ApiService.friendlyMessageForDioException(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/login/'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/auth/login/'),
+            statusCode: 404,
+            data: '<html>Page not found at /api/auth/login/</html>',
+          ),
+        ),
+        isLogin: true,
+        authEndpoint: true,
+      );
+
+      expect(message, 'تعذر الوصول إلى خدمة تسجيل الدخول حالياً.');
+      expect(message, isNot(contains('404')));
+      expect(message, isNot(contains('html')));
+    });
+
+    test('maps invalid login credentials to a user friendly message', () {
+      final message = ApiService.friendlyMessageForDioException(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/login/'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/auth/login/'),
+            statusCode: 401,
+            data: {'detail': 'invalid credentials'},
+          ),
+        ),
+        isLogin: true,
+        authEndpoint: true,
+      );
+
+      expect(message, 'البريد الإلكتروني أو كلمة المرور غير صحيحة.');
+    });
+
+    test('maps duplicate register email to a user friendly message', () {
+      final message = ApiService.friendlyMessageForDioException(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/register/'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/auth/register/'),
+            statusCode: 400,
+            data: {'detail': 'username or email already exists'},
+          ),
+        ),
+        isRegister: true,
+        authEndpoint: true,
+      );
+
+      expect(message, 'هذا البريد الإلكتروني مستخدم بالفعل.');
+    });
+
+    test('maps timeout and connection errors without DioException text', () {
+      final timeoutMessage = ApiService.friendlyMessageForDioException(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/login/'),
+          type: DioExceptionType.connectionTimeout,
+        ),
+        isLogin: true,
+        authEndpoint: true,
+      );
+      final connectionMessage = ApiService.friendlyMessageForDioException(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/login/'),
+          type: DioExceptionType.connectionError,
+        ),
+        isLogin: true,
+        authEndpoint: true,
+      );
+
+      expect(
+        timeoutMessage,
+        'استغرق الاتصال وقتاً أطول من المتوقع. حاول مرة أخرى.',
+      );
+      expect(
+        connectionMessage,
+        'تعذر الاتصال بخدمة تسجيل الدخول حالياً. تأكد من تشغيل الخادم وحاول مرة أخرى.',
+      );
+      expect(timeoutMessage, isNot(contains('DioException')));
+      expect(connectionMessage, isNot(contains('DioException')));
     });
   });
 }

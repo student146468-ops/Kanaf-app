@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../utils/app_colors.dart';
 import 'donor_mobile_chrome.dart';
@@ -75,16 +75,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _screenBackground,
-        appBar: DonorTopBar(
+        appBar: DonorAppBar(
           title: 'الإشعارات',
-          leading: Padding(
-            padding: const EdgeInsetsDirectional.only(start: DonorSpacing.md),
-            child: DonorTopBarActionButton(
-              icon: Icons.arrow_forward_ios_rounded,
-              tooltip: 'رجوع',
-              onTap: () => Navigator.of(context).pop(),
-            ),
-          ),
+          leading: donorBackButton(context),
         ),
         body: SafeArea(
           top: false,
@@ -188,7 +181,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       const SnackBar(
         content: Text(
           'تم تحديد جميع الإشعارات كمقروءة',
-          style: TextStyle(fontFamily: 'Tajawal'),
+          style: TextStyle(fontFamily: 'Vazirmatn'),
         ),
         backgroundColor: _primaryOrange,
       ),
@@ -249,7 +242,7 @@ class _NotificationFilterBar extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontFamily: 'Cairo',
+                        fontFamily: 'Vazirmatn',
                         fontSize: 12.5,
                         fontWeight: FontWeight.w800,
                       ).copyWith(
@@ -286,7 +279,7 @@ class _MarkAllAsReadAction extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           textStyle: const TextStyle(
-            fontFamily: 'Cairo',
+            fontFamily: 'Vazirmatn',
             fontSize: 12.5,
             fontWeight: FontWeight.w800,
           ),
@@ -327,7 +320,7 @@ class _NotificationCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.start,
                     style: const TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: 'Vazirmatn',
                       fontSize: 14.8,
                       fontWeight: FontWeight.w900,
                       color: AppColors.textDarkPrimary,
@@ -340,7 +333,7 @@ class _NotificationCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.start,
                     style: const TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: 'Vazirmatn',
                       fontSize: 12.6,
                       fontWeight: FontWeight.w500,
                       height: 1.45,
@@ -353,7 +346,7 @@ class _NotificationCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: 'Vazirmatn',
                       fontSize: 11.5,
                       fontWeight: FontWeight.w400,
                       color: AppColors.textDarkMuted,
@@ -507,7 +500,7 @@ class _NotificationDetailsBottomSheet extends StatelessWidget {
                   child: Text(
                     notification['title'] as String,
                     style: const TextStyle(
-                      fontFamily: 'Cairo',
+                      fontFamily: 'Vazirmatn',
                       fontSize: 18,
                       height: 1.35,
                       fontWeight: FontWeight.w900,
@@ -529,7 +522,7 @@ class _NotificationDetailsBottomSheet extends StatelessWidget {
             Text(
               notification['body'] as String,
               style: const TextStyle(
-                fontFamily: 'Cairo',
+                fontFamily: 'Vazirmatn',
                 fontSize: 14.5,
                 fontWeight: FontWeight.w500,
                 height: 1.65,
@@ -540,7 +533,7 @@ class _NotificationDetailsBottomSheet extends StatelessWidget {
             Text(
               notification['time'] as String,
               style: const TextStyle(
-                fontFamily: 'Cairo',
+                fontFamily: 'Vazirmatn',
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
                 color: AppColors.textDarkMuted,

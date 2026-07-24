@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/need_model.dart';
 import '../../providers/app_provider_scope.dart';
-import '../../utils/app_colors.dart';
-import 'care_home_light_widgets.dart';
+import 'care_home_reference_widgets.dart';
 
 class NeedDetailsScreen extends StatefulWidget {
   const NeedDetailsScreen({super.key});
@@ -13,217 +12,220 @@ class NeedDetailsScreen extends StatefulWidget {
 }
 
 class _NeedDetailsScreenState extends State<NeedDetailsScreen> {
-  int? _needId;
+  int? _loadedId;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_needId != null) return;
-    final rawId = ModalRoute.of(context)?.settings.arguments;
-    _needId = rawId is int ? rawId : int.tryParse(rawId?.toString() ?? '');
-    if (_needId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        AppProviderScope.of(context).fetchNeedDetails(_needId!);
-      });
+    final id = int.tryParse(
+      ModalRoute.of(context)?.settings.arguments?.toString() ?? '',
+    );
+    if (id != null && id != _loadedId) {
+      _loadedId = id;
+      AppProviderScope.of(context).fetchNeedDetails(id);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isWebOrDesktop = size.width > 600;
     final provider = AppProviderScope.of(context);
     final need = provider.selectedNeed;
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
-        body: Center(
-          child: Container(
-            width: isWebOrDesktop ? 430 : double.infinity,
-            height: double.infinity,
-            color: Colors.white,
-            child: SafeArea(
-              child: Column(
-                children: [
-                  CareHomeTopBar(
-                    title: 'تفاصيل الاحتياج',
-                    onBack: () => Navigator.of(context).pop(),
-                    includeSafeArea: false,
-                  ),
-                  Expanded(
-                    child: provider.isLoading || need == null
-                        ? const Center(child: CircularProgressIndicator())
-                        : RefreshIndicator(
-                            onRefresh: () => provider.fetchNeedDetails(need.id),
-                            child: ListView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: CareHomeSpacing.lg,
-                                  vertical: CareHomeSpacing.md),
-                              children: [
-                                _hero(need),
-                                const SizedBox(height: CareHomeSpacing.xl),
-                                _section('بيانات الاحتياج'),
-                                const SizedBox(height: CareHomeSpacing.sm),
-                                _dataCard(need),
-                                const SizedBox(height: CareHomeSpacing.xl),
-                                _section('تفاصيل إضافية'),
-                                const SizedBox(height: CareHomeSpacing.sm),
-                                CareHomeCard(
-                                  padding:
-                                      const EdgeInsets.all(CareHomeSpacing.lg),
-                                  child: Text(
-                                    need.description.isEmpty
-                                        ? 'لا توجد تفاصيل إضافية'
-                                        : need.description,
-                                    style: CareHomeTextStyles.body
-                                        .copyWith(height: 1.6),
-                                  ),
-                                ),
-                                const SizedBox(height: CareHomeSpacing.xl),
-                                _actions(need, provider),
-                              ],
-                            ),
-                          ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+    return CareHomeRefScaffold(
+      title: 'تفاصيل الاحتياج',
+      bodyPadding: EdgeInsets.zero,
+      bottomAction: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
+        child: CareHomeRefButton(
+          label: 'تعديل الاحتياج',
+          icon: Icons.edit_outlined,
+          onPressed: need == null
+              ? null
+              : () => Navigator.of(context)
+                  .pushNamed('/care_home_edit_need', arguments: need.id),
         ),
       ),
+      body: provider.isLoading || need == null
+          ? const Center(
+              child: CircularProgressIndicator(color: careHomeRefOrange),
+            )
+          : _DetailsBody(need: need),
     );
   }
+}
 
-  Widget _hero(NeedModel need) {
-    return CareHomeCard(
-      padding: const EdgeInsets.all(CareHomeSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Hero(
-            tag: 'care-home-need-${need.id}',
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(careHomeRadiusLarge),
-              child: Container(
-                width: double.infinity,
-                height: 170,
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceLight,
-                  borderRadius: BorderRadius.circular(careHomeRadiusLarge),
-                  border: Border.all(color: AppColors.innerBorder),
-                ),
-                child: need.imageUrl == null || need.imageUrl!.isEmpty
-                    ? Icon(need.icon,
-                        color: AppColors.textDarkMuted.withOpacity(0.45),
-                        size: 42)
-                    : Image.network(need.imageUrl!, fit: BoxFit.cover),
-              ),
-            ),
-          ),
-          const SizedBox(height: CareHomeSpacing.md),
-          CareHomeStatusBadge(
-              label: need.priorityLabel,
-              color: AppColors.brandOrange,
-              icon: Icons.priority_high_rounded),
-          const SizedBox(height: CareHomeSpacing.sm),
-          Text(need.title,
-              style: CareHomeTextStyles.title
-                  .copyWith(fontSize: 21, fontWeight: FontWeight.w900)),
-          const SizedBox(height: CareHomeSpacing.xs),
-          Text(need.requiredQuantity,
-              style: CareHomeTextStyles.body
-                  .copyWith(fontWeight: FontWeight.w800)),
-        ],
-      ),
-    );
-  }
+class _DetailsBody extends StatelessWidget {
+  final NeedModel need;
 
-  Widget _dataCard(NeedModel need) {
-    return CareHomeCard(
-      padding: const EdgeInsets.all(CareHomeSpacing.lg),
-      child: Column(
-        children: [
-          _row('التصنيف', need.category),
-          const Divider(color: AppColors.divider),
-          _row('الأولوية', need.priorityLabel),
-          const Divider(color: AppColors.divider),
-          _row('الحالة', need.statusLabel),
-          const Divider(color: AppColors.divider),
-          _row('الكمية المطلوبة', need.requiredQuantity),
-          const Divider(color: AppColors.divider),
-          _row('تاريخ النشر',
-              need.createdAt == null ? '-' : _formatDate(need.createdAt!)),
-        ],
-      ),
-    );
-  }
+  const _DetailsBody({required this.need});
 
-  Widget _actions(NeedModel need, dynamic provider) {
-    return Row(
+  @override
+  Widget build(BuildContext context) {
+    final total = double.tryParse(need.requiredQuantity) ?? 0;
+    final progress =
+        total <= 0 ? 0.0 : (need.fulfilledQuantity / total).clamp(0.0, 1.0);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 92),
+      physics: const BouncingScrollPhysics(),
       children: [
-        Expanded(
-          child: CareHomeSecondaryButton(
-            label: 'تعديل البيانات',
-            icon: Icons.edit_note_rounded,
-            onPressed: () async {
-              await Navigator.of(context)
-                  .pushNamed('/care_home_edit_need', arguments: need.id);
-              if (mounted) provider.fetchNeedDetails(need.id);
-            },
-            height: 52,
+        Stack(
+          children: [
+            CareHomeRefImage(
+              imageUrl: need.imageUrl,
+              assetPath: _assetForNeed(need.category),
+              height: 180,
+              icon: Icons.inventory_2_outlined,
+            ),
+            Positioned(
+              bottom: 12,
+              left: 12,
+              child: _Badge(text: _priorityLabel(need.priority)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(need.title, style: careHomeRefTitle),
+        const SizedBox(height: 6),
+        Text(_categoryLabel(need.category), style: careHomeRefCaption),
+        const SizedBox(height: 14),
+        Text(need.description, style: careHomeRefBody.copyWith(height: 1.8)),
+        const SizedBox(height: 18),
+        Text('نسبة الإنجاز', style: careHomeRefBodyStrong),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 8,
+            color: careHomeRefOrange,
+            backgroundColor: const Color(0xFFFFEFE8),
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: CareHomePrimaryButton(
-            label: 'أرشفة',
-            icon: Icons.archive_rounded,
-            loading: provider.isSaving,
-            onPressed: () async {
-              final success = await provider.archiveNeed(need.id);
-              if (!mounted) return;
-              if (success) Navigator.of(context).pop(true);
-            },
-            height: 52,
+        const SizedBox(height: 8),
+        Text(
+          '${(progress * 100).toStringAsFixed(0)}%',
+          style: careHomeRefBodyStrong.copyWith(color: careHomeRefOrange),
+        ),
+        const SizedBox(height: 12),
+        CareHomeRefCard(
+          child: Row(
+            children: [
+              Expanded(
+                child: _Info(
+                  icon: Icons.inventory_2_outlined,
+                  label: 'المطلوب',
+                  value: need.requiredQuantity,
+                ),
+              ),
+              Expanded(
+                child: _Info(
+                  icon: Icons.check_circle_outline_rounded,
+                  label: 'المحقق',
+                  value: need.fulfilledQuantity.toStringAsFixed(0),
+                ),
+              ),
+              Expanded(
+                child: _Info(
+                  icon: Icons.flag_outlined,
+                  label: 'الحالة',
+                  value: _statusLabel(need.status),
+                ),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _section(String title) {
-    return Text(title,
-        style: CareHomeTextStyles.sectionTitle.copyWith(fontSize: 15));
-  }
+class _Info extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
 
-  Widget _row(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Text(label,
-              style: CareHomeTextStyles.body
-                  .copyWith(fontWeight: FontWeight.w800)),
-          const Spacer(),
-          Flexible(
-            child: Text(
-              value.isEmpty ? '-' : value,
-              textAlign: TextAlign.end,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style:
-                  CareHomeTextStyles.body.copyWith(fontWeight: FontWeight.w900),
-            ),
-          ),
-        ],
-      ),
+  const _Info({required this.icon, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, color: careHomeRefText, size: 20),
+        const SizedBox(height: 6),
+        Text(label, style: careHomeRefCaption),
+        const SizedBox(height: 4),
+        Text(value, style: careHomeRefBodyStrong),
+      ],
     );
   }
+}
 
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+class _Badge extends StatelessWidget {
+  final String text;
+
+  const _Badge({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: careHomeRefOrange,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child:
+          Text(text, style: careHomeRefCaption.copyWith(color: Colors.white)),
+    );
+  }
+}
+
+String _assetForNeed(String category) {
+  switch (category) {
+    case 'education':
+      return 'assets/images/image2.png';
+    case 'food':
+      return 'assets/images/image11.png';
+    case 'clothes':
+      return 'assets/images/image10.png';
+    default:
+      return 'assets/images/image12.png';
+  }
+}
+
+String _priorityLabel(String value) {
+  switch (value) {
+    case 'urgent':
+      return 'عاجل';
+    case 'low':
+      return 'منخفض';
+    default:
+      return 'معتدل';
+  }
+}
+
+String _statusLabel(String value) {
+  switch (value) {
+    case 'completed':
+      return 'مكتمل';
+    case 'archived':
+      return 'مؤرشف';
+    default:
+      return 'قيد التنفيذ';
+  }
+}
+
+String _categoryLabel(String value) {
+  switch (value) {
+    case 'education':
+      return 'تعليم';
+    case 'food':
+      return 'غذاء';
+    case 'clothes':
+      return 'ملابس';
+    case 'medical':
+      return 'صحة';
+    default:
+      return value.isEmpty ? 'احتياج' : value;
   }
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../models/donation_model.dart';
 import '../../providers/app_provider_scope.dart';
@@ -46,16 +46,9 @@ class _DonationHistoryScreenState extends State<DonationHistoryScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _screenBackground,
-        appBar: DonorTopBar(
+        appBar: DonorAppBar(
           title: 'سجل التبرعات',
-          leading: Padding(
-            padding: const EdgeInsetsDirectional.only(start: DonorSpacing.md),
-            child: DonorTopBarActionButton(
-              icon: Icons.arrow_forward_ios_rounded,
-              tooltip: 'رجوع',
-              onTap: () => Navigator.of(context).pop(),
-            ),
-          ),
+          leading: donorBackButton(context),
         ),
         body: SafeArea(
           top: false,
@@ -120,6 +113,10 @@ class _DonationHistoryScreenState extends State<DonationHistoryScreen> {
               ),
             ),
           ),
+        ),
+        bottomNavigationBar: DonorBottomNavigationBar(
+          currentIndex: 1,
+          onTap: (index) => donorNavigateByBottomIndex(context, index),
         ),
       ),
     );

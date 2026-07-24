@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../utils/app_colors.dart';
 import 'donor_mobile_chrome.dart';
@@ -61,16 +61,9 @@ class _FinancialDonationScreenState extends State<FinancialDonationScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _screenBackground,
-        appBar: DonorTopBar(
+        appBar: DonorAppBar(
           title: 'التبرع المالي',
-          leading: Padding(
-            padding: const EdgeInsetsDirectional.only(start: DonorSpacing.md),
-            child: DonorTopBarActionButton(
-              icon: Icons.arrow_forward_ios_rounded,
-              tooltip: 'رجوع',
-              onTap: () => Navigator.of(context).pop(),
-            ),
-          ),
+          leading: donorBackButton(context),
         ),
         body: SafeArea(
           top: false,
@@ -149,7 +142,7 @@ class _FinancialDonationScreenState extends State<FinancialDonationScreen> {
         color: AppColors.textDarkMuted,
       ),
       errorText: _amountError,
-      errorStyle: const TextStyle(fontFamily: 'Tajawal'),
+      errorStyle: const TextStyle(fontFamily: 'Vazirmatn'),
       suffixIconWidget: const Icon(
         Icons.savings_outlined,
         color: _primaryOrange,
@@ -295,7 +288,7 @@ class _FinancialDonationScreenState extends State<FinancialDonationScreen> {
         const SnackBar(
           content: Text(
             'تعذر تنفيذ العملية لهذه القيمة. يرجى مراجعة قيمة التبرع.',
-            style: TextStyle(fontFamily: 'Tajawal'),
+            style: TextStyle(fontFamily: 'Vazirmatn'),
           ),
         ),
       );

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../providers/app_provider_scope.dart';
-import '../../utils/app_colors.dart';
-import 'care_home_light_widgets.dart';
+import 'care_home_reference_widgets.dart';
 
 class CareHomeProfileScreen extends StatefulWidget {
   const CareHomeProfileScreen({super.key});
@@ -22,131 +21,117 @@ class _CareHomeProfileScreenState extends State<CareHomeProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isWebOrDesktop = size.width > 600;
     final provider = AppProviderScope.of(context);
     final profile = provider.careHomeProfile;
+    final name = careHomeValue(profile['name'], 'دار الأمان لرعاية الأيتام');
+    final city = careHomeValue(profile['city'], 'بنغازي');
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
-        body: Center(
-          child: Container(
-            width: isWebOrDesktop ? 430 : double.infinity,
-            height: double.infinity,
-            color: Colors.white,
-            child: SafeArea(
+    return CareHomeRefScaffold(
+      title: 'ملف الدار',
+      bottomIndex: 4,
+      body: RefreshIndicator(
+        color: careHomeRefOrange,
+        onRefresh: provider.fetchCareHomeProfile,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          children: [
+            CareHomeRefCard(
+              padding: const EdgeInsets.all(0),
               child: Column(
                 children: [
-                  CareHomeTopBar(
-                    title: 'ملف الدار',
-                    onBack: () => Navigator.of(context).pop(),
-                    includeSafeArea: false,
-                    actions: [
-                      IconButton(
-                        onPressed: () async {
-                          await Navigator.of(context)
-                              .pushNamed('/care_home_edit_profile');
-                          if (mounted) provider.fetchCareHomeProfile();
-                        },
-                        icon: const Icon(Icons.edit_note_rounded,
-                            color: AppColors.brandOrange),
-                      ),
-                    ],
+                  const CareHomeRefImage(
+                    assetPath: 'assets/images/image13.png',
+                    height: 150,
+                    icon: Icons.home_work_outlined,
                   ),
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: provider.fetchCareHomeProfile,
-                      child: provider.isLoading
-                          ? const Center(child: CircularProgressIndicator())
-                          : ListView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: CareHomeSpacing.lg,
-                                  vertical: CareHomeSpacing.md),
-                              children: [
-                                CareHomeCard(
-                                  padding:
-                                      const EdgeInsets.all(CareHomeSpacing.lg),
-                                  child: Column(
-                                    children: [
-                                      const CareHomeIconBox(
-                                          icon: Icons.home_work_rounded,
-                                          color: AppColors.brandOrange,
-                                          size: 72,
-                                          iconSize: 34),
-                                      const SizedBox(
-                                          height: CareHomeSpacing.md),
-                                      Text(
-                                          profile['name']?.toString() ??
-                                              'دار الرعاية',
-                                          textAlign: TextAlign.center,
-                                          style: CareHomeTextStyles.title
-                                              .copyWith(fontSize: 22)),
-                                      if ((profile['description'] ?? '')
-                                          .toString()
-                                          .isNotEmpty) ...[
-                                        const SizedBox(
-                                            height: CareHomeSpacing.sm),
-                                        Text(profile['description'].toString(),
-                                            textAlign: TextAlign.center,
-                                            style: CareHomeTextStyles.body),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: CareHomeSpacing.lg),
-                                _info(profile),
-                              ],
+                  Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      children: [
+                        Text(name,
+                            textAlign: TextAlign.center,
+                            style: careHomeRefTitle),
+                        const SizedBox(height: 4),
+                        Text(city, style: careHomeRefCaption),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            _ProfileStat(
+                              value: provider.needs.length.toString(),
+                              label: 'الاحتياجات',
                             ),
+                            _ProfileStat(
+                              value: careHomeValue(
+                                  profile['donations_count'], '120'),
+                              label: 'المستفيدون',
+                            ),
+                            _ProfileStat(
+                              value: careHomeValue(profile['rating'], '4.8'),
+                              label: 'التقييم',
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-          ),
+            CareHomeRefButton(
+              label: 'عرض الاحتياجات',
+              onPressed: () =>
+                  Navigator.of(context).pushNamed('/care_home_needs_list'),
+            ),
+            const SizedBox(height: 10),
+            CareHomeRefButton(
+              label: 'تعديل الملف',
+              outlined: true,
+              onPressed: () async {
+                await Navigator.of(context)
+                    .pushNamed('/care_home_edit_profile');
+                if (context.mounted) provider.fetchCareHomeProfile();
+              },
+            ),
+            const SizedBox(height: 16),
+            CareHomeRefRowTile(
+              icon: Icons.email_outlined,
+              title: 'البريد الإلكتروني',
+              subtitle: careHomeValue(profile['email'], 'غير محدد'),
+            ),
+            CareHomeRefRowTile(
+              icon: Icons.phone_iphone_rounded,
+              title: 'رقم الهاتف',
+              subtitle: careHomeValue(profile['phone'], 'غير محدد'),
+            ),
+            CareHomeRefRowTile(
+              icon: Icons.location_on_outlined,
+              title: 'العنوان',
+              subtitle: careHomeValue(profile['address'], 'غير محدد'),
+            ),
+            const SizedBox(height: 80),
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget _info(Map<String, dynamic> profile) {
-    return CareHomeCard(
-      padding: const EdgeInsets.all(CareHomeSpacing.lg),
+class _ProfileStat extends StatelessWidget {
+  final String value;
+  final String label;
+
+  const _ProfileStat({required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
       child: Column(
         children: [
-          _row('البريد الإلكتروني', profile['email']),
-          _row('رقم الهاتف', profile['phone']),
-          _row('المدينة', profile['city']),
-          _row('العنوان', profile['address']),
-          _row('اسم المسؤول', profile['manager_name']),
-          _row('رقم الترخيص', profile['license_number']),
-          _row('عدد الأطفال', profile['children_count']),
-          _row('ساعات الزيارة', profile['visit_hours']),
-        ],
-      ),
-    );
-  }
-
-  Widget _row(String label, dynamic value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Text(label,
-              style: CareHomeTextStyles.body
-                  .copyWith(fontWeight: FontWeight.w800)),
-          const Spacer(),
-          Flexible(
-            child: Text(
-              value?.toString().isNotEmpty == true ? value.toString() : '-',
-              textAlign: TextAlign.end,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: CareHomeTextStyles.body,
-            ),
-          ),
+          Text(value, style: careHomeRefBodyStrong.copyWith(fontSize: 15)),
+          const SizedBox(height: 4),
+          Text(label, style: careHomeRefCaption),
         ],
       ),
     );

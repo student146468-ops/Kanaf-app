@@ -25,6 +25,18 @@ class AuthApiTests(APITestCase):
         self.assertEqual(response.json()['status'], 'ok')
         self.assertEqual(response.json()['database'], 'ok')
 
+    def test_flutter_web_dynamic_localhost_origin_is_allowed(self):
+        response = self.client.get(
+            reverse('health'),
+            HTTP_ORIGIN='http://localhost:59933',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response['access-control-allow-origin'],
+            'http://localhost:59933',
+        )
+
     def test_register_endpoint_creates_user(self):
         url = reverse('register')
         data = {
@@ -36,6 +48,34 @@ class AuthApiTests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(get_user_model().objects.filter(username='newuser').exists())
+
+    def test_flutter_register_path_is_available(self):
+        response = self.client.post('/api/auth/register/', {
+            'username': 'pathuser',
+            'email': 'pathuser@example.com',
+            'password': 'StrongPass123!',
+            'password_confirm': 'StrongPass123!',
+            'role': UserProfile.ROLE_DONOR,
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('access', response.json())
+        self.assertIn('user', response.json())
+
+    def test_flutter_login_path_is_available(self):
+        get_user_model().objects.create_user(
+            username='pathlogin',
+            email='pathlogin@example.com',
+            password='StrongPass123!',
+        )
+        response = self.client.post('/api/auth/login/', {
+            'email': 'pathlogin@example.com',
+            'password': 'StrongPass123!',
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('access', response.json())
+        self.assertIn('token', response.json())
 
     def test_orphan_list_requires_authentication(self):
         url = reverse('orphan-list')

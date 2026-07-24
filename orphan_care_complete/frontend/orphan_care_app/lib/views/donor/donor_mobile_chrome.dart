@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../utils/app_colors.dart';
 
 const double donorMobileMaxWidth = 430;
-const double donorAppBarHeight = 64;
+const double donorAppBarHeight = 72;
 const double donorHorizontalPadding = 20;
 const double donorRadius = 18;
 const double donorRadiusMedium = 16;
@@ -41,42 +41,42 @@ class DonorRadii {
 
 class DonorTextStyles {
   static const TextStyle title = TextStyle(
-    fontFamily: 'Cairo',
+    fontFamily: 'Vazirmatn',
     fontSize: 18,
-    fontWeight: FontWeight.w900,
+    fontWeight: FontWeight.w700,
     color: AppColors.textDarkPrimary,
   );
 
   static const TextStyle sectionTitle = TextStyle(
-    fontFamily: 'Cairo',
+    fontFamily: 'Vazirmatn',
     fontSize: 15,
-    fontWeight: FontWeight.w900,
+    fontWeight: FontWeight.w600,
     color: AppColors.textDarkPrimary,
   );
 
   static const TextStyle body = TextStyle(
-    fontFamily: 'Tajawal',
+    fontFamily: 'Vazirmatn',
     fontSize: 14,
     height: 1.5,
     color: AppColors.textDarkSecondary,
   );
 
   static const TextStyle muted = TextStyle(
-    fontFamily: 'Tajawal',
+    fontFamily: 'Vazirmatn',
     fontSize: 13,
     color: AppColors.textDarkMuted,
   );
 
   static const TextStyle button = TextStyle(
-    fontFamily: 'Cairo',
+    fontFamily: 'Vazirmatn',
     fontSize: 14,
-    fontWeight: FontWeight.w900,
+    fontWeight: FontWeight.w700,
   );
 
   static const TextStyle badge = TextStyle(
-    fontFamily: 'Tajawal',
+    fontFamily: 'Vazirmatn',
     fontSize: 11.5,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w600,
   );
 
   const DonorTextStyles._();
@@ -87,15 +87,15 @@ PreferredSizeWidget donorMobileAppBar({
   Widget? leading,
   List<Widget>? actions,
 }) {
-  return DonorTopBar(title: title, leading: leading, actions: actions);
+  return DonorAppBar(title: title, leading: leading, actions: actions);
 }
 
-class DonorTopBar extends StatelessWidget implements PreferredSizeWidget {
+class DonorAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Widget? leading;
   final List<Widget>? actions;
 
-  const DonorTopBar({
+  const DonorAppBar({
     super.key,
     required this.title,
     this.leading,
@@ -107,48 +107,66 @@ class DonorTopBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PreferredSize(
-      preferredSize: preferredSize,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: donorMobileMaxWidth),
-          child: AppBar(
-            backgroundColor: Colors.white,
-            surfaceTintColor: Colors.white,
-            elevation: 0,
-            centerTitle: true,
-            titleSpacing: 8,
-            leadingWidth: 56,
-            leading: leading,
-            title: Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: DonorTextStyles.title,
+    final resolvedActions = actions ?? const <Widget>[];
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Material(
+        color: Colors.white,
+        elevation: 0,
+        borderRadius: const BorderRadius.vertical(
+          bottom: Radius.circular(22),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: DonorMobileFrame(
+            child: SizedBox(
+              height: donorAppBarHeight,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  PositionedDirectional(
+                    start: DonorSpacing.md,
+                    child: SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: Center(child: leading),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 72),
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: DonorTextStyles.title,
+                    ),
+                  ),
+                  PositionedDirectional(
+                    end: DonorSpacing.md,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 112),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        textDirection: TextDirection.ltr,
+                        children: [
+                          for (final action in resolvedActions) ...[
+                            action,
+                            if (action != resolvedActions.last)
+                              const SizedBox(width: DonorSpacing.xs),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            actions: actions,
           ),
         ),
       ),
     );
-  }
-}
-
-class DonorTopBarActionButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  final String? tooltip;
-
-  const DonorTopBarActionButton({
-    super.key,
-    required this.icon,
-    required this.onTap,
-    this.tooltip,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return DonorCircleButton(icon: icon, onTap: onTap, tooltip: tooltip);
   }
 }
 
@@ -184,6 +202,134 @@ class DonorBottomBar extends StatelessWidget {
   }
 }
 
+class DonorBottomNavigationBar extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  const DonorBottomNavigationBar({
+    super.key,
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return donorMobileBottomBar(
+      height: 78,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.innerBorder),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.045),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: NavigationBarTheme(
+            data: const NavigationBarThemeData(
+              labelTextStyle: WidgetStatePropertyAll(
+                TextStyle(
+                  fontFamily: 'Vazirmatn',
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDarkSecondary,
+                ),
+              ),
+            ),
+            child: NavigationBar(
+              selectedIndex: currentIndex,
+              height: 66,
+              elevation: 0,
+              backgroundColor: Colors.white,
+              surfaceTintColor: Colors.white,
+              indicatorColor: AppColors.brandOrangeLight,
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              onDestinationSelected: onTap,
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined, size: 22),
+                  selectedIcon: Icon(
+                    Icons.home_rounded,
+                    color: AppColors.brandOrange,
+                    size: 22,
+                  ),
+                  label: 'الرئيسية',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.receipt_long_outlined, size: 22),
+                  selectedIcon: Icon(
+                    Icons.receipt_long_rounded,
+                    color: AppColors.brandOrange,
+                    size: 22,
+                  ),
+                  label: 'السجل',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.person_outline_rounded, size: 22),
+                  selectedIcon: Icon(
+                    Icons.person_rounded,
+                    color: AppColors.brandOrange,
+                    size: 22,
+                  ),
+                  label: 'حسابي',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+void donorNavigateByBottomIndex(BuildContext context, int index) {
+  final routeName = switch (index) {
+    0 => '/supporter_home',
+    1 => '/donation_history',
+    2 => '/profile',
+    _ => null,
+  };
+
+  if (routeName == null) return;
+  final currentRoute = ModalRoute.of(context)?.settings.name;
+  if (currentRoute == routeName) return;
+  Navigator.pushNamed(context, routeName);
+}
+
+class DonorTopBar extends DonorAppBar {
+  const DonorTopBar({
+    super.key,
+    required super.title,
+    super.leading,
+    super.actions,
+  });
+}
+
+class DonorTopBarActionButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final String? tooltip;
+
+  const DonorTopBarActionButton({
+    super.key,
+    required this.icon,
+    required this.onTap,
+    this.tooltip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DonorCircleButton(icon: icon, onTap: onTap, tooltip: tooltip);
+  }
+}
+
 Widget donorMobileBottomBar({
   required Widget child,
   double height = 72,
@@ -192,13 +338,10 @@ Widget donorMobileBottomBar({
 }
 
 Widget donorBackButton(BuildContext context) {
-  return Padding(
-    padding: const EdgeInsetsDirectional.only(start: 12),
-    child: DonorCircleButton(
-      icon: Icons.arrow_back_ios_new_rounded,
-      tooltip: 'رجوع',
-      onTap: () => Navigator.of(context).pop(),
-    ),
+  return DonorCircleButton(
+    icon: Icons.chevron_left_rounded,
+    tooltip: 'رجوع',
+    onTap: () => Navigator.of(context).pop(),
   );
 }
 
@@ -439,7 +582,7 @@ class DonorFilterChip extends StatelessWidget {
         color: selected ? selectedColor : AppColors.innerBorder,
       ),
       labelStyle: TextStyle(
-        fontFamily: 'Cairo',
+        fontFamily: 'Vazirmatn',
         fontWeight: fontWeight,
         fontSize: fontSize,
         color: selected ? selectedTextColor : unselectedTextColor,

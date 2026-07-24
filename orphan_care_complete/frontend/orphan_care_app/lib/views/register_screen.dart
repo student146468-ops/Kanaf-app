@@ -133,12 +133,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
         AuthNavigation.roleFromAuthResponse(response),
       );
     } catch (error) {
+      debugPrint('Register failed: $error');
       if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            error.toString(),
+            _friendlyErrorMessage(error),
             style: const TextStyle(fontFamily: 'Cairo'),
           ),
           backgroundColor: AppColors.errorRed,
@@ -323,6 +324,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
     );
+  }
+
+  String _friendlyErrorMessage(Object error) {
+    if (error is ApiServiceException) return error.message;
+    return 'تعذر إكمال إنشاء الحساب حالياً. حاول مرة أخرى.';
   }
 }
 

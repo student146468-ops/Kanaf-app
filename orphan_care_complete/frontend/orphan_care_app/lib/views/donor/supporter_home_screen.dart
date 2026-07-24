@@ -105,6 +105,21 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _homeBackground,
+        appBar: DonorAppBar(
+          title: 'الرئيسية',
+          actions: [
+            DonorCircleButton(
+              icon: Icons.search_rounded,
+              tooltip: 'البحث',
+              onTap: () => Navigator.pushNamed(context, '/search_filter'),
+            ),
+            DonorCircleButton(
+              icon: Icons.notifications_none_rounded,
+              tooltip: 'الإشعارات',
+              onTap: () => Navigator.pushNamed(context, '/notifications'),
+            ),
+          ],
+        ),
         body: Stack(
           children: [
             const Positioned.fill(
@@ -113,18 +128,12 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
               ),
             ),
             SafeArea(
+              top: false,
               child: DonorMobileFrame(
                 child: ListView(
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
                   children: [
-                    _HomeHeader(
-                      onSearch: () =>
-                          Navigator.pushNamed(context, '/search_filter'),
-                      onNotifications: () =>
-                          Navigator.pushNamed(context, '/notifications'),
-                    ),
-                    const SizedBox(height: 16),
                     _HeroSlider(
                       controller: _sliderController,
                       images: _sliderImages,
@@ -162,122 +171,9 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
             ),
           ],
         ),
-        bottomNavigationBar:
-            donorMobileBottomBar(child: _buildBottomNavigation()),
-      ),
-    );
-  }
-
-  Widget _buildBottomNavigation() {
-    return NavigationBar(
-      selectedIndex: 0,
-      height: 72,
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.white,
-      indicatorColor: AppColors.brandOrangeLight,
-      onDestinationSelected: (index) {
-        if (index == 1) {
-          Navigator.pushNamed(context, '/donation_history');
-        } else if (index == 2) {
-          Navigator.pushNamed(context, '/profile');
-        }
-      },
-      destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home_rounded, color: AppColors.brandOrange),
-          label: 'الرئيسية',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.receipt_long_outlined),
-          selectedIcon:
-              Icon(Icons.receipt_long_rounded, color: AppColors.brandOrange),
-          label: 'السجل',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.person_outline_rounded),
-          selectedIcon:
-              Icon(Icons.person_rounded, color: AppColors.brandOrange),
-          label: 'حسابي',
-        ),
-      ],
-    );
-  }
-}
-
-class _HomeHeader extends StatelessWidget {
-  final VoidCallback onSearch;
-  final VoidCallback onNotifications;
-
-  const _HomeHeader({
-    required this.onSearch,
-    required this.onNotifications,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _HeaderIconButton(
-              icon: Icons.notifications_none_rounded,
-              tooltip: 'الإشعارات',
-              onTap: onNotifications,
-            ),
-            const SizedBox(width: 10),
-            _HeaderIconButton(
-              icon: Icons.search_rounded,
-              tooltip: 'البحث',
-              onTap: onSearch,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HeaderIconButton extends StatelessWidget {
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  const _HeaderIconButton({
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          child: Container(
-            width: 46,
-            height: 46,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.055),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Icon(icon, color: AppColors.textDarkPrimary, size: 22),
-          ),
+        bottomNavigationBar: DonorBottomNavigationBar(
+          currentIndex: 0,
+          onTap: (index) => donorNavigateByBottomIndex(context, index),
         ),
       ),
     );

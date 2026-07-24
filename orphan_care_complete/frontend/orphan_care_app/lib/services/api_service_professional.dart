@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
+import 'api_service.dart' as standard_api;
 
 /// خدمة الـ API المحسّنة - نقطة الاتصال الموحدة بين التطبيق والمنظومة
 class ApiService {
@@ -11,7 +12,18 @@ class ApiService {
   late Dio _dio;
 
   // عنوان المنظومة الأساسي (يمكن تغييره حسب البيئة)
-  static const String baseUrl = 'https://kanafapp.pythonanywhere.com/api';
+  static const String _configuredBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+  );
+  static const String _localWebBaseUrl = 'http://127.0.0.1:8000/api';
+  static const String _productionBaseUrl =
+      'https://kanafapp.pythonanywhere.com/api';
+
+  static String get baseUrl {
+    if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
+    if (kDebugMode && kIsWeb) return _localWebBaseUrl;
+    return _productionBaseUrl;
+  }
   // متغير لتخزين المستخدم الحالي
   UserModel? _currentUser;
 
@@ -65,19 +77,29 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        // حفظ التوكن والمستخدم
-        final token = response.data['token'] ?? response.data['access_token'];
-        await _saveToken(token);
-
-        // حفظ بيانات المستخدم
-        _currentUser = UserModel.fromJson(response.data['user'] ?? {});
-        await _saveUser(_currentUser!);
-
-        return response.data;
+        final responseData = _extractMap(response.data);
+        await _saveAuthSession(responseData);
+        return responseData;
       }
-      throw Exception('فشل تسجيل الدخول');
+      throw const standard_api.ApiServiceException(
+        'تعذر إكمال تسجيل الدخول حالياً. حاول مرة أخرى.',
+      );
     } on DioException catch (e) {
-      throw Exception('خطأ في الاتصال: ${e.message}');
+      debugPrint('Professional login API error: ${e.response?.statusCode}');
+      throw standard_api.ApiServiceException(
+        standard_api.ApiService.friendlyMessageForDioException(
+          e,
+          isLogin: true,
+          authEndpoint: true,
+        ),
+      );
+    } on standard_api.ApiServiceException {
+      rethrow;
+    } catch (e, stackTrace) {
+      debugPrint('Professional login response handling error: $e\n$stackTrace');
+      throw const standard_api.ApiServiceException(
+        'تعذر إكمال تسجيل الدخول حالياً. حاول مرة أخرى.',
+      );
     }
   }
 
@@ -90,19 +112,31 @@ class ApiService {
       );
 
       if (response.statusCode == 201) {
-        // حفظ التوكن والمستخدم
-        final token = response.data['token'] ?? response.data['access_token'];
-        await _saveToken(token);
-
-        // حفظ بيانات المستخدم
-        _currentUser = UserModel.fromJson(response.data['user'] ?? {});
-        await _saveUser(_currentUser!);
-
-        return response.data;
+        final responseData = _extractMap(response.data);
+        await _saveAuthSession(responseData);
+        return responseData;
       }
-      throw Exception('فشل التسجيل');
+      throw const standard_api.ApiServiceException(
+        'تعذر إكمال إنشاء الحساب حالياً. حاول مرة أخرى.',
+      );
     } on DioException catch (e) {
-      throw Exception('خطأ في الاتصال: ${e.message}');
+      debugPrint('Professional register API error: ${e.response?.statusCode}');
+      throw standard_api.ApiServiceException(
+        standard_api.ApiService.friendlyMessageForDioException(
+          e,
+          isRegister: true,
+          authEndpoint: true,
+        ),
+      );
+    } on standard_api.ApiServiceException {
+      rethrow;
+    } catch (e, stackTrace) {
+      debugPrint(
+        'Professional register response handling error: $e\n$stackTrace',
+      );
+      throw const standard_api.ApiServiceException(
+        'تعذر إكمال إنشاء الحساب حالياً. حاول مرة أخرى.',
+      );
     }
   }
 
@@ -314,6 +348,33 @@ class ApiService {
 
   // ============ عمليات التخزين المحلي (Local Storage) ============
 
+  Map<String, dynamic> _extractMap(dynamic data) {
+    if (data is Map) return Map<String, dynamic>.from(data);
+    throw const standard_api.ApiServiceException(
+      'تعذر قراءة استجابة الخادم. حاول مرة أخرى.',
+    );
+  }
+
+  Future<void> _saveAuthSession(Map<String, dynamic> data) async {
+    final token = data['access'] ?? data['access_token'] ?? data['token'];
+    if (token == null || token.toString().isEmpty) {
+      throw const standard_api.ApiServiceException(
+        'تعذر إنشاء جلسة آمنة. حاول تسجيل الدخول مرة أخرى.',
+      );
+    }
+
+    await _saveToken(token.toString());
+    final userData = _extractMap(data['user']);
+    _currentUser = UserModel.fromJson(userData);
+    await _saveUser(_currentUser!);
+
+    final role = _currentUser!.role.trim();
+    if (role.isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_role', role);
+    }
+  }
+
   Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
@@ -327,11 +388,12 @@ class ApiService {
   Future<void> _clearToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
+    await prefs.remove('user_role');
   }
 
   Future<void> _saveUser(UserModel user) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('current_user', user.toJson().toString());
+    await prefs.setString('current_user', jsonEncode(user.toJson()));
   }
 
   Future<UserModel?> _getUser() async {

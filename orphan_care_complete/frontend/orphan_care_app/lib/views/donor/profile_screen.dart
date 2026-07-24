@@ -30,7 +30,18 @@ class ProfileScreen extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _screenBackground,
+        appBar: DonorAppBar(
+          title: 'حسابي',
+          actions: [
+            DonorCircleButton(
+              icon: Icons.edit_outlined,
+              tooltip: 'تعديل البيانات الشخصية',
+              onTap: () => _showAccountSummary(context, donations),
+            ),
+          ],
+        ),
         body: SafeArea(
+          top: false,
           bottom: false,
           child: DonorMobileFrame(
             child: TweenAnimationBuilder<double>(
@@ -56,7 +67,6 @@ class ProfileScreen extends StatelessWidget {
                     total: donations.length,
                     completed: completedCount,
                     pending: pendingCount,
-                    onEditTap: () => _showAccountSummary(context, donations),
                     onCameraTap: () => _showPhotoOptions(context),
                   ),
                   const SizedBox(height: 18),
@@ -122,8 +132,9 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
         ),
-        bottomNavigationBar: donorMobileBottomBar(
-          child: _profileBottomNavigation(context),
+        bottomNavigationBar: DonorBottomNavigationBar(
+          currentIndex: 2,
+          onTap: (index) => donorNavigateByBottomIndex(context, index),
         ),
       ),
     );
@@ -291,42 +302,6 @@ class ProfileScreen extends StatelessWidget {
       },
     );
   }
-
-  Widget _profileBottomNavigation(BuildContext context) {
-    return NavigationBar(
-      selectedIndex: 2,
-      height: 72,
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.white,
-      indicatorColor: AppColors.brandOrangeLight,
-      onDestinationSelected: (index) {
-        if (index == 0) {
-          Navigator.pushNamed(context, '/supporter_home');
-        } else if (index == 1) {
-          Navigator.pushNamed(context, '/donation_history');
-        }
-      },
-      destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home_rounded, color: AppColors.brandOrange),
-          label: 'الرئيسية',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.receipt_long_outlined),
-          selectedIcon:
-              Icon(Icons.receipt_long_rounded, color: AppColors.brandOrange),
-          label: 'السجل',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.person_outline_rounded),
-          selectedIcon:
-              Icon(Icons.person_rounded, color: AppColors.brandOrange),
-          label: 'حسابي',
-        ),
-      ],
-    );
-  }
 }
 
 class _ProfileHeader extends StatelessWidget {
@@ -336,7 +311,6 @@ class _ProfileHeader extends StatelessWidget {
     required this.total,
     required this.completed,
     required this.pending,
-    required this.onEditTap,
     required this.onCameraTap,
   });
 
@@ -345,7 +319,6 @@ class _ProfileHeader extends StatelessWidget {
   final int total;
   final int completed;
   final int pending;
-  final VoidCallback onEditTap;
   final VoidCallback onCameraTap;
 
   @override
@@ -364,89 +337,39 @@ class _ProfileHeader extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(
+      child: Column(
         children: [
-          Column(
-            children: [
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: _HeaderSmallButton(
-                  icon: Icons.edit_outlined,
-                  tooltip: 'تعديل البيانات الشخصية',
-                  onTap: onEditTap,
-                ),
-              ),
-              const SizedBox(height: 2),
-              _DonorProfileAvatar(onCameraTap: onCameraTap),
-              const SizedBox(height: 12),
-              Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: DonorTextStyles.title.copyWith(
-                  fontSize: 21,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: DonorTextStyles.muted.copyWith(
-                  fontSize: 13.5,
-                  color: Colors.white.withOpacity(0.9),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 18),
-              _ImpactStatsCard(
-                total: total,
-                completed: completed,
-                pending: pending,
-              ),
-            ],
+          _DonorProfileAvatar(onCameraTap: onCameraTap),
+          const SizedBox(height: 12),
+          Text(
+            name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: DonorTextStyles.title.copyWith(
+              fontSize: 21,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: DonorTextStyles.muted.copyWith(
+              fontSize: 13.5,
+              color: Colors.white.withOpacity(0.9),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 18),
+          _ImpactStatsCard(
+            total: total,
+            completed: completed,
+            pending: pending,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _HeaderSmallButton extends StatelessWidget {
-  const _HeaderSmallButton({
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          child: Container(
-            width: 36,
-            height: 36,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withOpacity(0.26)),
-            ),
-            child: Icon(icon, color: Colors.white, size: 18),
-          ),
-        ),
       ),
     );
   }

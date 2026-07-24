@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../providers/app_provider_scope.dart';
-import '../../utils/app_colors.dart';
-import 'care_home_light_widgets.dart';
+import 'care_home_reference_widgets.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -12,164 +11,137 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _controllers = <String, TextEditingController>{
-    'name': TextEditingController(),
-    'email': TextEditingController(),
-    'phone': TextEditingController(),
-    'city': TextEditingController(),
-    'address': TextEditingController(),
-    'description': TextEditingController(),
-    'manager_name': TextEditingController(),
-    'license_number': TextEditingController(),
-    'children_count': TextEditingController(),
-    'visit_hours': TextEditingController(),
-  };
+  final _name = TextEditingController();
+  final _phone = TextEditingController();
+  final _email = TextEditingController();
+  final _address = TextEditingController();
   bool _filled = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final provider = AppProviderScope.of(context);
-      await provider.fetchCareHomeProfile();
-      if (mounted) _fill(provider.careHomeProfile);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppProviderScope.of(context).fetchCareHomeProfile();
     });
   }
 
   @override
   void dispose() {
-    for (final controller in _controllers.values) {
-      controller.dispose();
-    }
+    _name.dispose();
+    _phone.dispose();
+    _email.dispose();
+    _address.dispose();
     super.dispose();
-  }
-
-  void _fill(Map<String, dynamic> profile) {
-    if (_filled) return;
-    _filled = true;
-    for (final entry in _controllers.entries) {
-      entry.value.text = profile[entry.key]?.toString() ?? '';
-    }
-    setState(() {});
-  }
-
-  Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-    final provider = AppProviderScope.of(context);
-    final data = <String, dynamic>{
-      for (final entry in _controllers.entries)
-        entry.key: entry.value.text.trim(),
-    };
-    data['children_count'] =
-        int.tryParse(_controllers['children_count']?.text.trim() ?? '0') ?? 0;
-    final success = await provider.updateCareHomeProfile(data);
-    if (!mounted) return;
-    if (success) {
-      Navigator.of(context).pop(true);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(provider.errorMessage ?? 'تعذر تحديث الملف'),
-            backgroundColor: AppColors.errorRed),
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isWebOrDesktop = size.width > 600;
     final provider = AppProviderScope.of(context);
+    final profile = provider.careHomeProfile;
+    if (!_filled && profile.isNotEmpty) {
+      _name.text = careHomeValue(profile['name'], '');
+      _phone.text = careHomeValue(profile['phone'], '');
+      _email.text = careHomeValue(profile['email'], '');
+      _address.text = careHomeValue(profile['address'], '');
+      _filled = true;
+    }
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
-        body: Center(
-          child: Container(
-            width: isWebOrDesktop ? 430 : double.infinity,
-            height: double.infinity,
-            color: Colors.white,
-            child: SafeArea(
-              child: Column(
-                children: [
-                  CareHomeTopBar(
-                    title: 'تعديل ملف الدار',
-                    onBack: () => Navigator.of(context).pop(),
-                    includeSafeArea: false,
-                  ),
-                  Expanded(
-                    child: provider.isLoading && !_filled
-                        ? const Center(child: CircularProgressIndicator())
-                        : SingleChildScrollView(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: CareHomeSpacing.lg,
-                                vertical: CareHomeSpacing.md),
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                children: [
-                                  _field('name', 'اسم الدار',
-                                      Icons.home_work_rounded,
-                                      requiredField: true),
-                                  _field('email', 'البريد الإلكتروني',
-                                      Icons.email_outlined),
-                                  _field('phone', 'رقم الهاتف',
-                                      Icons.phone_outlined),
-                                  _field('city', 'المدينة',
-                                      Icons.location_city_outlined),
-                                  _field('address', 'العنوان',
-                                      Icons.place_outlined,
-                                      maxLines: 2),
-                                  _field('description', 'الوصف',
-                                      Icons.description_outlined,
-                                      maxLines: 4),
-                                  _field('manager_name', 'اسم المسؤول',
-                                      Icons.person_outline_rounded),
-                                  _field('license_number', 'رقم الترخيص',
-                                      Icons.badge_outlined),
-                                  _field('children_count', 'عدد الأطفال',
-                                      Icons.groups_outlined,
-                                      keyboardType: TextInputType.number),
-                                  _field('visit_hours', 'ساعات الزيارة',
-                                      Icons.schedule_outlined),
-                                  const SizedBox(height: CareHomeSpacing.lg),
-                                  CareHomePrimaryButton(
-                                      label: 'حفظ التعديلات',
-                                      loading: provider.isSaving,
-                                      onPressed: _save),
-                                ],
-                              ),
-                            ),
-                          ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+    return CareHomeRefScaffold(
+      title: 'تعديل ملف الدار',
+      bodyPadding: EdgeInsets.zero,
+      bottomAction: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
+        child: CareHomeRefButton(
+          label: 'حفظ التعديلات',
+          loading: provider.isSaving,
+          onPressed: () async {
+            final ok = await provider.updateCareHomeProfile({
+              'name': _name.text.trim(),
+              'phone': _phone.text.trim(),
+              'email': _email.text.trim(),
+              'address': _address.text.trim(),
+            });
+            if (context.mounted && ok) Navigator.of(context).pop(true);
+          },
         ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 92),
+        physics: const BouncingScrollPhysics(),
+        children: [
+          const CareHomeRefImage(
+            assetPath: 'assets/images/image13.png',
+            height: 136,
+            icon: Icons.home_work_outlined,
+          ),
+          const SizedBox(height: 14),
+          _Field(
+              controller: _name, hint: 'اسم الدار', icon: Icons.badge_outlined),
+          _Field(
+            controller: _phone,
+            hint: 'رقم الهاتف',
+            icon: Icons.phone_iphone_rounded,
+            keyboardType: TextInputType.phone,
+          ),
+          _Field(
+            controller: _email,
+            hint: 'البريد الإلكتروني',
+            icon: Icons.email_outlined,
+            keyboardType: TextInputType.emailAddress,
+          ),
+          _Field(
+            controller: _address,
+            hint: 'العنوان',
+            icon: Icons.location_on_outlined,
+            maxLines: 3,
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget _field(String key, String hint, IconData icon,
-      {int maxLines = 1,
-      bool requiredField = false,
-      TextInputType? keyboardType}) {
+class _Field extends StatelessWidget {
+  final TextEditingController controller;
+  final String hint;
+  final IconData icon;
+  final int maxLines;
+  final TextInputType? keyboardType;
+
+  const _Field({
+    required this.controller,
+    required this.hint,
+    required this.icon,
+    this.maxLines = 1,
+    this.keyboardType,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: CareHomeSpacing.md),
-      child: CareHomeInputField(
-        controller: _controllers[key],
-        label: '',
-        hint: hint,
-        icon: icon,
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextField(
+        controller: controller,
         maxLines: maxLines,
         keyboardType: keyboardType,
-        validator: (value) =>
-            requiredField && (value == null || value.trim().isEmpty)
-                ? 'هذا الحقل مطلوب'
-                : null,
+        style: careHomeRefBodyStrong,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: careHomeRefCaption,
+          prefixIcon: Icon(icon, color: const Color(0xFF9AA1AD), size: 20),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: careHomeRefLine),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: careHomeRefOrange),
+          ),
+        ),
       ),
     );
   }

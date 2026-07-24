@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../utils/app_colors.dart';
 import 'donor_mobile_chrome.dart';
@@ -54,7 +54,7 @@ class DonationSuccessScreen extends StatelessWidget {
                           'تم تسجيل مساهمتك بنجاح',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontFamily: 'Cairo',
+                            fontFamily: 'Vazirmatn',
                             fontSize: 23,
                             height: 1.35,
                             fontWeight: FontWeight.w900,
@@ -66,7 +66,7 @@ class DonationSuccessScreen extends StatelessWidget {
                           'شكرًا لعطائك. ستظهر تحديثات مساهمتك في السجل عند توفرها من دار الرعاية.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontFamily: 'Tajawal',
+                            fontFamily: 'Vazirmatn',
                             fontSize: 15,
                             height: 1.65,
                             color: AppColors.textDarkSecondary,
@@ -83,7 +83,7 @@ class DonationSuccessScreen extends StatelessWidget {
                                 child: Text(
                                   'تم إنشاء سجل للتبرع وربطه بالاحتياج المحدد.',
                                   style: TextStyle(
-                                    fontFamily: 'Tajawal',
+                                    fontFamily: 'Vazirmatn',
                                     fontSize: 13.5,
                                     height: 1.45,
                                     color: AppColors.textDarkSecondary,
@@ -173,7 +173,7 @@ class _SummaryLine extends StatelessWidget {
           child: Text(
             label,
             style: const TextStyle(
-              fontFamily: 'Tajawal',
+              fontFamily: 'Vazirmatn',
               fontSize: 12.5,
               color: AppColors.textDarkMuted,
             ),
@@ -183,7 +183,7 @@ class _SummaryLine extends StatelessWidget {
           child: Text(
             value,
             style: const TextStyle(
-              fontFamily: 'Tajawal',
+              fontFamily: 'Vazirmatn',
               fontSize: 13.5,
               fontWeight: FontWeight.w800,
               color: AppColors.textDarkPrimary,

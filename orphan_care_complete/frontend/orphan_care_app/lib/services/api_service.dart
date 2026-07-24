@@ -1,11 +1,32 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/auth_navigation.dart';
 
+class ApiServiceException implements Exception {
+  final String message;
+
+  const ApiServiceException(this.message);
+
+  @override
+  String toString() => message;
+}
+
 class ApiService {
   static final ApiService _instance = ApiService._internal();
-  static const String baseUrl1 = 'https://kanafapp.pythonanywhere.com/api';
+  static const String _configuredBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+  );
+  static const String _localWebBaseUrl = 'http://127.0.0.1:8000/api';
+  static const String _productionBaseUrl =
+      'https://kanafapp.pythonanywhere.com/api';
+
+  static String get baseUrl1 {
+    if (_configuredBaseUrl.isNotEmpty) return _configuredBaseUrl;
+    if (kDebugMode && kIsWeb) return _localWebBaseUrl;
+    return _productionBaseUrl;
+  }
 
   late final Dio _dio;
 
@@ -51,24 +72,52 @@ class ApiService {
     try {
       final response = await _dio.post(
         '/auth/login/',
-        data: {'email': email, 'username': email, 'password': password},
+        data: {'email': email, 'password': password},
       );
-      final responseData = Map<String, dynamic>.from(response.data as Map);
+      final responseData = _extractMap(response.data);
       await _saveAuthSession(responseData);
       return responseData;
     } on DioException catch (e) {
-      throw Exception(_errorMessage(e, 'فشل تسجيل الدخول'));
+      debugPrint('Login API error: ${_developerErrorSummary(e)}');
+      throw ApiServiceException(
+        friendlyMessageForDioException(
+          e,
+          isLogin: true,
+          authEndpoint: true,
+        ),
+      );
+    } on ApiServiceException {
+      rethrow;
+    } catch (e, stackTrace) {
+      debugPrint('Login response handling error: $e\n$stackTrace');
+      throw const ApiServiceException(
+        'تعذر إكمال تسجيل الدخول حالياً. حاول مرة أخرى.',
+      );
     }
   }
 
   Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
     try {
       final response = await _dio.post('/auth/register/', data: userData);
-      final responseData = Map<String, dynamic>.from(response.data as Map);
+      final responseData = _extractMap(response.data);
       await _saveAuthSession(responseData);
       return responseData;
     } on DioException catch (e) {
-      throw Exception(_errorMessage(e, 'فشل التسجيل'));
+      debugPrint('Register API error: ${_developerErrorSummary(e)}');
+      throw ApiServiceException(
+        friendlyMessageForDioException(
+          e,
+          isRegister: true,
+          authEndpoint: true,
+        ),
+      );
+    } on ApiServiceException {
+      rethrow;
+    } catch (e, stackTrace) {
+      debugPrint('Register response handling error: $e\n$stackTrace');
+      throw const ApiServiceException(
+        'تعذر إكمال إنشاء الحساب حالياً. حاول مرة أخرى.',
+      );
     }
   }
 
@@ -177,16 +226,16 @@ class ApiService {
       final response = await _dio.get(path);
       return _extractList(response.data);
     } on DioException catch (e) {
-      throw Exception(_errorMessage(e, 'تعذر جلب البيانات'));
+      throw ApiServiceException(_errorMessage(e, 'تعذر جلب البيانات'));
     }
   }
 
   Future<Map<String, dynamic>> _getMap(String path) async {
     try {
       final response = await _dio.get(path);
-      return Map<String, dynamic>.from(response.data as Map);
+      return _extractMap(response.data);
     } on DioException catch (e) {
-      throw Exception(_errorMessage(e, 'تعذر جلب البيانات'));
+      throw ApiServiceException(_errorMessage(e, 'تعذر جلب البيانات'));
     }
   }
 
@@ -194,9 +243,9 @@ class ApiService {
       String path, Map<String, dynamic> data) async {
     try {
       final response = await _dio.post(path, data: data);
-      return Map<String, dynamic>.from(response.data as Map);
+      return _extractMap(response.data);
     } on DioException catch (e) {
-      throw Exception(_errorMessage(e, 'تعذر حفظ البيانات'));
+      throw ApiServiceException(_errorMessage(e, 'تعذر حفظ البيانات'));
     }
   }
 
@@ -204,9 +253,9 @@ class ApiService {
       String path, Map<String, dynamic> data) async {
     try {
       final response = await _dio.put(path, data: data);
-      return Map<String, dynamic>.from(response.data as Map);
+      return _extractMap(response.data);
     } on DioException catch (e) {
-      throw Exception(_errorMessage(e, 'تعذر تحديث البيانات'));
+      throw ApiServiceException(_errorMessage(e, 'تعذر تحديث البيانات'));
     }
   }
 
@@ -214,9 +263,9 @@ class ApiService {
       String path, Map<String, dynamic> data) async {
     try {
       final response = await _dio.patch(path, data: data);
-      return Map<String, dynamic>.from(response.data as Map);
+      return _extractMap(response.data);
     } on DioException catch (e) {
-      throw Exception(_errorMessage(e, 'تعذر تحديث البيانات'));
+      throw ApiServiceException(_errorMessage(e, 'تعذر تحديث البيانات'));
     }
   }
 
@@ -226,15 +275,124 @@ class ApiService {
     return [];
   }
 
+  Map<String, dynamic> _extractMap(dynamic data) {
+    if (data is Map) return Map<String, dynamic>.from(data);
+    throw const ApiServiceException(
+      'تعذر قراءة استجابة الخادم. حاول مرة أخرى.',
+    );
+  }
+
   String _errorMessage(DioException e, String fallback) {
-    final data = e.response?.data;
-    if (data is Map && data.isNotEmpty) return data.toString();
+    return friendlyMessageForDioException(e, fallback: fallback);
+  }
+
+  static String friendlyMessageForDioException(
+    DioException e, {
+    String fallback = 'تعذر إكمال العملية حالياً. حاول مرة أخرى.',
+    bool isLogin = false,
+    bool isRegister = false,
+    bool authEndpoint = false,
+  }) {
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
         e.type == DioExceptionType.sendTimeout) {
-      return 'انتهت مهلة الاتصال';
+      return 'استغرق الاتصال وقتاً أطول من المتوقع. حاول مرة أخرى.';
     }
-    return e.message ?? fallback;
+
+    if (e.response == null) {
+      if (e.type == DioExceptionType.connectionError) {
+        if (authEndpoint) {
+          return isRegister
+              ? 'تعذر الاتصال بخدمة إنشاء الحساب حالياً. تأكد من تشغيل الخادم وحاول مرة أخرى.'
+              : 'تعذر الاتصال بخدمة تسجيل الدخول حالياً. تأكد من تشغيل الخادم وحاول مرة أخرى.';
+        }
+        return 'لا يوجد اتصال بالإنترنت. تحقق من الشبكة وحاول مرة أخرى.';
+      }
+      return 'تعذر الاتصال بالخادم حالياً. حاول مرة أخرى لاحقاً.';
+    }
+
+    final statusCode = e.response?.statusCode;
+    if (authEndpoint && statusCode == 404) {
+      return isRegister
+          ? 'تعذر الوصول إلى خدمة إنشاء الحساب حالياً.'
+          : 'تعذر الوصول إلى خدمة تسجيل الدخول حالياً.';
+    }
+
+    if (statusCode == 401 || statusCode == 403) {
+      return isLogin
+          ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
+          : 'تعذر التحقق من بيانات الحساب.';
+    }
+
+    if (statusCode == 400 || statusCode == 409) {
+      final validationMessage = _validationMessage(
+        e.response?.data,
+        isLogin: isLogin,
+        isRegister: isRegister,
+      );
+      if (validationMessage != null) return validationMessage;
+    }
+
+    if (statusCode == 429) {
+      return 'تمت محاولات كثيرة خلال وقت قصير. حاول مرة أخرى لاحقاً.';
+    }
+
+    if (statusCode != null && statusCode >= 500) {
+      return 'حدث خطأ في الخادم. حاول مرة أخرى لاحقاً.';
+    }
+
+    return fallback;
+  }
+
+  static String? _validationMessage(
+    dynamic data, {
+    required bool isLogin,
+    required bool isRegister,
+  }) {
+    if (isLogin) return 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+
+    final text = _flattenErrorText(data).toLowerCase();
+    if (text.contains('already') ||
+        text.contains('exists') ||
+        text.contains('unique') ||
+        text.contains('مستخدم')) {
+      return 'هذا البريد الإلكتروني مستخدم بالفعل.';
+    }
+    if (text.contains('password') && text.contains('match')) {
+      return 'كلمة المرور وتأكيدها غير متطابقين.';
+    }
+    if (text.contains('role')) {
+      return 'نوع الحساب غير صحيح. الرجاء اختيار نوع الحساب مرة أخرى.';
+    }
+    if (text.contains('email')) {
+      return 'البريد الإلكتروني غير صحيح أو مطلوب.';
+    }
+    if (text.contains('password')) {
+      return 'كلمة المرور غير صحيحة أو غير مكتملة.';
+    }
+    if (text.contains('phone')) {
+      return 'رقم الهاتف غير صحيح أو مطلوب.';
+    }
+    if (isRegister) return 'تحقق من بيانات الحساب وحاول مرة أخرى.';
+    return null;
+  }
+
+  static String _flattenErrorText(dynamic data) {
+    if (data is Map) {
+      return data.entries
+          .map((entry) => '${entry.key} ${_flattenErrorText(entry.value)}')
+          .join(' ');
+    }
+    if (data is Iterable) {
+      return data.map(_flattenErrorText).join(' ');
+    }
+    return data?.toString() ?? '';
+  }
+
+  static String _developerErrorSummary(DioException e) {
+    final data = e.response?.data;
+    final dataType = data == null ? 'none' : data.runtimeType.toString();
+    return 'type=${e.type}, status=${e.response?.statusCode}, data=$dataType';
   }
 
   Future<void> _saveToken(dynamic token, {dynamic refreshToken}) async {
@@ -248,16 +406,36 @@ class ApiService {
   }
 
   Future<void> _saveAuthSession(Map<String, dynamic> data) async {
-    await _saveToken(
-      data['access'] ?? data['access_token'] ?? data['token'],
-      refreshToken: data['refresh'] ?? data['refresh_token'],
-    );
+    final token = _tokenFromAuthResponse(data);
+    final role = _roleFromAuthResponse(data);
+    await _saveToken(token, refreshToken: _refreshTokenFromAuthResponse(data));
 
-    final role = AuthNavigation.roleFromAuthResponse(data);
-    if (role != null) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_role', role);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_role', role);
+  }
+
+  String _tokenFromAuthResponse(Map<String, dynamic> data) {
+    final token = data['access'] ?? data['access_token'] ?? data['token'];
+    if (token == null || token.toString().isEmpty) {
+      throw const ApiServiceException(
+        'تعذر إنشاء جلسة آمنة. حاول تسجيل الدخول مرة أخرى.',
+      );
     }
+    return token.toString();
+  }
+
+  dynamic _refreshTokenFromAuthResponse(Map<String, dynamic> data) {
+    return data['refresh'] ?? data['refresh_token'];
+  }
+
+  String _roleFromAuthResponse(Map<String, dynamic> data) {
+    final role = AuthNavigation.roleFromAuthResponse(data);
+    if (role == null) {
+      throw const ApiServiceException(
+        'تعذر تحديد نوع الحساب. الرجاء اختيار نوع الحساب مرة أخرى.',
+      );
+    }
+    return role;
   }
 
   Future<String?> getSavedRole() async {
