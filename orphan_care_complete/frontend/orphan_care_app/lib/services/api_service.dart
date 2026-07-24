@@ -33,6 +33,7 @@ class ApiService {
   factory ApiService() => _instance;
 
   ApiService._internal() {
+    debugPrint('Kanaf API baseUrl=$baseUrl1');
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl1,
@@ -69,11 +70,15 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> login(String email, String password) async {
+    const path = '/auth/login/';
+    final requestData = {'email': email, 'password': password};
+    _logAuthRequest('POST', path, requestData);
     try {
       final response = await _dio.post(
-        '/auth/login/',
-        data: {'email': email, 'password': password},
+        path,
+        data: requestData,
       );
+      _logAuthResponse('login', response);
       final responseData = _extractMap(response.data);
       await _saveAuthSession(responseData);
       return responseData;
@@ -97,8 +102,11 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
+    const path = '/auth/register/';
+    _logAuthRequest('POST', path, userData);
     try {
-      final response = await _dio.post('/auth/register/', data: userData);
+      final response = await _dio.post(path, data: userData);
+      _logAuthResponse('register', response);
       final responseData = _extractMap(response.data);
       await _saveAuthSession(responseData);
       return responseData;
@@ -392,7 +400,54 @@ class ApiService {
   static String _developerErrorSummary(DioException e) {
     final data = e.response?.data;
     final dataType = data == null ? 'none' : data.runtimeType.toString();
-    return 'type=${e.type}, status=${e.response?.statusCode}, data=$dataType';
+    return 'url=${e.requestOptions.uri}, method=${e.requestOptions.method}, '
+        'type=${e.type}, status=${e.response?.statusCode}, '
+        'message=${e.message}, responseType=$dataType, '
+        'response=${_safeLogData(e.response?.data)}, '
+        'request=${_safeLogData(e.requestOptions.data)}';
+  }
+
+  static void _logAuthRequest(
+    String method,
+    String path,
+    Map<String, dynamic> data,
+  ) {
+    debugPrint(
+      'Kanaf API request: method=$method url=$baseUrl1$path '
+      'body=${_safeLogData(data)}',
+    );
+  }
+
+  static void _logAuthResponse(String operation, Response<dynamic> response) {
+    debugPrint(
+      'Kanaf API $operation response: '
+      'url=${response.requestOptions.uri}, '
+      'status=${response.statusCode}, '
+      'body=${_safeLogData(response.data)}',
+    );
+  }
+
+  static String _safeLogData(dynamic data) {
+    Object? sanitize(dynamic value) {
+      if (value is Map) {
+        return value.map((key, dynamic child) {
+          final keyText = key.toString().toLowerCase();
+          if (keyText.contains('password') ||
+              keyText.contains('token') ||
+              keyText == 'access' ||
+              keyText == 'refresh') {
+            return MapEntry(key, '***');
+          }
+          return MapEntry(key, sanitize(child));
+        });
+      }
+      if (value is Iterable) return value.map(sanitize).toList();
+      return value;
+    }
+
+    final sanitized = sanitize(data);
+    final text = sanitized?.toString() ?? 'null';
+    return text.length > 900 ? '${text.substring(0, 900)}...' : text;
   }
 
   Future<void> _saveToken(dynamic token, {dynamic refreshToken}) async {

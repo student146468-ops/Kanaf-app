@@ -24,6 +24,7 @@ class ApiService {
     if (kDebugMode && kIsWeb) return _localWebBaseUrl;
     return _productionBaseUrl;
   }
+
   // متغير لتخزين المستخدم الحالي
   UserModel? _currentUser;
 
@@ -36,6 +37,7 @@ class ApiService {
   }
 
   void _initializeDio() {
+    debugPrint('Kanaf professional API baseUrl=$baseUrl');
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
@@ -70,11 +72,15 @@ class ApiService {
 
   /// تسجيل دخول المستخدم (بدون OTP)
   Future<Map<String, dynamic>> login(String email, String password) async {
+    const path = '/auth/login/';
+    final requestData = {'email': email, 'password': password};
+    _logAuthRequest('POST', path, requestData);
     try {
       final response = await _dio.post(
-        '/auth/login/',
-        data: {'email': email, 'password': password},
+        path,
+        data: requestData,
       );
+      _logAuthResponse('professional login', response);
 
       if (response.statusCode == 200) {
         final responseData = _extractMap(response.data);
@@ -85,7 +91,7 @@ class ApiService {
         'تعذر إكمال تسجيل الدخول حالياً. حاول مرة أخرى.',
       );
     } on DioException catch (e) {
-      debugPrint('Professional login API error: ${e.response?.statusCode}');
+      debugPrint('Professional login API error: ${_developerErrorSummary(e)}');
       throw standard_api.ApiServiceException(
         standard_api.ApiService.friendlyMessageForDioException(
           e,
@@ -105,11 +111,14 @@ class ApiService {
 
   /// تسجيل مستخدم جديد (بدون OTP)
   Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
+    const path = '/auth/register/';
+    _logAuthRequest('POST', path, userData);
     try {
       final response = await _dio.post(
-        '/auth/register/',
+        path,
         data: userData,
       );
+      _logAuthResponse('professional register', response);
 
       if (response.statusCode == 201) {
         final responseData = _extractMap(response.data);
@@ -120,7 +129,8 @@ class ApiService {
         'تعذر إكمال إنشاء الحساب حالياً. حاول مرة أخرى.',
       );
     } on DioException catch (e) {
-      debugPrint('Professional register API error: ${e.response?.statusCode}');
+      debugPrint(
+          'Professional register API error: ${_developerErrorSummary(e)}');
       throw standard_api.ApiServiceException(
         standard_api.ApiService.friendlyMessageForDioException(
           e,
@@ -138,6 +148,54 @@ class ApiService {
         'تعذر إكمال إنشاء الحساب حالياً. حاول مرة أخرى.',
       );
     }
+  }
+
+  static void _logAuthRequest(
+    String method,
+    String path,
+    Map<String, dynamic> data,
+  ) {
+    debugPrint(
+      'Kanaf professional API request: method=$method url=$baseUrl$path '
+      'body=${_safeLogData(data)}',
+    );
+  }
+
+  static void _logAuthResponse(String operation, Response<dynamic> response) {
+    debugPrint(
+      'Kanaf $operation response: url=${response.requestOptions.uri}, '
+      'status=${response.statusCode}, body=${_safeLogData(response.data)}',
+    );
+  }
+
+  static String _developerErrorSummary(DioException e) {
+    return 'url=${e.requestOptions.uri}, method=${e.requestOptions.method}, '
+        'type=${e.type}, status=${e.response?.statusCode}, '
+        'message=${e.message}, response=${_safeLogData(e.response?.data)}, '
+        'request=${_safeLogData(e.requestOptions.data)}';
+  }
+
+  static String _safeLogData(dynamic data) {
+    Object? sanitize(dynamic value) {
+      if (value is Map) {
+        return value.map((key, dynamic child) {
+          final keyText = key.toString().toLowerCase();
+          if (keyText.contains('password') ||
+              keyText.contains('token') ||
+              keyText == 'access' ||
+              keyText == 'refresh') {
+            return MapEntry(key, '***');
+          }
+          return MapEntry(key, sanitize(child));
+        });
+      }
+      if (value is Iterable) return value.map(sanitize).toList();
+      return value;
+    }
+
+    final sanitized = sanitize(data);
+    final text = sanitized?.toString() ?? 'null';
+    return text.length > 900 ? '${text.substring(0, 900)}...' : text;
   }
 
   /// تسجيل الخروج
