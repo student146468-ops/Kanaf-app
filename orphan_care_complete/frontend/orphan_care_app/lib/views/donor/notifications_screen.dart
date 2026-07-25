@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'donor_mobile_chrome.dart';
 
@@ -11,7 +12,7 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  bool _isLoading = true;
+  bool _hasLoadedNotifications = false;
   String _selectedFilter = 'الكل';
 
   static const Color _primaryOrange = Color(0xFFFF8C42);
@@ -20,53 +21,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   final List<String> _filters = const ['الكل', 'تحديثات', 'تنبيهات'];
 
-  // TODO: Replace mock donor notifications with AppProvider/backend notifications.
-  final List<Map<String, dynamic>> _notifications = [
-    {
-      'title': 'تم تحديث حالة تبرعك',
-      'body':
-          'استلمت دار الرعاية السلة التموينية، وتم تسجيلها ضمن احتياجات المطبخ.',
-      'time': 'منذ ساعتين',
-      'isNew': true,
-      'isRead': false,
-      'type': 'donation',
-      'icon': Icons.inventory_2_outlined,
-    },
-    {
-      'title': 'اكتمل احتياج تعليمي',
-      'body': 'بفضل مساهمات الداعمين تم تغطية مصاريف الدراسة بالكامل.',
-      'time': 'منذ يوم',
-      'isNew': false,
-      'isRead': true,
-      'type': 'completed',
-      'icon': Icons.school_outlined,
-    },
-    {
-      'title': 'احتياج صحي عاجل قريب منك',
-      'body': 'تم نشر احتياج صحي عاجل من إحدى دور الرعاية في غريان.',
-      'time': 'منذ 3 أيام',
-      'isNew': false,
-      'isRead': true,
-      'type': 'urgent',
-      'icon': Icons.health_and_safety_outlined,
-    },
-    {
-      'title': 'احتياج جديد',
-      'body': 'أضيف طلب دعم للقرطاسية والحقائب المدرسية لأطفال إحدى الدور.',
-      'time': 'منذ 4 أيام',
-      'isNew': false,
-      'isRead': true,
-      'type': 'new',
-      'icon': Icons.fiber_new_outlined,
-    },
-  ];
-
   @override
-  void initState() {
-    super.initState();
-    Future<void>.delayed(const Duration(milliseconds: 450), () {
-      if (mounted) setState(() => _isLoading = false);
-    });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedNotifications) return;
+    _hasLoadedNotifications = true;
+    AppProviderScope.of(context).fetchNotifications();
   }
 
   @override
@@ -75,9 +35,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _screenBackground,
-        appBar: DonorAppBar(
+        appBar: const DonorAppBar(
           title: 'الإشعارات',
-          leading: donorBackButton(context),
         ),
         body: SafeArea(
           top: false,
@@ -88,9 +47,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildBody() {
-    if (_isLoading) return const _LoadingNotifications();
+    final provider = AppProviderScope.of(context);
+    final source = provider.notifications.map(_notificationToMap).toList();
+    if (provider.isLoading && source.isEmpty) {
+      return const _LoadingNotifications();
+    }
 
-    if (_notifications.isEmpty) {
+    if (source.isEmpty) {
       return const DonorEmptyState(
         icon: Icons.notifications_none_outlined,
         title: 'لا توجد إشعارات',
@@ -99,7 +62,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       );
     }
 
-    final notifications = _filteredNotifications;
+    final notifications = _filteredNotifications(source);
 
     return ListView(
       physics: const BouncingScrollPhysics(),
@@ -122,7 +85,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           )
         else
           ...notifications.map((notification) {
-            final index = _notifications.indexOf(notification);
+            final index = source.indexOf(notification);
             return Padding(
               padding: const EdgeInsets.only(bottom: 14),
               child: _NotificationCard(
@@ -135,9 +98,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  List<Map<String, dynamic>> get _filteredNotifications {
-    if (_selectedFilter == 'الكل') return _notifications;
-    return _notifications.where((notification) {
+  List<Map<String, dynamic>> _filteredNotifications(
+      List<Map<String, dynamic>> notifications) {
+    if (_selectedFilter == 'الكل') return notifications;
+    return notifications.where((notification) {
       final type = notification['type'] as String;
       if (_selectedFilter == 'تحديثات') {
         return type == 'donation' || type == 'completed';
@@ -149,12 +113,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void _openNotification(int index) {
     if (index < 0) return;
 
-    setState(() {
-      _notifications[index]['isRead'] = true;
-      _notifications[index]['isNew'] = false;
-    });
-
-    final notification = _notifications[index];
+    final provider = AppProviderScope.of(context);
+    final notification = _notificationToMap(provider.notifications[index]);
+    final id = notification['id'] as int?;
+    if (id != null) provider.markNotificationRead(id);
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.white,
@@ -171,12 +133,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   void _markAllAsRead() {
-    setState(() {
-      for (final notification in _notifications) {
-        notification['isRead'] = true;
-        notification['isNew'] = false;
-      }
-    });
+    AppProviderScope.of(context).markAllNotificationsRead();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
@@ -186,6 +143,41 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         backgroundColor: _primaryOrange,
       ),
     );
+  }
+
+  Map<String, dynamic> _notificationToMap(Map<String, dynamic> item) {
+    final type = item['notification_type']?.toString() ?? 'message';
+    final isRead = item['is_read'] == true;
+    return {
+      'id':
+          item['id'] is int ? item['id'] as int : int.tryParse('${item['id']}'),
+      'title': item['title']?.toString() ?? '',
+      'body': item['message']?.toString() ?? '',
+      'time': _dateLabel(item['created_at']),
+      'isNew': !isRead,
+      'isRead': isRead,
+      'type': type,
+      'icon': _iconForType(type),
+    };
+  }
+
+  String _dateLabel(dynamic value) {
+    final date = DateTime.tryParse(value?.toString() ?? '');
+    if (date == null) return '';
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  IconData _iconForType(String type) {
+    switch (type) {
+      case 'donation':
+        return Icons.inventory_2_outlined;
+      case 'status_update':
+        return Icons.favorite_border_rounded;
+      case 'volunteer':
+        return Icons.volunteer_activism_outlined;
+      default:
+        return Icons.notifications_none_rounded;
+    }
   }
 }
 

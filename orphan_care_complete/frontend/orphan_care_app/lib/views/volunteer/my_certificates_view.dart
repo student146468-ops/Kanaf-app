@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
+import '../../providers/app_provider_scope.dart';
 import 'volunteer_ui.dart';
 
 const Color _certificateOrange = Color(0xFFFF8C42);
@@ -8,11 +9,34 @@ const Color _certificateMuted = Color(0xFF6B7280);
 const Color _certificateBackground = Color(0xFFF7F7F7);
 const Color _certificateCream = Color(0xFFFFFCF6);
 
-class MyCertificatesView extends StatelessWidget {
+class MyCertificatesView extends StatefulWidget {
   const MyCertificatesView({super.key});
 
   @override
+  State<MyCertificatesView> createState() => _MyCertificatesViewState();
+}
+
+class _MyCertificatesViewState extends State<MyCertificatesView> {
+  bool _hasLoadedData = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedData) return;
+    _hasLoadedData = true;
+    final provider = AppProviderScope.of(context);
+    provider.fetchCurrentUser();
+    provider.fetchVolunteerApplications(notifyLoading: false);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final provider = AppProviderScope.of(context);
+    final userName = provider.currentUser['username']?.toString() ?? '';
+    final certificates = provider.volunteerApplications
+        .where((item) => item['status'] == 'approved')
+        .toList();
+    final certificate = certificates.isEmpty ? null : certificates.first;
     return Directionality(
       textDirection: TextDirection.rtl,
       child: VolunteerMobileFrame(
@@ -29,7 +53,10 @@ class MyCertificatesView extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(22, 28, 22, 32),
               child: Column(
                 children: [
-                  const _CertificatePreviewCard(),
+                  _CertificatePreviewCard(
+                    userName: userName,
+                    application: certificate,
+                  ),
                   const SizedBox(height: 28),
                   _CertificateActionButton(
                     label: 'تحميل الشهادة',
@@ -71,7 +98,13 @@ class MyCertificatesView extends StatelessWidget {
 }
 
 class _CertificatePreviewCard extends StatelessWidget {
-  const _CertificatePreviewCard();
+  final String userName;
+  final Map<String, dynamic>? application;
+
+  const _CertificatePreviewCard({
+    required this.userName,
+    required this.application,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -154,10 +187,10 @@ class _CertificatePreviewCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Text(
-                    'ياسمين عادل',
+                  Text(
+                    userName.isEmpty ? 'غير محدد' : userName,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontFamily: 'Vazirmatn',
                       color: _certificateOrange,
                       fontSize: 25,
@@ -174,10 +207,12 @@ class _CertificatePreviewCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 22),
-                  const Text(
-                    'وذلك تقديرًا لمشاركتها في العمل التطوعي ومساهمتها الفاعلة في خدمة المجتمع ودعم المبادرات الإنسانية.',
+                  Text(
+                    application == null
+                        ? 'لا توجد شهادة متاحة من الخادم حاليًا.'
+                        : 'وذلك تقديرًا لمشاركتك في ${application!['opportunity_title'] ?? ''}.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontFamily: 'Vazirmatn',
                       color: _certificateText,
                       fontSize: 15,
@@ -186,10 +221,10 @@ class _CertificatePreviewCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'تاريخ الإصدار: 28 أبريل 2026',
+                  Text(
+                    'تاريخ الإصدار: ${_dateLabel(application?['created_at'])}',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontFamily: 'Vazirmatn',
                       color: _certificateMuted,
                       fontSize: 13,
@@ -220,6 +255,12 @@ class _CertificatePreviewCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _dateLabel(dynamic value) {
+    final date = DateTime.tryParse(value?.toString() ?? '');
+    if (date == null) return 'غير محدد';
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }
 

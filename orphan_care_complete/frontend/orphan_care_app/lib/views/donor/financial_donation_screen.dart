@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'donor_mobile_chrome.dart';
 
@@ -57,13 +58,18 @@ class _FinancialDonationScreenState extends State<FinancialDonationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = AppProviderScope.of(context);
+    if (provider.currentUser.isEmpty && !provider.isLoading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) provider.fetchCurrentUser(notifyLoading: false);
+      });
+    }
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _screenBackground,
-        appBar: DonorAppBar(
+        appBar: const DonorAppBar(
           title: 'التبرع المالي',
-          leading: donorBackButton(context),
         ),
         body: SafeArea(
           top: false,
@@ -279,7 +285,10 @@ class _FinancialDonationScreenState extends State<FinancialDonationScreen> {
 
   Future<void> _confirmDonation(double amount) async {
     setState(() => _isProcessing = true);
-    await Future<void>.delayed(const Duration(milliseconds: 700));
+    final provider = AppProviderScope.of(context);
+    if (provider.currentUser.isEmpty) {
+      await provider.fetchCurrentUser(notifyLoading: false);
+    }
     if (!mounted) return;
 
     if (amount > 50000) {
@@ -289,6 +298,38 @@ class _FinancialDonationScreenState extends State<FinancialDonationScreen> {
           content: Text(
             'تعذر تنفيذ العملية لهذه القيمة. يرجى مراجعة قيمة التبرع.',
             style: TextStyle(fontFamily: 'Vazirmatn'),
+          ),
+        ),
+      );
+      return;
+    }
+
+    final donorName = provider.currentUser['username']?.toString().trim() ?? '';
+    if (donorName.isEmpty) {
+      setState(() => _isProcessing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'تعذر تحديد بيانات المستخدم لحفظ التبرع.',
+            style: TextStyle(fontFamily: 'Vazirmatn'),
+          ),
+        ),
+      );
+      return;
+    }
+    final saved = await provider.submitDonation({
+      'donor_name': donorName,
+      'item_type': 'تبرع مالي ${_formatAmount(amount)} د.ل',
+      'status': 'قيد التنفيذ',
+    });
+    if (!mounted) return;
+    if (!saved) {
+      setState(() => _isProcessing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            provider.errorMessage ?? 'تعذر حفظ التبرع حاليًا.',
+            style: const TextStyle(fontFamily: 'Vazirmatn'),
           ),
         ),
       );

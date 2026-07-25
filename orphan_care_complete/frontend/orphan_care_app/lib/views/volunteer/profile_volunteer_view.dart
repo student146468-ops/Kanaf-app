@@ -1,44 +1,69 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
+import '../../providers/app_provider_scope.dart';
 import 'volunteer_ui.dart';
 
-const String _profileVolunteerName = 'ياسمين عادل';
-const String _profileVolunteerEmail = 'Yasmine.adel@gmail.com';
 const Color _profileOrange = Color(0xFFFF7A00);
 const Color _profileBackground = Color(0xFFF8F8F8);
 const Color _profileText = Color(0xFF1F2937);
 const Color _profileMuted = Color(0xFF8A8F98);
 
-class ProfileVolunteerView extends StatelessWidget {
+class ProfileVolunteerView extends StatefulWidget {
   const ProfileVolunteerView({super.key});
 
   @override
+  State<ProfileVolunteerView> createState() => _ProfileVolunteerViewState();
+}
+
+class _ProfileVolunteerViewState extends State<ProfileVolunteerView> {
+  bool _hasLoadedUser = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedUser) return;
+    _hasLoadedUser = true;
+    AppProviderScope.of(context).fetchCurrentUser();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Directionality(
+    final user = AppProviderScope.of(context).currentUser;
+    final username = user['username']?.toString() ?? '';
+    final email = user['email']?.toString() ?? '';
+    return Directionality(
       textDirection: TextDirection.rtl,
       child: VolunteerMobileFrame(
         child: Scaffold(
           backgroundColor: _profileBackground,
+          appBar: const PreferredSize(
+            preferredSize: Size.fromHeight(volunteerAppBarHeight),
+            child: VolunteerTopBar(
+              title: 'حسابي',
+              showBack: false,
+            ),
+          ),
           body: Stack(
             children: [
               SafeArea(
+                top: false,
                 bottom: false,
                 child: SingleChildScrollView(
-                  physics: BouncingScrollPhysics(),
-                  padding: EdgeInsets.only(bottom: 112),
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 112),
                   child: Column(
                     children: [
                       _ProfileHero(
-                        name: _profileVolunteerName,
-                        email: _profileVolunteerEmail,
+                        name: username,
+                        email: email,
                       ),
-                      SizedBox(height: 54),
-                      _ProfileMenu(),
+                      const SizedBox(height: 54),
+                      const _ProfileMenu(),
                     ],
                   ),
                 ),
               ),
-              Positioned(
+              const Positioned(
                 left: 0,
                 right: 0,
                 bottom: 0,

@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'donor_mobile_chrome.dart';
 
@@ -67,9 +68,8 @@ class _InkindDonationScreenState extends State<InkindDonationScreen> {
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: _screenBackground,
-        appBar: DonorAppBar(
+        appBar: const DonorAppBar(
           title: 'التبرع العيني',
-          leading: donorBackButton(context),
         ),
         body: SafeArea(
           top: false,
@@ -225,12 +225,48 @@ class _InkindDonationScreenState extends State<InkindDonationScreen> {
     );
   }
 
-  void _submitDonation() {
+  Future<void> _submitDonation() async {
     final form = _formKey.currentState;
     if (form == null || !form.validate()) return;
 
     final selectedType =
         _donationTypes.firstWhere((type) => type['id'] == _selectedType);
+    final provider = AppProviderScope.of(context);
+    if (provider.currentUser.isEmpty) {
+      await provider.fetchCurrentUser(notifyLoading: false);
+    }
+    if (!mounted) return;
+
+    final donorName = provider.currentUser['username']?.toString().trim() ?? '';
+    if (donorName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'تعذر تحديد بيانات المستخدم لحفظ التبرع.',
+            style: TextStyle(fontFamily: 'Vazirmatn'),
+          ),
+        ),
+      );
+      return;
+    }
+    final saved = await provider.submitDonation({
+      'donor_name': donorName,
+      'item_type':
+          '${selectedType['title']} - ${_quantityController.text.trim()}',
+      'status': 'قيد التنفيذ',
+    });
+    if (!mounted) return;
+    if (!saved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            provider.errorMessage ?? 'تعذر حفظ التبرع حاليًا.',
+            style: const TextStyle(fontFamily: 'Vazirmatn'),
+          ),
+        ),
+      );
+      return;
+    }
 
     Navigator.pushNamed(
       context,

@@ -115,6 +115,52 @@ class InventoryItem(models.Model):
         return self.item_name
 
 
+class Need(models.Model):
+    PRIORITY_LOW = 'low'
+    PRIORITY_MEDIUM = 'medium'
+    PRIORITY_URGENT = 'urgent'
+    PRIORITY_CHOICES = [
+        (PRIORITY_LOW, 'Low'),
+        (PRIORITY_MEDIUM, 'Medium'),
+        (PRIORITY_URGENT, 'Urgent'),
+    ]
+
+    STATUS_OPEN = 'open'
+    STATUS_COMPLETED = 'completed'
+    STATUS_ARCHIVED = 'archived'
+    STATUS_CHOICES = [
+        (STATUS_OPEN, 'Open'),
+        (STATUS_COMPLETED, 'Completed'),
+        (STATUS_ARCHIVED, 'Archived'),
+    ]
+
+    title = models.CharField(max_length=200, db_index=True)
+    description = models.TextField(blank=True)
+    category = models.CharField(max_length=100, blank=True, db_index=True)
+    need_type = models.CharField(max_length=100, blank=True)
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default=PRIORITY_MEDIUM, db_index=True)
+    required_quantity = models.CharField(max_length=100, blank=True)
+    fulfilled_quantity = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_OPEN, db_index=True)
+    image_url = models.URLField(blank=True)
+    deadline = models.DateField(null=True, blank=True, db_index=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_needs')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        constraints = [
+            models.CheckConstraint(check=models.Q(fulfilled_quantity__gte=0), name='need_fulfilled_quantity_non_negative'),
+        ]
+        indexes = [
+            models.Index(fields=['status', 'priority', 'deadline'], name='need_status_prio_dead_idx'),
+        ]
+
+    def __str__(self):
+        return self.title
+
+
 class VolunteerOpportunity(models.Model):
     STATUS_OPEN = 'open'
     STATUS_CLOSED = 'closed'

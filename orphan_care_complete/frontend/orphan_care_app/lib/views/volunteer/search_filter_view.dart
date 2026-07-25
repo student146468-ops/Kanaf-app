@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'volunteer_ui.dart';
 
@@ -16,6 +17,7 @@ class SearchFilterView extends StatefulWidget {
 
 class _SearchFilterViewState extends State<SearchFilterView> {
   final _searchController = TextEditingController();
+  bool _hasLoadedOpportunities = false;
   String _selectedFilter = 'الكل';
 
   static const List<String> _filters = [
@@ -25,61 +27,13 @@ class _SearchFilterViewState extends State<SearchFilterView> {
     'إغاثة',
   ];
 
-  // TODO: Replace with AppProvider opportunities when available.
-  static const List<Map<String, dynamic>> _results = [
-    {
-      'title': 'دعم تعليمي في أساسيات الحاسوب',
-      'city': 'غريان',
-      'skill': 'تعليم وتقنية',
-      'date': 'الإثنين 1 يوليو',
-      'seats': '10 متطوعين مطلوبين',
-      'image': 'assets/images/image4.png',
-    },
-    {
-      'title': 'تنظيم يوم أنشطة للأطفال',
-      'city': 'غريان',
-      'skill': 'أنشطة أطفال',
-      'date': 'الجمعة 5 يوليو',
-      'seats': '5 متطوعين مطلوبين',
-      'image': 'assets/images/image5.png',
-      'summary':
-          'ساهم في تنظيم يوم ترفيهي مليء بالألعاب والأنشطة الهادفة، بهدف إدخال السرور على الأطفال وتنمية روح التعاون والثقة لديهم في بيئة آمنة وممتعة.',
-      'tasks': [
-        'تنظيم الألعاب والأنشطة الجماعية للأطفال.',
-        'الإشراف على سلامة الأطفال أثناء الفعالية.',
-        'تشجيع الأطفال على المشاركة والتفاعل الإيجابي.',
-        'التعاون مع فريق التنظيم وتجهيز الأدوات قبل وبعد النشاط.',
-      ],
-      'skillsList': [
-        'حب التعامل مع الأطفال والصبر عليهم.',
-        'القدرة على العمل ضمن فريق.',
-        'مهارات التواصل والابتكار في الأنشطة الترفيهية.',
-        'الالتزام بالمواعيد وتحمل المسؤولية.',
-      ],
-    },
-    {
-      'title': 'فرز التبرعات وتجهيز السلال',
-      'city': 'طرابلس',
-      'skill': 'تنظيم ومتابعة',
-      'date': 'الأحد 7 يوليو',
-      'seats': '15 متطوعاً مطلوباً',
-      'image': 'assets/images/image6.png',
-      'summary':
-          'المساهمة في فرز وترتيب وتجهيز التبرعات العينية، والتأكد من جاهزيتها لتوزيعها على دور رعاية الأيتام بطريقة منظمة وسريعة.',
-      'tasks': [
-        'فرز التبرعات حسب النوع والاستخدام.',
-        'تغليف وترتيب المواد داخل الصناديق.',
-        'إعداد قوائم بالمحتويات للمساعدة في عملية التوزيع.',
-        'التعاون مع فريق العمل في تحميل وتجهيز المواد.',
-      ],
-      'skillsList': [
-        'الدقة والتنظيم في ترتيب المواد.',
-        'القدرة على العمل الجماعي.',
-        'تحمل العمل البدني الخفيف عند الحاجة.',
-        'الالتزام بالتعليمات والمحافظة على الممتلكات.',
-      ],
-    },
-  ];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedOpportunities) return;
+    _hasLoadedOpportunities = true;
+    AppProviderScope.of(context).fetchVolunteerOpportunities();
+  }
 
   @override
   void dispose() {
@@ -88,29 +42,50 @@ class _SearchFilterViewState extends State<SearchFilterView> {
   }
 
   List<Map<String, dynamic>> get _filteredResults {
-    if (_selectedFilter == 'تعليم') {
-      return _results
-          .where((item) =>
-              item['title']!.contains('تعليمي') ||
-              item['skill']!.contains('تعليم'))
-          .toList();
-    }
-    if (_selectedFilter == 'أنشطة') {
-      return _results
-          .where((item) =>
-              item['title']!.contains('أنشطة') ||
-              item['skill']!.contains('أنشطة'))
-          .toList();
-    }
-    if (_selectedFilter == 'إغاثة') {
-      return _results
-          .where((item) =>
-              item['title']!.contains('تبرعات') ||
-              item['title']!.contains('سلال') ||
-              item['skill']!.contains('إغاثة'))
-          .toList();
-    }
-    return _results;
+    final query = _searchController.text.trim();
+    final results = AppProviderScope.of(context)
+        .volunteerOpportunities
+        .map(_opportunityToMap)
+        .where((item) {
+      if (query.isEmpty) return true;
+      return item['title'].toString().contains(query) ||
+          item['skill'].toString().contains(query) ||
+          item['city'].toString().contains(query);
+    }).toList();
+    if (_selectedFilter == 'ط§ظ„ظƒظ„') return results;
+    return results
+        .where((item) =>
+            item['title'].toString().contains(_selectedFilter) ||
+            item['skill'].toString().contains(_selectedFilter))
+        .toList();
+  }
+
+  Map<String, dynamic> _opportunityToMap(Map<String, dynamic> item) {
+    final required = _asInt(item['required_volunteers'], fallback: 1);
+    final current = _asInt(item['current_volunteers']);
+    final available = (required - current).clamp(0, required);
+    final date = DateTime.tryParse(item['start_date']?.toString() ?? '');
+    final dateLabel = date == null
+        ? 'غير محدد'
+        : '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    return {
+      'id': item['id'],
+      'title': item['title']?.toString() ?? '',
+      'city': item['location']?.toString() ?? '',
+      'skill': item['status']?.toString() ?? '',
+      'date': dateLabel,
+      'seats': '$available من $required متاح',
+      'image': 'assets/images/image4.png',
+      'summary': item['description']?.toString() ?? '',
+      'location': item['location']?.toString() ?? '',
+      'tasks': const <String>[],
+      'skillsList': const <String>[],
+    };
+  }
+
+  int _asInt(dynamic value, {int fallback = 0}) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '') ?? fallback;
   }
 
   @override

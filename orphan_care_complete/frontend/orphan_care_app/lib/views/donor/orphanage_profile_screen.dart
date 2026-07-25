@@ -1,64 +1,48 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
+import '../../models/need_model.dart';
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'donor_mobile_chrome.dart';
 
-class OrphanageProfileScreen extends StatelessWidget {
+class OrphanageProfileScreen extends StatefulWidget {
   const OrphanageProfileScreen({super.key});
+
+  @override
+  State<OrphanageProfileScreen> createState() => _OrphanageProfileScreenState();
+}
+
+class _OrphanageProfileScreenState extends State<OrphanageProfileScreen> {
+  bool _hasLoadedData = false;
 
   static const Color _primaryOrange = Color(0xFFFF8C42);
   static const Color _screenBackground = Color(0xFFF5F5F5);
   static const Color _placeholderBackground = Color(0xFFF7F7F7);
   static const Color _cardBorder = Color(0xFFEAEAEA);
 
-  // TODO: Replace mock orphanage needs with backend/AppProvider orphanage profile data.
-  final List<Map<String, dynamic>> _needs = const [
-    {
-      'orphanage': 'دار الأمان لرعاية الأيتام - غريان',
-      'title': 'توفير مواد تموينية للمطبخ الداخلي',
-      'raised': '1,800 د.ل',
-      'target': '3,000 د.ل',
-      'remaining': '1,200 د.ل',
-      'progress': 0.60,
-      'daysLeft': '7 أيام',
-      'category': 'غذائي',
-      'urgency': 'عاجل',
-      'status': 'قيد التنفيذ',
-      'description': 'مواد أساسية تساعد في تجهيز وجبات يومية متوازنة للأطفال.',
-    },
-    {
-      'orphanage': 'دار الأمان لرعاية الأيتام - غريان',
-      'title': 'شراء كسوة صيفية للأطفال',
-      'raised': '2,200 د.ل',
-      'target': '4,500 د.ل',
-      'remaining': '2,300 د.ل',
-      'progress': 0.49,
-      'daysLeft': '10 أيام',
-      'category': 'كسوة',
-      'urgency': 'متوسط',
-      'status': 'جديد',
-      'description': 'ملابس وأحذية جديدة تناسب أعمار الأطفال وتحفظ كرامتهم.',
-    },
-  ];
-
-  final Map<String, String> _orphanage = const {
-    'name': 'دار الأمان لرعاية الأيتام - غريان',
-    'status': 'دار موثقة في كنف',
-    'about':
-        'تعمل الدار على توفير رعاية يومية آمنة للأطفال، مع متابعة تعليمية وصحية تساعدهم على النمو في بيئة مستقرة.',
-    'location': 'غريان - بالقرب من المجمع الصحي',
-    'phone': '091-XXXXXXX / 092-XXXXXXX',
-  };
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedData) return;
+    _hasLoadedData = true;
+    final provider = AppProviderScope.of(context);
+    provider.fetchCareHomes();
+    provider.fetchNeeds(notifyLoading: false);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final provider = AppProviderScope.of(context);
+    final orphanage = _orphanageFromBackend(provider.careHomes);
+    final needs =
+        provider.needs.map((need) => _needToMap(need, orphanage)).toList();
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _screenBackground,
-        appBar: DonorAppBar(
+        appBar: const DonorAppBar(
           title: 'ملف الدار',
-          leading: donorBackButton(context),
         ),
         body: SafeArea(
           top: false,
@@ -72,17 +56,17 @@ class OrphanageProfileScreen extends StatelessWidget {
                   offset: const Offset(0, -36),
                   child: Column(
                     children: [
-                      _ProfileHeader(orphanage: _orphanage),
+                      _ProfileHeader(orphanage: orphanage),
                       const SizedBox(height: DonorSpacing.lg),
                       const _SpecialtyChips(),
                       const SizedBox(height: DonorSpacing.xl),
-                      _AboutCard(text: _orphanage['about']!),
+                      _AboutCard(text: orphanage['about']!),
                       const SizedBox(height: DonorSpacing.lg),
                       const _StatsRow(),
                       const SizedBox(height: DonorSpacing.lg),
                       _ActionButtons(
-                        needs: _needs,
-                        orphanage: _orphanage,
+                        needs: needs,
+                        orphanage: orphanage,
                       ),
                       const SizedBox(height: DonorSpacing.md),
                     ],
@@ -94,6 +78,64 @@ class OrphanageProfileScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Map<String, String> _orphanageFromBackend(List<Map<String, dynamic>> homes) {
+    if (homes.isEmpty) {
+      return const {
+        'name': 'لا توجد دار مسجلة',
+        'status': 'غير متوفر',
+        'about': 'لا توجد بيانات دار رعاية متاحة من الخادم حاليًا.',
+        'location': 'غير محدد',
+        'phone': 'غير محدد',
+      };
+    }
+    final home = homes.first;
+    final description = home['description']?.toString().trim() ?? '';
+    return {
+      'name': home['name']?.toString() ?? '',
+      'status': 'دار موثقة في كنف',
+      'about': description.isNotEmpty
+          ? description
+          : home['address']?.toString() ?? '',
+      'location': home['address']?.toString() ?? '',
+      'phone': home['phone']?.toString() ?? '',
+    };
+  }
+
+  Map<String, dynamic> _needToMap(
+      NeedModel need, Map<String, String> orphanage) {
+    final target = _quantityValue(need.requiredQuantity);
+    final raised = need.fulfilledQuantity;
+    final progress = target <= 0 ? 0.0 : raised / target;
+    return {
+      'orphanage': orphanage['name'] ?? '',
+      'title': need.title,
+      'raised': _amountLabel(raised),
+      'target': need.requiredQuantity.isEmpty
+          ? _amountLabel(target)
+          : need.requiredQuantity,
+      'remaining': target <= 0
+          ? 'غير محدد'
+          : _amountLabel((target - raised).clamp(0, target)),
+      'progress': progress.clamp(0.0, 1.0),
+      'daysLeft': 'غير محدد',
+      'category': need.category,
+      'urgency': need.priority == 'urgent' ? 'عاجل' : 'متوسط',
+      'status': need.statusLabel,
+      'description': need.description,
+    };
+  }
+
+  double _quantityValue(String value) {
+    final match = RegExp(r'\d+(\.\d+)?').firstMatch(value.replaceAll(',', ''));
+    return double.tryParse(match?.group(0) ?? '') ?? 0;
+  }
+
+  String _amountLabel(num value) {
+    final number = value.toDouble();
+    if (number == number.roundToDouble()) return number.round().toString();
+    return number.toStringAsFixed(2);
   }
 }
 
@@ -109,8 +151,8 @@ class _OrphanageCoverImage extends StatelessWidget {
         height: 178,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: OrphanageProfileScreen._placeholderBackground,
-          border: Border.all(color: OrphanageProfileScreen._cardBorder),
+          color: _OrphanageProfileScreenState._placeholderBackground,
+          border: Border.all(color: _OrphanageProfileScreenState._cardBorder),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -169,7 +211,7 @@ class _ProfileHeader extends StatelessWidget {
         const SizedBox(height: DonorSpacing.sm),
         const DonorStatusBadge(
           label: 'دار موثقة',
-          color: OrphanageProfileScreen._primaryOrange,
+          color: _OrphanageProfileScreenState._primaryOrange,
           icon: Icons.verified_outlined,
         ),
       ],
@@ -199,7 +241,7 @@ class _OrphanageAvatar extends StatelessWidget {
       ),
       child: Container(
         decoration: const BoxDecoration(
-          color: OrphanageProfileScreen._placeholderBackground,
+          color: _OrphanageProfileScreenState._placeholderBackground,
           shape: BoxShape.circle,
         ),
         child: Icon(
@@ -226,7 +268,7 @@ class _SpecialtyChips extends StatelessWidget {
       children: chips.map((label) {
         return DonorBadge(
           label: label,
-          color: OrphanageProfileScreen._primaryOrange,
+          color: _OrphanageProfileScreenState._primaryOrange,
         );
       }).toList(),
     );
@@ -297,7 +339,7 @@ class _StatCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: DonorTextStyles.title.copyWith(
               fontSize: 18,
-              color: OrphanageProfileScreen._primaryOrange,
+              color: _OrphanageProfileScreenState._primaryOrange,
             ),
           ),
           const SizedBox(height: DonorSpacing.xxs),
@@ -477,7 +519,7 @@ class _ContactRow extends StatelessWidget {
       children: [
         DonorIconBox(
           icon: icon,
-          color: OrphanageProfileScreen._primaryOrange,
+          color: _OrphanageProfileScreenState._primaryOrange,
           size: 42,
         ),
         const SizedBox(width: DonorSpacing.md),
@@ -520,7 +562,7 @@ class _NeedTile extends StatelessWidget {
             children: [
               DonorIconBox(
                 icon: _categoryIcon(need['category'] as String),
-                color: OrphanageProfileScreen._primaryOrange,
+                color: _OrphanageProfileScreenState._primaryOrange,
                 size: 42,
               ),
               const SizedBox(width: DonorSpacing.md),
@@ -548,7 +590,7 @@ class _NeedTile extends StatelessWidget {
               DonorStatusBadge(
                 label: urgency,
                 color: urgency == 'عاجل'
-                    ? OrphanageProfileScreen._primaryOrange
+                    ? _OrphanageProfileScreenState._primaryOrange
                     : AppColors.textDarkSecondary,
               ),
               const SizedBox(width: DonorSpacing.sm),

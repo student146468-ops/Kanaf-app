@@ -15,6 +15,7 @@ from management.views_api import (
     LoginView,
     LogoutView,
     MeView,
+    NeedViewSet,
     NotificationViewSet,
     OrphanViewSet,
     ProfileViewSet,
@@ -34,6 +35,7 @@ router.register(r'volunteer-opportunities', VolunteerOpportunityViewSet, basenam
 router.register(r'volunteer-applications', VolunteerApplicationViewSet, basename='volunteer_application')
 router.register(r'sponsors', SponsorViewSet, basename='sponsor')
 router.register(r'inventory', InventoryViewSet, basename='inventory')
+router.register(r'needs', NeedViewSet, basename='need')
 router.register(r'care-homes', CareHomeViewSet, basename='care_home')
 router.register(r'notifications', NotificationViewSet, basename='notification')
 router.register(r'profiles', ProfileViewSet, basename='profile')

@@ -7,7 +7,6 @@ class ApiConfig {
   static const String localWebBaseUrl = 'http://127.0.0.1:8000/api';
   static const String androidDebugBaseUrl = String.fromEnvironment(
     'ANDROID_DEBUG_API_BASE_URL',
-    defaultValue: 'http://10.23.134.228:8000/api',
   );
   static const String productionBaseUrl = String.fromEnvironment(
     'PRODUCTION_API_BASE_URL',
@@ -38,7 +37,10 @@ class ApiConfig {
     if (isDebug) {
       if (isWeb) return localWebBaseUrl;
       if (targetPlatform == TargetPlatform.android) {
-        return _withoutTrailingSlash(androidDebugBaseUrl);
+        final androidOverride = androidDebugBaseUrl.trim();
+        if (androidOverride.isNotEmpty) {
+          return _withoutTrailingSlash(androidOverride);
+        }
       }
     }
 

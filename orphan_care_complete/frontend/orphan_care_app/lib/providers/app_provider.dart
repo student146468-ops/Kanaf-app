@@ -19,7 +19,11 @@ class AppProvider extends ChangeNotifier {
   List<DonationModel> _myDonations = [];
   List<VolunteerModel> _volunteers = [];
   List<NeedModel> _needs = [];
+  List<Map<String, dynamic>> _volunteerOpportunities = [];
+  List<Map<String, dynamic>> _volunteerApplications = [];
+  List<Map<String, dynamic>> _careHomes = [];
   NeedModel? _selectedNeed;
+  Map<String, dynamic> _currentUser = {};
   Map<String, dynamic> _dashboardStats = {};
   Map<String, dynamic> _reports = {};
   Map<String, dynamic> _careHomeProfile = {};
@@ -36,7 +40,13 @@ class AppProvider extends ChangeNotifier {
   List<DonationModel> get myDonations => _myDonations;
   List<VolunteerModel> get volunteers => _volunteers;
   List<NeedModel> get needs => _needs;
+  List<Map<String, dynamic>> get volunteerOpportunities =>
+      _volunteerOpportunities;
+  List<Map<String, dynamic>> get volunteerApplications =>
+      _volunteerApplications;
+  List<Map<String, dynamic>> get careHomes => _careHomes;
   NeedModel? get selectedNeed => _selectedNeed;
+  Map<String, dynamic> get currentUser => _currentUser;
   Map<String, dynamic> get dashboardStats => _dashboardStats;
   Map<String, dynamic> get reports => _reports;
   Map<String, dynamic> get careHomeProfile => _careHomeProfile;
@@ -52,6 +62,12 @@ class AppProvider extends ChangeNotifier {
               OrphanModel.fromJson(Map<String, dynamic>.from(item as Map)))
           .toList();
     });
+  }
+
+  Future<void> fetchCurrentUser({bool notifyLoading = true}) async {
+    await _load(() async {
+      _currentUser = await _apiService.getMe();
+    }, notifyLoading: notifyLoading);
   }
 
   Future<void> fetchOrphanDetails(int id) async {
@@ -82,6 +98,15 @@ class AppProvider extends ChangeNotifier {
     await _save(() async {
       _donations.add(DonationModel.fromJson(
           await _apiService.createDonation(donationData)));
+    });
+  }
+
+  Future<bool> submitDonation(Map<String, dynamic> donationData) {
+    return _save(() async {
+      final created = DonationModel.fromJson(
+          await _apiService.createDonation(donationData));
+      _donations.insert(0, created);
+      _myDonations.insert(0, created);
     });
   }
 
@@ -148,6 +173,30 @@ class AppProvider extends ChangeNotifier {
     }, notifyLoading: notifyLoading);
   }
 
+  Future<void> fetchVolunteerOpportunities({bool notifyLoading = true}) async {
+    await _load(() async {
+      final data = await _apiService.getVolunteerOpportunities();
+      _volunteerOpportunities =
+          data.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+    }, notifyLoading: notifyLoading);
+  }
+
+  Future<bool> applyToVolunteerOpportunity(
+      int opportunityId, Map<String, dynamic> data) {
+    return _save(() async {
+      await _apiService.applyToVolunteerOpportunity(opportunityId, data);
+      await fetchVolunteerOpportunities(notifyLoading: false);
+    });
+  }
+
+  Future<void> fetchVolunteerApplications({bool notifyLoading = true}) async {
+    await _load(() async {
+      final data = await _apiService.getVolunteerApplications();
+      _volunteerApplications =
+          data.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+    }, notifyLoading: notifyLoading);
+  }
+
   Future<void> fetchNeedDetails(int id) async {
     await _load(() async {
       _selectedNeed = NeedModel.fromJson(await _apiService.getNeedDetails(id));
@@ -184,6 +233,14 @@ class AppProvider extends ChangeNotifier {
     await _load(() async {
       _careHomeProfile = await _apiService.getCareHomeProfile();
     });
+  }
+
+  Future<void> fetchCareHomes({bool notifyLoading = true}) async {
+    await _load(() async {
+      final data = await _apiService.getCareHomes();
+      _careHomes =
+          data.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+    }, notifyLoading: notifyLoading);
   }
 
   Future<bool> updateCareHomeProfile(Map<String, dynamic> data) async {
@@ -292,6 +349,10 @@ class AppProvider extends ChangeNotifier {
     _myDonations = [];
     _volunteers = [];
     _needs = [];
+    _volunteerOpportunities = [];
+    _volunteerApplications = [];
+    _careHomes = [];
+    _currentUser = {};
     _dashboardStats = {};
     _reports = {};
     _careHomeProfile = {};

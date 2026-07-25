@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'volunteer_ui.dart';
 
@@ -12,6 +13,7 @@ class MyScheduleView extends StatefulWidget {
 
 class _MyScheduleViewState extends State<MyScheduleView> {
   int _selectedDayIndex = 1;
+  bool _hasLoadedApplications = false;
 
   static const List<Map<String, String>> _days = [
     {'day': 'الأحد', 'date': '30'},
@@ -21,26 +23,22 @@ class _MyScheduleViewState extends State<MyScheduleView> {
     {'day': 'الخميس', 'date': '04'},
   ];
 
-  // TODO: Replace with AppProvider schedule data when available.
-  static const List<Map<String, String>> _items = [
-    {
-      'time': '16:00 - 18:00',
-      'title': 'جلسة أساسيات الحاسوب',
-      'location': 'دار الأمان لرعاية الأيتام - غريان',
-      'status': 'قادمة',
-      'skill': 'تعليم وتقنية',
-    },
-    {
-      'time': '18:15 - 19:15',
-      'title': 'نشاط ألعاب ذهنية للأطفال',
-      'location': 'قاعة الأنشطة',
-      'status': 'مؤكدة',
-      'skill': 'أنشطة',
-    },
-  ];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedApplications) return;
+    _hasLoadedApplications = true;
+    AppProviderScope.of(context).fetchVolunteerApplications();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final provider = AppProviderScope.of(context);
+    final items = provider.volunteerApplications
+        .where((item) => item['status'] == 'approved')
+        .map(_applicationToScheduleItem)
+        .toList();
+
     return VolunteerAppScaffold(
       title: 'مواعيدي التطوعية',
       body: SafeArea(
@@ -69,7 +67,7 @@ class _MyScheduleViewState extends State<MyScheduleView> {
               ),
             ),
             Expanded(
-              child: _items.isEmpty
+              child: items.isEmpty
                   ? VolunteerEmptyState(
                       icon: Icons.event_busy_outlined,
                       title: 'لا توجد مواعيد لهذا اليوم',
@@ -87,16 +85,40 @@ class _MyScheduleViewState extends State<MyScheduleView> {
                         volunteerHorizontalPadding,
                         24,
                       ),
-                      itemCount: _items.length,
+                      itemCount: items.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, index) =>
-                          _ScheduleCard(item: _items[index]),
+                          _ScheduleCard(item: items[index]),
                     ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Map<String, String> _applicationToScheduleItem(Map<String, dynamic> item) {
+    return {
+      'time': _timeRange(item),
+      'title': item['opportunity_title']?.toString() ?? '',
+      'location': item['opportunity_location']?.toString() ?? '',
+      'status': item['status']?.toString() ?? '',
+      'skill': item['opportunity_status']?.toString() ?? '',
+    };
+  }
+
+  String _timeRange(Map<String, dynamic> item) {
+    final start =
+        DateTime.tryParse(item['opportunity_start_date']?.toString() ?? '');
+    final end =
+        DateTime.tryParse(item['opportunity_end_date']?.toString() ?? '');
+    if (start == null) return 'غير محدد';
+    final startText =
+        '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')}';
+    if (end == null) return startText;
+    final endText =
+        '${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}';
+    return '$startText - $endText';
   }
 }
 

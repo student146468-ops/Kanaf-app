@@ -4,6 +4,7 @@ from .models import (
     CareHome,
     Donation,
     InventoryItem,
+    Need,
     Notification,
     Orphan,
     Sponsor,
@@ -77,6 +78,21 @@ class InventorySerializer(serializers.ModelSerializer):
         return value
 
 
+class NeedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Need
+        fields = '__all__'
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
+
+    def validate_title(self, value):
+        return _validate_required_text(value, 'title')
+
+    def validate_fulfilled_quantity(self, value):
+        if value is None or value < 0:
+            raise serializers.ValidationError('fulfilled_quantity must be zero or greater.')
+        return value
+
+
 class SponsorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sponsor
@@ -127,6 +143,11 @@ class VolunteerOpportunitySerializer(serializers.ModelSerializer):
 class VolunteerApplicationSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
     opportunity_title = serializers.CharField(source='opportunity.title', read_only=True)
+    opportunity_description = serializers.CharField(source='opportunity.description', read_only=True)
+    opportunity_location = serializers.CharField(source='opportunity.location', read_only=True)
+    opportunity_status = serializers.CharField(source='opportunity.status', read_only=True)
+    opportunity_start_date = serializers.DateTimeField(source='opportunity.start_date', read_only=True)
+    opportunity_end_date = serializers.DateTimeField(source='opportunity.end_date', read_only=True)
 
     class Meta:
         model = VolunteerApplication

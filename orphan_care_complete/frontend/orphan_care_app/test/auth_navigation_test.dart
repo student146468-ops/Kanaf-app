@@ -10,17 +10,15 @@ void main() {
     test('routes known API roles to their own home screens', () {
       expect(
         AuthNavigation.homeRouteForRole('care_home'),
-        '/care_home_dashboard',
+        isNull,
       );
       expect(AuthNavigation.homeRouteForRole('donor'), '/supporter_home');
       expect(AuthNavigation.homeRouteForRole('volunteer'), '/volunteer_home');
     });
 
     test('normalizes supported role aliases without defaulting to donor', () {
-      expect(
-          AuthNavigation.homeRouteForRole('carehome'), '/care_home_dashboard');
-      expect(
-          AuthNavigation.homeRouteForRole('orphanage'), '/care_home_dashboard');
+      expect(AuthNavigation.homeRouteForRole('carehome'), isNull);
+      expect(AuthNavigation.homeRouteForRole('orphanage'), isNull);
       expect(AuthNavigation.homeRouteForRole('supporter'), '/supporter_home');
       expect(AuthNavigation.homeRouteForRole('admin'), isNull);
       expect(AuthNavigation.homeRouteForRole(null), isNull);
@@ -31,9 +29,9 @@ void main() {
       expect(
         AuthNavigation.roleFromAuthResponse({
           'access': 'token',
-          'user': {'role': 'care_home'},
+          'user': {'role': 'donor'},
         }),
-        'care_home',
+        'donor',
       );
       expect(
         AuthNavigation.roleFromAuthResponse({
@@ -69,7 +67,7 @@ void main() {
           isDebug: true,
           targetPlatform: TargetPlatform.android,
         ),
-        'http://10.23.134.228:8000/api',
+        'https://kanafapp.pythonanywhere.com/api',
       );
       expect(
         ApiConfig.resolveBaseUrl(

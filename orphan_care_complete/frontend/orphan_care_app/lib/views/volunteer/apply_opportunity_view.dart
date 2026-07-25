@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
@@ -30,21 +30,49 @@ class _ApplyOpportunityViewState extends State<ApplyOpportunityView> {
 
     setState(() => _isSubmitting = true);
     final provider = AppProviderScope.of(context);
+    final opportunity = _selectedOpportunity(context);
+    final opportunityId = _asInt(opportunity['id']);
 
-    await provider.applyAsVolunteer({
-      'name': 'متطوع كنف',
-      'specialty': _skillsController.text.trim(),
-      'points': 0,
-      'status': 'pending',
-      'hours_worked': 0,
-      'motivation': _reasonController.text.trim(),
-      'opportunity': 'دعم تعليمي في أساسيات الحاسوب',
-      'has_attachment': _hasAttachment,
-    });
+    if (opportunityId != null) {
+      await provider.applyToVolunteerOpportunity(opportunityId, {
+        'message':
+            '${_reasonController.text.trim()}\n\n${_skillsController.text.trim()}',
+        'has_attachment': _hasAttachment,
+      });
+    } else {
+      await provider.applyAsVolunteer({
+        'name': 'متطوع كنف',
+        'specialty': _skillsController.text.trim(),
+        'points': 0,
+        'status': 'pending',
+        'hours_worked': 0,
+        'motivation': _reasonController.text.trim(),
+        'opportunity': _opportunityTitle(opportunity),
+        'has_attachment': _hasAttachment,
+      });
+    }
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);
     _showResultSheet(provider.errorMessage);
+  }
+
+  Map<String, dynamic> _selectedOpportunity(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map && args['opportunity'] is Map) {
+      return Map<String, dynamic>.from(args['opportunity'] as Map);
+    }
+    return const {};
+  }
+
+  int? _asInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  String _opportunityTitle(Map<String, dynamic> opportunity) {
+    final title = opportunity['title']?.toString().trim() ?? '';
+    return title.isEmpty ? 'فرصة تطوع' : title;
   }
 
   void _showResultSheet(String? errorMessage) {
@@ -130,7 +158,8 @@ class _ApplyOpportunityViewState extends State<ApplyOpportunityView> {
               28,
             ),
             children: [
-              const _OpportunitySummary(),
+              _OpportunitySummary(
+                  title: _opportunityTitle(_selectedOpportunity(context))),
               const SizedBox(height: 18),
               const VolunteerSectionTitle(
                 title: 'ما الدافع الذي ترغب بمشاركته؟',
@@ -174,24 +203,27 @@ class _ApplyOpportunityViewState extends State<ApplyOpportunityView> {
 }
 
 class _OpportunitySummary extends StatelessWidget {
-  const _OpportunitySummary();
+  final String title;
+
+  const _OpportunitySummary({required this.title});
 
   @override
   Widget build(BuildContext context) {
-    return const VolunteerCard(
+    return VolunteerCard(
       child: Row(
         children: [
-          VolunteerIconBox(icon: Icons.volunteer_activism_rounded),
-          SizedBox(width: 12),
+          const VolunteerIconBox(icon: Icons.volunteer_activism_rounded),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('الفرصة التي ستتقدم لها', style: volunteerMutedStyle),
-                SizedBox(height: 3),
+                const Text('الفرصة التي ستتقدم لها',
+                    style: volunteerMutedStyle),
+                const SizedBox(height: 3),
                 Text(
-                  'دعم تعليمي في أساسيات الحاسوب',
-                  style: TextStyle(
+                  title,
+                  style: const TextStyle(
                     fontFamily: 'Vazirmatn',
                     color: AppColors.textDarkPrimary,
                     fontSize: 15,

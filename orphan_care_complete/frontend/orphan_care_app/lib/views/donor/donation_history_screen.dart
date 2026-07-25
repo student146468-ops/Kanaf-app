@@ -46,9 +46,8 @@ class _DonationHistoryScreenState extends State<DonationHistoryScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _screenBackground,
-        appBar: DonorAppBar(
+        appBar: const DonorAppBar(
           title: 'سجل التبرعات',
-          leading: donorBackButton(context),
         ),
         body: SafeArea(
           top: false,

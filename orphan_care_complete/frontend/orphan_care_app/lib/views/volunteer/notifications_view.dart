@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
+import '../../providers/app_provider_scope.dart';
 import 'volunteer_ui.dart';
 
 const Color _primaryOrange = Color(0xFFFF8C42);
@@ -16,56 +17,47 @@ class NotificationsView extends StatefulWidget {
 
 class _NotificationsViewState extends State<NotificationsView> {
   String _selectedFilter = 'الكل';
-
-  // TODO: Replace with AppProvider notifications when available.
-  final List<Map<String, dynamic>> _notifications = [
-    {
-      'title': 'تم قبول طلبك',
-      'body': 'تم اعتماد مشاركتك في فرصة دعم أساسيات الحاسوب.',
-      'time': 'منذ 5 دقائق',
-      'type': 'accepted',
-      'read': false,
-    },
-    {
-      'title': 'تعذر قبول الطلب',
-      'body': 'اكتمل عدد المقاعد لهذه الفرصة، ابحث عن فرصة قريبة أخرى.',
-      'time': 'منذ 30 دقيقة',
-      'type': 'rejected',
-      'read': false,
-    },
-    {
-      'title': 'تذكير بموعد قريب',
-      'body': 'لديك جلسة تطوعية اليوم الساعة 16:00 في دار الأمان.',
-      'time': 'منذ ساعة',
-      'type': 'reminder',
-      'read': false,
-    },
-    {
-      'title': 'شهادة جديدة',
-      'body': 'تم إصدار شهادة تقدير بعد إكمال نشاطك التطوعي الأخير.',
-      'time': 'أمس',
-      'type': 'certificate',
-      'read': true,
-    },
-    {
-      'title': 'فرصة جديدة مناسبة لك',
-      'body': 'تم نشر فرصة تنظيم أنشطة للأطفال في غريان.',
-      'time': 'قبل يومين',
-      'type': 'opportunity',
-      'read': true,
-    },
-  ];
+  bool _hasLoadedNotifications = false;
 
   List<Map<String, dynamic>> get _filteredNotifications {
+    final notifications = AppProviderScope.of(context)
+        .notifications
+        .map(_notificationToMap)
+        .toList();
     if (_selectedFilter == 'غير مقروء') {
-      return _notifications.where((item) => item['read'] == false).toList();
+      return notifications.where((item) => item['read'] == false).toList();
     }
     if (_selectedFilter == 'التسويق') {
-      return _notifications
-          .where((item) => item['type'] == 'opportunity')
+      return notifications
+          .where((item) => item['type'] == 'volunteer')
           .toList();
     }
-    return _notifications;
+    return notifications;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedNotifications) return;
+    _hasLoadedNotifications = true;
+    AppProviderScope.of(context).fetchNotifications();
+  }
+
+  Map<String, dynamic> _notificationToMap(Map<String, dynamic> item) {
+    return {
+      'id': item['id'],
+      'title': item['title']?.toString() ?? '',
+      'body': item['message']?.toString() ?? '',
+      'time': _dateLabel(item['created_at']),
+      'type': item['notification_type']?.toString() ?? 'message',
+      'read': item['is_read'] == true,
+    };
+  }
+
+  String _dateLabel(dynamic value) {
+    final date = DateTime.tryParse(value?.toString() ?? '');
+    if (date == null) return '';
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   @override

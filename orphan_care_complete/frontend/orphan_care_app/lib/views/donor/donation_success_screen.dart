@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../../utils/app_colors.dart';
 import 'donor_mobile_chrome.dart';
@@ -23,6 +23,9 @@ class DonationSuccessScreen extends StatelessWidget {
         body: Stack(
           children: [
             const Positioned.fill(child: DonorBackground()),
+            const SafeArea(
+              child: DonorFloatingTopControls(),
+            ),
             SafeArea(
               child: Center(
                 child: ConstrainedBox(

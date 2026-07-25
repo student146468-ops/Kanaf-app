@@ -1,7 +1,9 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../models/need_model.dart';
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'donor_mobile_chrome.dart';
 
@@ -23,58 +25,7 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
   late final PageController _sliderController;
   Timer? _sliderTimer;
   int _currentSlide = _initialSliderPage;
-
-  // TODO: Replace fallback needs with AppProvider/backend donor needs when available.
-  final List<Map<String, dynamic>> _needs = const [
-    {
-      'id': '1',
-      'orphanage': 'دار الأمان لرعاية الأيتام',
-      'location': 'غريان',
-      'category': 'مالي',
-      'title': 'تغطية المصاريف الدراسية لخمسة طلاب',
-      'progress': 0.65,
-      'raised': '3,250 د.ل',
-      'target': '5,000 د.ل',
-      'remaining': '1,750 د.ل',
-      'urgency': 'عاجل',
-      'daysLeft': '3 أيام',
-      'status': 'قيد التنفيذ',
-      'description': 'مساهمة تعليمية تحفظ انتظام الطلاب وتخفف العبء عن الدار.',
-      'image': 'assets/images/b.png',
-    },
-    {
-      'id': '2',
-      'orphanage': 'جمعية كنف للأطفال',
-      'location': 'غريان',
-      'category': 'غذائي',
-      'title': 'توفير سلات غذائية متوازنة للأطفال',
-      'progress': 0.40,
-      'raised': '1,600 د.ل',
-      'target': '4,000 د.ل',
-      'remaining': '2,400 د.ل',
-      'urgency': 'متوسط',
-      'daysLeft': '12 يوم',
-      'status': 'جديد',
-      'description': 'احتياج يومي يساعد الفريق على تقديم وجبات صحية ومنتظمة.',
-      'image': 'assets/images/a.png',
-    },
-    {
-      'id': '3',
-      'orphanage': 'بيت الأمل للبنين',
-      'location': 'غريان',
-      'category': 'كسوة',
-      'title': 'توفير كسوة مريحة للأطفال من عمر 4 إلى 10 سنوات',
-      'progress': 0.85,
-      'raised': '5,100 د.ل',
-      'target': '6,000 د.ل',
-      'remaining': '900 د.ل',
-      'urgency': 'منخفض',
-      'daysLeft': '5 أيام',
-      'status': 'قيد التنفيذ',
-      'description': 'ملابس وأحذية جديدة تحفظ كرامة الأطفال وتناسب الموسم.',
-      'image': 'assets/images/c.png',
-    },
-  ];
+  bool _hasLoadedNeeds = false;
 
   static const Color _homeBackground = Color(0xFFF5F5F5);
 
@@ -93,6 +44,14 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedNeeds) return;
+    _hasLoadedNeeds = true;
+    AppProviderScope.of(context).fetchNeeds();
+  }
+
+  @override
   void dispose() {
     _sliderTimer?.cancel();
     _sliderController.dispose();
@@ -101,24 +60,15 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = AppProviderScope.of(context);
+    final needs = provider.needs.map(_needToCardData).toList();
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _homeBackground,
-        appBar: DonorAppBar(
+        appBar: const DonorAppBar(
           title: 'الرئيسية',
-          actions: [
-            DonorCircleButton(
-              icon: Icons.search_rounded,
-              tooltip: 'البحث',
-              onTap: () => Navigator.pushNamed(context, '/search_filter'),
-            ),
-            DonorCircleButton(
-              icon: Icons.notifications_none_rounded,
-              tooltip: 'الإشعارات',
-              onTap: () => Navigator.pushNamed(context, '/notifications'),
-            ),
-          ],
         ),
         body: Stack(
           children: [
@@ -148,18 +98,34 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
                           Navigator.pushNamed(context, '/search_filter'),
                     ),
                     const SizedBox(height: 16),
-                    if (_needs.isEmpty)
+                    if (provider.isLoading && needs.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 32),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.brandOrange,
+                          ),
+                        ),
+                      )
+                    else if (provider.errorMessage != null && needs.isEmpty)
+                      DonorEmptyState(
+                        icon: Icons.cloud_off_rounded,
+                        title: 'تعذر جلب الاحتياجات',
+                        message: provider.errorMessage!,
+                        actionLabel: 'إعادة المحاولة',
+                        onAction: () => provider.fetchNeeds(),
+                      )
+                    else if (needs.isEmpty)
                       DonorEmptyState(
                         icon: Icons.volunteer_activism_outlined,
-                        title: 'لا توجد احتياجات ضمن هذا التصنيف',
+                        title: 'لا توجد احتياجات منشورة حاليًا',
                         message:
-                            'غيّر التصنيف أو استخدم البحث للوصول إلى احتياج مناسب.',
-                        actionLabel: 'فتح البحث',
-                        onAction: () =>
-                            Navigator.pushNamed(context, '/search_filter'),
+                            'ستظهر هنا الاحتياجات الموجودة في قاعدة البيانات عند نشرها.',
+                        actionLabel: 'تحديث',
+                        onAction: () => provider.fetchNeeds(),
                       )
                     else
-                      ..._needs.map(
+                      ...needs.map(
                         (need) => Padding(
                           padding: const EdgeInsets.only(bottom: 14),
                           child: _UrgentNeedCard(need: need),
@@ -177,6 +143,82 @@ class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
         ),
       ),
     );
+  }
+
+  Map<String, dynamic> _needToCardData(NeedModel need) {
+    final targetValue = _quantityValue(need.requiredQuantity);
+    final raisedValue = need.fulfilledQuantity;
+    final progress = targetValue <= 0 ? 0.0 : raisedValue / targetValue;
+    final remaining = targetValue <= 0
+        ? need.requiredQuantity
+        : _amountLabel((targetValue - raisedValue).clamp(0, targetValue));
+
+    return {
+      'id': need.id.toString(),
+      'orphanage': 'كنف',
+      'location': 'ليبيا',
+      'category': _categoryLabel(need.category),
+      'title': need.title,
+      'progress': progress.clamp(0.0, 1.0),
+      'raised': _amountLabel(raisedValue),
+      'target': need.requiredQuantity.isEmpty
+          ? _amountLabel(targetValue)
+          : need.requiredQuantity,
+      'remaining': remaining.isEmpty ? 'غير محدد' : remaining,
+      'urgency': _priorityLabel(need.priority),
+      'daysLeft': _daysLeftLabel(need.deadline),
+      'status': need.statusLabel,
+      'description': need.description,
+      'image': _imageForCategory(need.category),
+    };
+  }
+
+  double _quantityValue(String value) {
+    final normalized = value.replaceAll(',', '');
+    final match = RegExp(r'\d+(\.\d+)?').firstMatch(normalized);
+    return double.tryParse(match?.group(0) ?? '') ?? 0;
+  }
+
+  String _amountLabel(num value) {
+    final number = value.toDouble();
+    if (number == 0) return '0';
+    if (number == number.roundToDouble()) return number.round().toString();
+    return number.toStringAsFixed(2);
+  }
+
+  String _priorityLabel(String value) {
+    if (value == 'urgent') return 'عاجل';
+    if (value == 'low') return 'منخفض';
+    return 'متوسط';
+  }
+
+  String _categoryLabel(String value) {
+    switch (value) {
+      case 'food':
+        return 'غذائي';
+      case 'clothes':
+        return 'كسوة';
+      case 'medical':
+        return 'صحي';
+      case 'education':
+        return 'تعليمي';
+      default:
+        return value.isEmpty ? 'عام' : value;
+    }
+  }
+
+  String _daysLeftLabel(DateTime? deadline) {
+    if (deadline == null) return 'غير محدد';
+    final days = deadline.difference(DateTime.now()).inDays;
+    if (days <= 0) return 'اليوم';
+    if (days == 1) return 'يوم واحد';
+    return '$days يوم';
+  }
+
+  String _imageForCategory(String category) {
+    if (category == 'food') return 'assets/images/a.png';
+    if (category == 'clothes') return 'assets/images/c.png';
+    return 'assets/images/b.png';
   }
 }
 

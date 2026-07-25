@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 const Color _onboardingOrange = Color(0xFFFF7A00);
 const Color _onboardingText = Color(0xFF1E1E1E);
@@ -30,12 +30,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       description:
           'قدّم مهاراتك في التعليم أو الترفيه أو الإرشاد أو أي مجال تستطيع المساهمة فيه، وكن سببًا في رسم الابتسامة على وجوه الأطفال.',
       imagePath: 'assets/images/image11.png',
-    ),
-    _OnboardingSlideData(
-      titleLineOne: 'سجّل',
-      titleLineTwo: 'دار الرعاية',
-      description: 'سجّل دار رعاية الأيتام\nبك، وأدر احتياجات الأيتام المسجلين لديك بسهولة،\nوانشر طلبات الدعم لتصل إلى الداعمين والمتطوعين بكل شفافية.',
-      imagePath: 'assets/images/image13.png',
     ),
     _OnboardingSlideData(
       titleLineOne: 'ابدأ رحلتك',

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../utils/app_colors.dart';
 
-/// [RoleSelectionScreen] - واجهة اختيار نوع الحساب لـ "تطبيق كَنَفْ".
 class RoleSelectionScreen extends StatefulWidget {
   const RoleSelectionScreen({super.key});
 
@@ -16,13 +15,6 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
 
   final List<Map<String, dynamic>> _rolesData = [
     {
-      'role_key': 'care_home',
-      'title': 'دار الرعاية',
-      'subtitle': 'ننتظر احتياجاتنا ونلتقي بالدعم المناسب لمؤسستنا.',
-      'imagePath': 'assets/images/care_home_3d.png',
-      'fallbackIcon': Icons.home_work_outlined,
-    },
-    {
       'role_key': 'volunteer',
       'title': 'متطوع',
       'subtitle': 'اختر كيف تساهم بوقتك، مهاراتك وجهدك الإنساني.',
@@ -32,7 +24,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     {
       'role_key': 'donor',
       'title': 'متبرع',
-      'subtitle': 'ابحث عن الاحتياجات وتبرع واكفل ما تستطيع كنفاً لهم.',
+      'subtitle': 'ابحث عن الاحتياجات الحقيقية وادعم بما تستطيع.',
       'imagePath': 'assets/images/donor_3d.png',
       'fallbackIcon': Icons.favorite_border_rounded,
     },
@@ -46,7 +38,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     if (_selectedRoleIndex == null) return;
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 350));
 
     if (!mounted) return;
     setState(() => _isLoading = false);

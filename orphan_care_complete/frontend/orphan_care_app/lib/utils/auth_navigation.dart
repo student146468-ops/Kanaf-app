@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 class AuthNavigation {
   static const String donorRole = 'donor';
   static const String volunteerRole = 'volunteer';
-  static const String careHomeRole = 'care_home';
 
   static String? normalizeRole(String? role) {
     final value = role?.trim().toLowerCase().replaceAll('-', '_');
@@ -15,10 +14,6 @@ class AuthNavigation {
         return donorRole;
       case volunteerRole:
         return volunteerRole;
-      case careHomeRole:
-      case 'carehome':
-      case 'orphanage':
-        return careHomeRole;
       default:
         return null;
     }
@@ -78,8 +73,6 @@ class AuthNavigation {
 
   static String? homeRouteForRole(String? role) {
     switch (normalizeRole(role)) {
-      case careHomeRole:
-        return '/care_home_dashboard';
       case donorRole:
         return '/supporter_home';
       case volunteerRole:

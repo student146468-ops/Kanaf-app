@@ -5,17 +5,39 @@ import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'donor_mobile_chrome.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
   static const Color _primaryOrange = Color(0xFFFF8C42);
   static const Color _screenBackground = Color(0xFFF7F7F7);
-  static const String _donorName = 'رؤى علي';
-  static const String _donorSubtitle = 'متبرع';
+  bool _hasLoadedProfile = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedProfile) return;
+    _hasLoadedProfile = true;
+    final provider = AppProviderScope.of(context);
+    if (provider.currentUser.isEmpty) {
+      provider.fetchCurrentUser(notifyLoading: false);
+    }
+    if (provider.myDonations.isEmpty) {
+      provider.fetchMyDonations();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final provider = AppProviderScope.of(context);
+    final user = provider.currentUser;
+    final donorName =
+        _userText(user, ['full_name', 'name', 'username', 'email']);
+    final donorSubtitle = _userText(user, ['email']);
     final donations = provider.myDonations;
     final completedCount = donations.where((donation) {
       final status = donation.status.toLowerCase();
@@ -62,8 +84,8 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.fromSTEB(20, 14, 20, 24),
                 children: [
                   _ProfileHeader(
-                    name: _donorName,
-                    subtitle: _donorSubtitle,
+                    name: donorName.isEmpty ? 'متبرع' : donorName,
+                    subtitle: donorSubtitle.isEmpty ? 'متبرع' : donorSubtitle,
                     total: donations.length,
                     completed: completedCount,
                     pending: pendingCount,
@@ -138,6 +160,14 @@ class ProfileScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _userText(Map<String, dynamic> user, List<String> keys) {
+    for (final key in keys) {
+      final value = user[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty) return value;
+    }
+    return '';
   }
 
   void _showAccountSummary(
@@ -328,10 +358,10 @@ class _ProfileHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        color: ProfileScreen._primaryOrange,
+        color: _ProfileScreenState._primaryOrange,
         boxShadow: [
           BoxShadow(
-            color: ProfileScreen._primaryOrange.withOpacity(0.18),
+            color: _ProfileScreenState._primaryOrange.withOpacity(0.18),
             blurRadius: 24,
             offset: const Offset(0, 12),
           ),
@@ -407,11 +437,11 @@ class _DonorProfileAvatar extends StatelessWidget {
               ),
               child: ClipOval(
                 child: Container(
-                  color: ProfileScreen._primaryOrange.withOpacity(0.16),
+                  color: _ProfileScreenState._primaryOrange.withOpacity(0.16),
                   child: const Icon(
                     Icons.person_rounded,
                     size: 54,
-                    color: ProfileScreen._primaryOrange,
+                    color: _ProfileScreenState._primaryOrange,
                   ),
                 ),
               ),
@@ -442,7 +472,7 @@ class _DonorProfileAvatar extends StatelessWidget {
                   ),
                   child: const Icon(
                     Icons.photo_camera_outlined,
-                    color: ProfileScreen._primaryOrange,
+                    color: _ProfileScreenState._primaryOrange,
                     size: 18,
                   ),
                 ),
@@ -510,7 +540,7 @@ class _StatItem extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: DonorTextStyles.title.copyWith(
             fontSize: 18,
-            color: ProfileScreen._primaryOrange,
+            color: _ProfileScreenState._primaryOrange,
           ),
         ),
         const SizedBox(height: 4),
@@ -588,7 +618,7 @@ class _ProfileMenuTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color =
-        isDestructive ? AppColors.errorRed : ProfileScreen._primaryOrange;
+        isDestructive ? AppColors.errorRed : _ProfileScreenState._primaryOrange;
 
     return ListTile(
       onTap: onTap,
@@ -649,7 +679,7 @@ class _SheetActionTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       child: Row(
         children: [
-          Icon(icon, color: ProfileScreen._primaryOrange, size: 21),
+          Icon(icon, color: _ProfileScreenState._primaryOrange, size: 21),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -680,7 +710,7 @@ class _SummaryRow extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       child: Row(
         children: [
-          Icon(icon, color: ProfileScreen._primaryOrange, size: 20),
+          Icon(icon, color: _ProfileScreenState._primaryOrange, size: 20),
           const SizedBox(width: DonorSpacing.sm),
           Expanded(
             child: Text(

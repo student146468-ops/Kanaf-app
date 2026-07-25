@@ -8,6 +8,7 @@ from management.models import (
     CareHome,
     Donation,
     InventoryItem,
+    Need,
     Notification,
     Orphan,
     Sponsor,
@@ -154,6 +155,32 @@ class AuthApiTests(APITestCase):
             'role': 'owner',
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_care_home_role_registration_is_rejected(self):
+        response = self.client.post(reverse('register'), {
+            'username': 'carehomerole',
+            'email': 'carehomerole@example.com',
+            'password': 'StrongPass123!',
+            'password_confirm': 'StrongPass123!',
+            'role': UserProfile.ROLE_CARE_HOME,
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_needs_endpoint_returns_real_database_records(self):
+        user = get_user_model().objects.create_user(username='needuser', password='StrongPass123!')
+        Need.objects.create(
+            title='Food support',
+            description='Monthly food basket',
+            category='food',
+            required_quantity='1000',
+            fulfilled_quantity=250,
+            priority='urgent',
+        )
+        self.client.force_authenticate(user=user)
+        response = self.client.get('/api/needs/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()), 1)
+        self.assertEqual(response.json()[0]['title'], 'Food support')
 
     def test_care_home_crud_endpoint(self):
         user = get_user_model().objects.create_user(username='carehomeuser', password='StrongPass123!')

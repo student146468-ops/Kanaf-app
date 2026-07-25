@@ -36,16 +36,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _screenBackground,
-        appBar: DonorTopBar(
+        appBar: const DonorTopBar(
           title: 'الإعدادات',
-          leading: Padding(
-            padding: const EdgeInsetsDirectional.only(start: DonorSpacing.md),
-            child: DonorTopBarActionButton(
-              icon: Icons.arrow_forward_ios_rounded,
-              tooltip: 'رجوع',
-              onTap: () => Navigator.of(context).pop(),
-            ),
-          ),
         ),
         body: SafeArea(
           top: false,

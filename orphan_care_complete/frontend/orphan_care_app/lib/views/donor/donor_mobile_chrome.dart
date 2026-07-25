@@ -1,10 +1,15 @@
 ﻿import 'package:flutter/material.dart';
 
 import '../../utils/app_colors.dart';
+import 'donor_mini_hamburger_button.dart';
+import 'donor_notifications_button.dart';
 
 const double donorMobileMaxWidth = 430;
 const double donorAppBarHeight = 72;
 const double donorHorizontalPadding = 20;
+const double donorTopBarEdgePadding = 12;
+const double donorTopBarControlSize = 44;
+const double donorTopBarControlGap = 4;
 const double donorRadius = 18;
 const double donorRadiusMedium = 16;
 const double donorRadiusSmall = 12;
@@ -86,20 +91,32 @@ PreferredSizeWidget donorMobileAppBar({
   required String title,
   Widget? leading,
   List<Widget>? actions,
+  bool showDonorMenu = true,
+  bool showNotifications = true,
 }) {
-  return DonorAppBar(title: title, leading: leading, actions: actions);
+  return DonorAppBar(
+    title: title,
+    leading: leading,
+    actions: actions,
+    showDonorMenu: showDonorMenu,
+    showNotifications: showNotifications,
+  );
 }
 
 class DonorAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Widget? leading;
   final List<Widget>? actions;
+  final bool showDonorMenu;
+  final bool showNotifications;
 
   const DonorAppBar({
     super.key,
     required this.title,
     this.leading,
     this.actions,
+    this.showDonorMenu = true,
+    this.showNotifications = true,
   });
 
   @override
@@ -107,65 +124,185 @@ class DonorAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedActions = actions ?? const <Widget>[];
+    final resolvedActions = <Widget>[
+      if (showNotifications) const DonorNotificationsButton(),
+      ...?actions,
+    ];
+    final leadingWidgets = <Widget>[
+      if (showDonorMenu) const DonorMiniHamburgerButton(),
+      if (leading != null) leading!,
+    ];
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Material(
-        color: Colors.white,
+        color: Colors.transparent,
         elevation: 0,
-        borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(22),
-        ),
         child: SafeArea(
           bottom: false,
           child: DonorMobileFrame(
-            child: SizedBox(
-              height: donorAppBarHeight,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  PositionedDirectional(
-                    start: DonorSpacing.md,
-                    child: SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: Center(child: leading),
+            child: Material(
+              color: Colors.white,
+              elevation: 0,
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(22),
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final leadingWidth =
+                      _toolbarGroupWidth(leadingWidgets.length);
+                  final actionsWidth =
+                      _toolbarGroupWidth(resolvedActions.length);
+                  final sideReserve = _titleSideReserve(
+                    width: constraints.maxWidth,
+                    leadingWidth: leadingWidth,
+                    actionsWidth: actionsWidth,
+                  );
+
+                  return SizedBox(
+                    height: donorAppBarHeight,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        PositionedDirectional(
+                          start: donorTopBarEdgePadding,
+                          top: 0,
+                          bottom: 0,
+                          child: _DonorToolbarGroup(
+                            textDirection: TextDirection.rtl,
+                            children: leadingWidgets,
+                          ),
+                        ),
+                        Positioned.fill(
+                          left: sideReserve,
+                          right: sideReserve,
+                          child: Center(
+                            child: Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: DonorTextStyles.title,
+                            ),
+                          ),
+                        ),
+                        PositionedDirectional(
+                          end: donorTopBarEdgePadding,
+                          top: 0,
+                          bottom: 0,
+                          child: _DonorToolbarGroup(
+                            textDirection: TextDirection.ltr,
+                            children: resolvedActions,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 72),
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: DonorTextStyles.title,
-                    ),
-                  ),
-                  PositionedDirectional(
-                    end: DonorSpacing.md,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 112),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        textDirection: TextDirection.ltr,
-                        children: [
-                          for (final action in resolvedActions) ...[
-                            action,
-                            if (action != resolvedActions.last)
-                              const SizedBox(width: DonorSpacing.xs),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  double _toolbarGroupWidth(int itemCount) {
+    if (itemCount == 0) return 0;
+    return donorTopBarEdgePadding +
+        (itemCount * donorTopBarControlSize) +
+        ((itemCount - 1) * donorTopBarControlGap);
+  }
+
+  double _titleSideReserve({
+    required double width,
+    required double leadingWidth,
+    required double actionsWidth,
+  }) {
+    const minTitleWidth = 88.0;
+    final preferredReserve =
+        [leadingWidth, actionsWidth].reduce((a, b) => a > b ? a : b) + 8;
+    final maxReserve = ((width - minTitleWidth) / 2).clamp(56.0, 140.0);
+    return preferredReserve.clamp(56.0, maxReserve).toDouble();
+  }
+}
+
+class DonorFloatingTopControls extends StatelessWidget {
+  const DonorFloatingTopControls({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Directionality(
+      textDirection: TextDirection.rtl,
+      child: DonorMobileFrame(
+        child: SizedBox(
+          height: donorAppBarHeight,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              PositionedDirectional(
+                start: donorTopBarEdgePadding,
+                top: 0,
+                bottom: 0,
+                child: _DonorToolbarGroup(
+                  textDirection: TextDirection.rtl,
+                  children: [DonorMiniHamburgerButton()],
+                ),
+              ),
+              PositionedDirectional(
+                end: donorTopBarEdgePadding,
+                top: 0,
+                bottom: 0,
+                child: _DonorToolbarGroup(
+                  textDirection: TextDirection.ltr,
+                  children: [DonorNotificationsButton()],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DonorToolbarGroup extends StatelessWidget {
+  const _DonorToolbarGroup({
+    required this.children,
+    required this.textDirection,
+  });
+
+  final List<Widget> children;
+  final TextDirection textDirection;
+
+  @override
+  Widget build(BuildContext context) {
+    if (children.isEmpty) return const SizedBox.shrink();
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      textDirection: textDirection,
+      children: [
+        for (final child in children) ...[
+          _DonorToolbarSlot(child: child),
+          if (child != children.last)
+            const SizedBox(width: donorTopBarControlGap),
+        ],
+      ],
+    );
+  }
+}
+
+class _DonorToolbarSlot extends StatelessWidget {
+  const _DonorToolbarSlot({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: donorTopBarControlSize,
+      child: Center(child: child),
     );
   }
 }

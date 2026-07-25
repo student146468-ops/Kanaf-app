@@ -1,5 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
+import '../../models/need_model.dart';
+import '../../providers/app_provider_scope.dart';
 import '../../utils/app_colors.dart';
 import 'donor_mobile_chrome.dart';
 
@@ -13,6 +15,7 @@ class SearchFilterScreen extends StatefulWidget {
 class _SearchFilterScreenState extends State<SearchFilterScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _activeFilter = 'الكل';
+  bool _hasLoadedNeeds = false;
 
   static const Color _primaryOrange = Color(0xFFFF8C42);
   static const Color _screenBackground = Color(0xFFF5F5F5);
@@ -26,57 +29,13 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
     'مكتمل',
   ];
 
-  // TODO: Replace mock search results with backend/AppProvider donor needs.
-  final List<Map<String, dynamic>> _needs = const [
-    {
-      'orphanage': 'دار الأمان لرعاية الأيتام - غريان',
-      'title': 'مصاريف دراسية لخمسة طلاب',
-      'city': 'غريان',
-      'category': 'مالي',
-      'donationType': 'مالي',
-      'urgency': 'عاجل',
-      'raised': '3,250 د.ل',
-      'target': '5,000 د.ل',
-      'remaining': '1,750 د.ل',
-      'progress': 0.65,
-      'daysLeft': '3 أيام',
-      'status': 'قيد التنفيذ',
-      'description': 'دعم تعليمي مباشر يساعد الأطفال على مواصلة الدراسة.',
-      'image': 'assets/images/b.png',
-    },
-    {
-      'orphanage': 'جمعية كنف للأطفال',
-      'title': 'سلات غذائية شهرية',
-      'city': 'غريان',
-      'category': 'غذائي',
-      'donationType': 'عيني',
-      'urgency': 'متوسط',
-      'raised': '1,600 د.ل',
-      'target': '4,000 د.ل',
-      'remaining': '2,400 د.ل',
-      'progress': 0.40,
-      'daysLeft': '12 يوم',
-      'status': 'جديد',
-      'description': 'مواد غذائية أساسية لوجبات الأطفال اليومية.',
-      'image': 'assets/images/c.png',
-    },
-    {
-      'orphanage': 'بيت الأمل للبنين',
-      'title': 'كسوة وأحذية للأطفال',
-      'city': 'غريان',
-      'category': 'كسوة',
-      'donationType': 'عيني',
-      'urgency': 'مكتمل جزئيًا',
-      'raised': '5,100 د.ل',
-      'target': '6,000 د.ل',
-      'remaining': '900 د.ل',
-      'progress': 0.85,
-      'daysLeft': '5 أيام',
-      'status': 'قيد التنفيذ',
-      'description': 'ملابس وأحذية مناسبة تحفظ راحة الأطفال وكرامتهم.',
-      'image': 'assets/images/a.png',
-    },
-  ];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedNeeds) return;
+    _hasLoadedNeeds = true;
+    AppProviderScope.of(context).fetchNeeds();
+  }
 
   @override
   void dispose() {
@@ -86,15 +45,15 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = AppProviderScope.of(context);
     final results = _filteredResults;
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _screenBackground,
-        appBar: DonorAppBar(
+        appBar: const DonorAppBar(
           title: 'قائمة الاحتياجات',
-          leading: donorBackButton(context),
         ),
         body: SafeArea(
           top: false,
@@ -116,25 +75,32 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                   child: _buildSearchField(),
                 ),
                 Expanded(
-                  child: results.isEmpty
-                      ? DonorEmptyState(
-                          icon: Icons.search_off_rounded,
-                          title: 'لم نجد احتياجًا مطابقًا',
-                          message:
-                              'جرّب كلمة أبسط أو اختر فلترًا آخر من القائمة.',
-                          actionLabel: 'إعادة ضبط البحث',
-                          onAction: _resetFilters,
+                  child: provider.isLoading && provider.needs.isEmpty
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: _primaryOrange,
+                          ),
                         )
-                      : ListView.separated(
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
-                          itemBuilder: (context, index) {
-                            return _NeedListCard(need: results[index]);
-                          },
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: DonorSpacing.lg),
-                          itemCount: results.length,
-                        ),
+                      : results.isEmpty
+                          ? DonorEmptyState(
+                              icon: Icons.search_off_rounded,
+                              title: 'لم نجد احتياجًا مطابقًا',
+                              message:
+                                  'جرّب كلمة أبسط أو اختر فلترًا آخر من القائمة.',
+                              actionLabel: 'إعادة ضبط البحث',
+                              onAction: _resetFilters,
+                            )
+                          : ListView.separated(
+                              physics: const BouncingScrollPhysics(),
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 10, 20, 24),
+                              itemBuilder: (context, index) {
+                                return _NeedListCard(need: results[index]);
+                              },
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: DonorSpacing.lg),
+                              itemCount: results.length,
+                            ),
                 ),
               ],
             ),
@@ -145,8 +111,9 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
   }
 
   List<Map<String, dynamic>> get _filteredResults {
+    final needs = AppProviderScope.of(context).needs.map(_needToMap).toList();
     final query = _searchController.text.trim();
-    return _needs.where((need) {
+    return needs.where((need) {
       final status = need['status'].toString();
       final urgency = need['urgency'].toString();
       final progress = (need['progress'] as num).toDouble();
@@ -162,6 +129,78 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
           need['category'].toString().contains(query);
       return matchesFilter && matchesQuery;
     }).toList();
+  }
+
+  Map<String, dynamic> _needToMap(NeedModel need) {
+    final target = _quantityValue(need.requiredQuantity);
+    final raised = need.fulfilledQuantity;
+    final progress = target <= 0 ? 0.0 : raised / target;
+    return {
+      'orphanage': 'كنف',
+      'title': need.title,
+      'city': 'ليبيا',
+      'category': _categoryLabel(need.category),
+      'donationType': need.needType.isEmpty ? 'عام' : need.needType,
+      'urgency': _priorityLabel(need.priority),
+      'raised': _amountLabel(raised),
+      'target': need.requiredQuantity.isEmpty
+          ? _amountLabel(target)
+          : need.requiredQuantity,
+      'remaining': target <= 0
+          ? 'غير محدد'
+          : _amountLabel((target - raised).clamp(0, target)),
+      'progress': progress.clamp(0.0, 1.0),
+      'daysLeft': _daysLeftLabel(need.deadline),
+      'status': need.statusLabel,
+      'description': need.description,
+      'image': _imageForCategory(need.category),
+    };
+  }
+
+  double _quantityValue(String value) {
+    final match = RegExp(r'\d+(\.\d+)?').firstMatch(value.replaceAll(',', ''));
+    return double.tryParse(match?.group(0) ?? '') ?? 0;
+  }
+
+  String _amountLabel(num value) {
+    final number = value.toDouble();
+    if (number == number.roundToDouble()) return number.round().toString();
+    return number.toStringAsFixed(2);
+  }
+
+  String _priorityLabel(String value) {
+    if (value == 'urgent') return 'عاجل';
+    if (value == 'low') return 'منخفض';
+    return 'متوسط';
+  }
+
+  String _categoryLabel(String value) {
+    switch (value) {
+      case 'food':
+        return 'غذائي';
+      case 'clothes':
+        return 'كسوة';
+      case 'medical':
+        return 'صحي';
+      case 'education':
+        return 'تعليمي';
+      default:
+        return value.isEmpty ? 'عام' : value;
+    }
+  }
+
+  String _daysLeftLabel(DateTime? deadline) {
+    if (deadline == null) return 'غير محدد';
+    final days = deadline.difference(DateTime.now()).inDays;
+    if (days <= 0) return 'اليوم';
+    if (days == 1) return 'يوم واحد';
+    return '$days يوم';
+  }
+
+  String _imageForCategory(String category) {
+    if (category == 'food') return 'assets/images/c.png';
+    if (category == 'clothes') return 'assets/images/a.png';
+    return 'assets/images/b.png';
   }
 
   void _resetFilters() {

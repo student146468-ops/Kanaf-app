@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
+import '../../providers/app_provider_scope.dart';
 import 'volunteer_ui.dart';
 
 const Color _historyOrange = Color(0xFFFF7A00);
@@ -17,53 +18,48 @@ class MyVolunteerHistoryView extends StatefulWidget {
 
 class _MyVolunteerHistoryViewState extends State<MyVolunteerHistoryView> {
   String _selectedFilter = 'الكل';
-
-  static const List<Map<String, String>> _history = [
-    {
-      'title': 'مساعدة في الوجبات المدرسية',
-      'careHome': 'دار الأمان للأيتام',
-      'location': 'طرابلس - حي الأندلس',
-      'date': '20 مايو 2024',
-      'hours': '3 ساعات',
-      'children': '18 طفل',
-      'status': 'مكتمل',
-      'image': 'assets/images/image7.png',
-    },
-    {
-      'title': 'توزيع وجبات غذائية',
-      'careHome': 'دار الرحمة لرعاية الأيتام',
-      'location': 'بنغازي - الفويهات',
-      'date': '21 مايو 2024',
-      'hours': '4 ساعات',
-      'children': '25 طفل',
-      'status': 'مكتمل',
-      'image': 'assets/images/image8.png',
-    },
-    {
-      'title': 'تنظيم فعالية ترفيهية',
-      'careHome': 'دار الأمل للأطفال',
-      'location': 'مصراتة - وسط المدينة',
-      'date': '22 مايو 2024',
-      'hours': '3 ساعات',
-      'children': '32 طفل',
-      'status': 'قيد التنفيذ',
-      'image': 'assets/images/image9.png',
-    },
-    {
-      'title': 'ورشة رسم للأطفال',
-      'careHome': 'دار البسمة للأيتام',
-      'location': 'طرابلس - جنزور',
-      'date': '23 مايو 2024',
-      'hours': '2 ساعات',
-      'children': '14 طفل',
-      'status': 'مكتمل',
-      'image': 'assets/images/image10.png',
-    },
-  ];
+  bool _hasLoadedApplications = false;
 
   List<Map<String, String>> get _filteredHistory {
-    if (_selectedFilter == 'الكل') return _history;
-    return _history.where((item) => item['status'] == _selectedFilter).toList();
+    final history = AppProviderScope.of(context)
+        .volunteerApplications
+        .map(_applicationToHistoryItem)
+        .toList();
+    if (_selectedFilter == 'الكل') return history;
+    return history.where((item) => item['status'] == _selectedFilter).toList();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedApplications) return;
+    _hasLoadedApplications = true;
+    AppProviderScope.of(context).fetchVolunteerApplications();
+  }
+
+  Map<String, String> _applicationToHistoryItem(Map<String, dynamic> item) {
+    return {
+      'title': item['opportunity_title']?.toString() ?? '',
+      'careHome': item['opportunity_location']?.toString() ?? '',
+      'location': item['opportunity_location']?.toString() ?? '',
+      'date': _dateLabel(item['created_at']),
+      'hours': '',
+      'children': '',
+      'status': _statusLabel(item['status']?.toString() ?? ''),
+      'image': 'assets/images/image7.png',
+    };
+  }
+
+  String _dateLabel(dynamic value) {
+    final date = DateTime.tryParse(value?.toString() ?? '');
+    if (date == null) return '';
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  String _statusLabel(String value) {
+    if (value == 'approved') return 'قيد التنفيذ';
+    if (value == 'rejected') return 'مرفوض';
+    return 'قيد المراجعة';
   }
 
   @override

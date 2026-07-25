@@ -2,14 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../providers/app_provider_scope.dart';
 import 'volunteer_ui.dart';
 
 const String _opportunitiesTitle = 'فرص تطوع جديدة';
 const String _filterActionLabel = 'عرض الكل';
 const String _upcomingActivitiesTitle = 'الأنشطة القادمة';
 const String _applyButtonLabel = 'تطوع الآن';
-const String _searchTooltip = 'البحث عن فرصة';
-const String _notificationsTooltip = 'الإشعارات';
 
 const Color _primaryOrange = Color(0xFFFF8C42);
 const Color _textPrimary = Color(0xFF1E1E1E);
@@ -37,136 +36,45 @@ class HomeVolunteerView extends StatefulWidget {
 }
 
 class _HomeVolunteerViewState extends State<HomeVolunteerView> {
-  // TODO: Replace with AppProvider opportunities when the backend exposes them.
-  static const List<Map<String, String>> _opportunities = [
-    {
-      'title': 'دعم تعليمي في أساسيات الحاسوب',
-      'city': 'غريان',
-      'skill': 'تعليم وتقنية',
-      'date': 'الإثنين 1 يوليو',
-      'seats': '10 متطوعين مطلوبين',
-      'status': 'متاحة',
-      'location': 'دار الأمان لرعاية الأيتام',
-      'summary': 'جلسات قصيرة تساعد الأطفال على فهم الحاسوب بثقة وبأسلوب بسيط.',
-    },
-    {
-      'title': 'تنظيم يوم أنشطة للأطفال',
-      'city': 'غريان',
-      'skill': 'أنشطة ودعم نفسي',
-      'date': 'الجمعة 5 يوليو',
-      'seats': '5 متطوعين مطلوبين',
-      'status': 'قريبة',
-      'location': 'قاعة الأنشطة بدار الرعاية',
-      'summary':
-          'مساندة الفريق في تنظيم ألعاب هادفة ومساحة ترفيه آمنة للأطفال.',
-    },
-    {
-      'title': 'فرز التبرعات وتجهيز السلال',
-      'city': 'طرابلس',
-      'skill': 'تنظيم ومتابعة',
-      'date': 'الأحد 7 يوليو',
-      'seats': '15 متطوع مطلوب',
-      'status': 'متاحة',
-      'location': 'مركز كنف المجتمعي',
-      'summary': 'ترتيب المواد العينية وتجهيزها لتصل إلى دور الرعاية المحتاجة.',
-    },
-  ];
+  bool _hasLoadedOpportunities = false;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasLoadedOpportunities) return;
+    _hasLoadedOpportunities = true;
+    AppProviderScope.of(context).fetchVolunteerOpportunities();
+  }
 
-  // TODO: Replace with AppProvider opportunities when the backend exposes them.
-  static const List<Map<String, dynamic>> _displayOpportunities = [
-    {
-      'title': 'دعم تعليمي في أساسيات الحاسوب',
-      'city': 'غريان',
-      'skill': 'تعليم وتقنية',
-      'date': 'الإثنين 1 يوليو',
-      'seats': '10 متطوعين مطلوبين',
-      'status': 'متاحة',
-      'location': 'دار الأمان لرعاية الأيتام',
-      'summary': 'جلسات قصيرة تساعد الأطفال على فهم الحاسوب بثقة وبأسلوب بسيط.',
-    },
-    {
-      'title': 'تنظيم يوم أنشطة للأطفال',
-      'city': 'غريان',
-      'skill': 'أنشطة ودعم نفسي',
-      'date': 'الجمعة 5 يوليو',
-      'seats': '5 متطوعين مطلوبين',
-      'status': 'قريبة',
-      'location': 'قاعة الأنشطة بدار الرعاية',
-      'summary':
-          'ساهم في تنظيم يوم ترفيهي مليء بالألعاب والأنشطة الهادفة، بهدف إدخال السرور على الأطفال وتنمية روح التعاون والثقة لديهم في بيئة آمنة وممتعة.',
-      'tasks': [
-        'تنظيم الألعاب والأنشطة الجماعية للأطفال.',
-        'الإشراف على سلامة الأطفال أثناء الفعالية.',
-        'تشجيع الأطفال على المشاركة والتفاعل الإيجابي.',
-        'التعاون مع فريق التنظيم وتجهيز الأدوات قبل وبعد النشاط.',
-      ],
-      'skillsList': [
-        'حب التعامل مع الأطفال والصبر عليهم.',
-        'القدرة على العمل ضمن فريق.',
-        'مهارات التواصل والابتكار في الأنشطة الترفيهية.',
-        'الالتزام بالمواعيد وتحمل المسؤولية.',
-      ],
-    },
-    {
-      'title': 'فرز التبرعات وتجهيز السلال',
-      'city': 'طرابلس',
-      'skill': 'تنظيم ومتابعة',
-      'date': 'الأحد 7 يوليو',
-      'seats': '15 متطوع مطلوب',
-      'status': 'متاحة',
-      'location': 'مركز كنف المجتمعي',
-      'summary':
-          'المساهمة في فرز وترتيب وتجهيز التبرعات العينية، والتأكد من جاهزيتها لتوزيعها على دور رعاية الأيتام بطريقة منظمة وسريعة.',
-      'tasks': [
-        'فرز التبرعات حسب النوع والاستخدام.',
-        'تغليف وترتيب المواد داخل الصناديق.',
-        'إعداد قوائم بالمحتويات للمساعدة في عملية التوزيع.',
-        'التعاون مع فريق العمل في تحميل وتجهيز المواد.',
-      ],
-      'skillsList': [
-        'الدقة والتنظيم في ترتيب المواد.',
-        'القدرة على العمل الجماعي.',
-        'تحمل العمل البدني الخفيف عند الحاجة.',
-        'الالتزام بالتعليمات والمحافظة على الممتلكات.',
-      ],
-    },
-  ];
   @override
   Widget build(BuildContext context) {
+    final provider = AppProviderScope.of(context);
+    final opportunities =
+        provider.volunteerOpportunities.map(_opportunityToCardData).toList();
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: VolunteerMobileFrame(
         child: Scaffold(
           backgroundColor: Colors.white,
+          appBar: const PreferredSize(
+            preferredSize: Size.fromHeight(volunteerAppBarHeight),
+            child: VolunteerTopBar(
+              title: 'الرئيسية',
+              showBack: false,
+            ),
+          ),
           body: Stack(
             children: [
               SafeArea(
+                top: false,
                 child: CustomScrollView(
                   physics: const BouncingScrollPhysics(),
                   slivers: [
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          _pagePadding,
-                          12,
-                          _pagePadding,
-                          0,
-                        ),
-                        child: _HomeHeader(
-                          onSearch: () => Navigator.of(
-                            context,
-                          ).pushNamed('/volunteer_search'),
-                          onNotifications: () => Navigator.of(
-                            context,
-                          ).pushNamed('/volunteer_notifications'),
-                        ),
-                      ),
-                    ),
                     const SliverToBoxAdapter(
                       child: Padding(
                         padding: EdgeInsets.fromLTRB(
                           _pagePadding,
-                          14,
+                          16,
                           _pagePadding,
                           0,
                         ),
@@ -190,39 +98,74 @@ class _HomeVolunteerViewState extends State<HomeVolunteerView> {
                         ),
                       ),
                     ),
-                    SliverList.separated(
-                      itemCount: _opportunities.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 18),
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: _pagePadding,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _OpportunityCard(
-                                opportunity: _displayOpportunities[index],
-                                imagePath: _opportunityImagePaths[index],
-                                onTap: () => Navigator.of(context).pushNamed(
-                                  '/volunteer_opportunity_details',
-                                  arguments: {
-                                    'opportunity': _displayOpportunities[index],
-                                    'imagePath': _opportunityImagePaths[index],
-                                  },
+                    if (provider.isLoading && opportunities.isEmpty)
+                      const SliverToBoxAdapter(
+                        child: _VolunteerStateMessage(
+                          icon: Icons.hourglass_empty_rounded,
+                          title: 'جار تحميل فرص التطوع',
+                        ),
+                      )
+                    else if (provider.errorMessage != null &&
+                        opportunities.isEmpty)
+                      SliverToBoxAdapter(
+                        child: _VolunteerStateMessage(
+                          icon: Icons.cloud_off_rounded,
+                          title: 'تعذر جلب فرص التطوع',
+                          message: provider.errorMessage,
+                          actionLabel: 'إعادة المحاولة',
+                          onAction: () =>
+                              provider.fetchVolunteerOpportunities(),
+                        ),
+                      )
+                    else if (opportunities.isEmpty)
+                      SliverToBoxAdapter(
+                        child: _VolunteerStateMessage(
+                          icon: Icons.volunteer_activism_outlined,
+                          title: 'لا توجد فرص تطوع منشورة حاليًا',
+                          message:
+                              'ستظهر هنا الفرص الموجودة في قاعدة البيانات عند نشرها.',
+                          actionLabel: 'تحديث',
+                          onAction: () =>
+                              provider.fetchVolunteerOpportunities(),
+                        ),
+                      )
+                    else
+                      SliverList.separated(
+                        itemCount: opportunities.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 18),
+                        itemBuilder: (context, index) {
+                          final opportunity = opportunities[index];
+                          final imagePath = _opportunityImagePaths[
+                              index % _opportunityImagePaths.length];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: _pagePadding,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _OpportunityCard(
+                                  opportunity: opportunity,
+                                  imagePath: imagePath,
+                                  onTap: () => Navigator.of(context).pushNamed(
+                                    '/volunteer_opportunity_details',
+                                    arguments: {
+                                      'opportunity': opportunity,
+                                      'imagePath': imagePath,
+                                    },
+                                  ),
                                 ),
-                              ),
-                              if (index == 0) ...[
-                                const SizedBox(height: 24),
-                                const _InlineSectionTitle(
-                                  title: _upcomingActivitiesTitle,
-                                ),
+                                if (index == 0) ...[
+                                  const SizedBox(height: 24),
+                                  const _InlineSectionTitle(
+                                    title: _upcomingActivitiesTitle,
+                                  ),
+                                ],
                               ],
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                            ),
+                          );
+                        },
+                      ),
                     const SliverToBoxAdapter(child: SizedBox(height: 88)),
                   ],
                 ),
@@ -239,36 +182,125 @@ class _HomeVolunteerViewState extends State<HomeVolunteerView> {
       ),
     );
   }
+
+  Map<String, dynamic> _opportunityToCardData(Map<String, dynamic> item) {
+    final requiredVolunteers = _asInt(item['required_volunteers'], fallback: 1);
+    final currentVolunteers = _asInt(item['current_volunteers']);
+    final availableSeats = (requiredVolunteers - currentVolunteers).clamp(
+      0,
+      requiredVolunteers,
+    );
+    final startDate = _asDate(item['start_date']);
+    final location = _text(item['location'], fallback: 'كنف');
+
+    return {
+      'id': item['id'],
+      'title': _text(item['title'], fallback: 'فرصة تطوع'),
+      'organization': location,
+      'city': location,
+      'skill': _statusLabel(_text(item['status'], fallback: 'open')),
+      'date': _dateLabel(startDate),
+      'time': _timeLabel(startDate),
+      'duration': 'حسب تفاصيل الفرصة',
+      'seats': '$availableSeats من $requiredVolunteers متاح',
+      'status': _statusLabel(_text(item['status'], fallback: 'open')),
+      'location': location,
+      'summary': _text(
+        item['description'],
+        fallback: 'فرصة تطوعية منشورة من قاعدة البيانات.',
+      ),
+      'tasks': const [
+        'الالتزام بتفاصيل الفرصة والتعليمات المنشورة.',
+        'التواصل باحترام والعمل بروح الفريق.',
+      ],
+      'skillsList': const [
+        'المسؤولية والالتزام بالموعد.',
+        'مهارات تواصل مناسبة لطبيعة النشاط.',
+      ],
+    };
+  }
+
+  String _text(dynamic value, {required String fallback}) {
+    final text = value?.toString().trim() ?? '';
+    return text.isEmpty ? fallback : text;
+  }
+
+  int _asInt(dynamic value, {int fallback = 0}) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  DateTime? _asDate(dynamic value) {
+    final text = value?.toString();
+    if (text == null || text.isEmpty) return null;
+    return DateTime.tryParse(text);
+  }
+
+  String _dateLabel(DateTime? value) {
+    if (value == null) return 'غير محدد';
+    return '${value.year}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
+  }
+
+  String _timeLabel(DateTime? value) {
+    if (value == null) return 'غير محدد';
+    return '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _statusLabel(String value) {
+    if (value == 'closed') return 'مغلقة';
+    if (value == 'completed') return 'مكتملة';
+    return 'متاحة';
+  }
 }
 
-class _HomeHeader extends StatelessWidget {
-  final VoidCallback onSearch;
-  final VoidCallback onNotifications;
+class _VolunteerStateMessage extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
-  const _HomeHeader({
-    required this.onSearch,
-    required this.onNotifications,
+  const _VolunteerStateMessage({
+    required this.icon,
+    required this.title,
+    this.message,
+    this.actionLabel,
+    this.onAction,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _HeaderIconButton(
-          icon: Icons.search_rounded,
-          tooltip: _searchTooltip,
-          onTap: onSearch,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(_pagePadding, 16, _pagePadding, 0),
+      child: VolunteerCard(
+        child: Column(
+          children: [
+            VolunteerIconBox(icon: icon),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: volunteerSectionTitleStyle.copyWith(fontSize: 17),
+            ),
+            if (message != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                message!,
+                textAlign: TextAlign.center,
+                style: volunteerBodyStyle,
+              ),
+            ],
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 16),
+              VolunteerPrimaryButton(
+                label: actionLabel!,
+                icon: Icons.refresh_rounded,
+                onPressed: onAction,
+              ),
+            ],
+          ],
         ),
-        const SizedBox(width: 10),
-        _HeaderIconButton(
-          icon: Icons.notifications_active_outlined,
-          tooltip: _notificationsTooltip,
-          onTap: onNotifications,
-          active: true,
-        ),
-      ],
+      ),
     );
   }
 }
@@ -418,51 +450,6 @@ class _VolunteerImageSliderState extends State<_VolunteerImageSlider> {
           }),
         ),
       ],
-    );
-  }
-}
-
-class _HeaderIconButton extends StatelessWidget {
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-  final bool active;
-
-  const _HeaderIconButton({
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-    this.active = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: SizedBox(
-          width: 38,
-          height: 48,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: _textPrimary, size: 27),
-              const SizedBox(height: 5),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 160),
-                width: active ? 16 : 0,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: _primaryOrange,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

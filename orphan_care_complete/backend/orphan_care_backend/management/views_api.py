@@ -12,11 +12,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Donation, InventoryItem, Orphan, Sponsor, Volunteer
+from .models import Donation, InventoryItem, Need, Orphan, Sponsor, Volunteer
 from .serializers import (
     CareHomeSerializer,
     DonationSerializer,
     InventorySerializer,
+    NeedSerializer,
     NotificationSerializer,
     OrphanSerializer,
     SponsorSerializer,
@@ -111,7 +112,7 @@ class RegisterView(APIView):
         if User.objects.filter(username__iexact=username).exists() or User.objects.filter(email__iexact=email).exists():
             return Response({'detail': _('username or email already exists')}, status=status.HTTP_400_BAD_REQUEST)
         role = request.data.get('role') or UserProfile.ROLE_DONOR
-        valid_roles = {choice[0] for choice in UserProfile.ROLE_CHOICES}
+        valid_roles = {UserProfile.ROLE_DONOR, UserProfile.ROLE_VOLUNTEER}
         if role not in valid_roles:
             return Response({'detail': _('invalid role')}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -295,6 +296,33 @@ class InventoryViewSet(viewsets.ModelViewSet):
         return Response({'total_items': total_items, 'total_quantity': total_quantity})
 
 
+class NeedViewSet(viewsets.ModelViewSet):
+    queryset = Need.objects.exclude(status=Need.STATUS_ARCHIVED)
+    serializer_class = NeedSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['title', 'description', 'category', 'priority', 'status']
+    ordering_fields = ['id', 'title', 'priority', 'deadline', 'created_at']
+    ordering = ['-created_at']
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def archive(self, request, pk=None):
+        need = self.get_object()
+        need.status = Need.STATUS_ARCHIVED
+        need.save(update_fields=['status', 'updated_at'])
+        return Response(self.get_serializer(need).data)
+
+    @action(detail=False, methods=['get'])
+    def statistics(self, request):
+        total = self.get_queryset().count()
+        by_status = Need.objects.values('status').annotate(count=Count('id'))
+        return Response({'total': total, 'by_status': list(by_status)})
+
+
 class VolunteerOpportunityViewSet(viewsets.ModelViewSet):
     queryset = VolunteerOpportunity.objects.all()
     serializer_class = VolunteerOpportunitySerializer
@@ -404,6 +432,11 @@ class NotificationViewSet(viewsets.ModelViewSet):
         notification.save(update_fields=['is_read'])
         return Response({'status': 'read'})
 
+    @action(detail=False, methods=['post'])
+    def mark_all_as_read(self, request):
+        self.get_queryset().filter(is_read=False).update(is_read=True)
+        return Response({'status': 'read'})
+
 
 class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserProfileSerializer
@@ -430,6 +463,8 @@ class DashboardStatsView(APIView):
             'total_sponsors': Sponsor.objects.count(),
             'total_inventory_items': InventoryItem.objects.count(),
             'total_care_homes': CareHome.objects.count(),
+            'total_needs': Need.objects.exclude(status=Need.STATUS_ARCHIVED).count(),
+            'open_needs': Need.objects.filter(status=Need.STATUS_OPEN).count(),
             'total_volunteer_opportunities': VolunteerOpportunity.objects.count(),
             'unread_notifications': Notification.objects.filter(is_read=False).count() if request.user.is_staff else Notification.objects.filter(user=request.user, is_read=False).count(),
             'orphans_waiting': Orphan.objects.filter(status__in=ORPHAN_WAITING_STATUSES).count(),
@@ -459,6 +494,11 @@ class ReportsView(APIView):
             'inventory': {
                 'total_items': InventoryItem.objects.count(),
                 'total_quantity': InventoryItem.objects.aggregate(Sum('quantity'))['quantity__sum'] or 0,
+            },
+            'needs': {
+                'total': Need.objects.exclude(status=Need.STATUS_ARCHIVED).count(),
+                'open': Need.objects.filter(status=Need.STATUS_OPEN).count(),
+                'by_status': list(Need.objects.values('status').annotate(count=Count('id'))),
             },
             'care_homes': {
                 'total': CareHome.objects.count(),

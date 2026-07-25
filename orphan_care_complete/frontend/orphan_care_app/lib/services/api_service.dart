@@ -146,6 +146,8 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getMe() => _getMap('/auth/me/');
+
   Future<List<dynamic>> getOrphans() => _getList('/orphans/');
   Future<Map<String, dynamic>> getOrphanDetails(int id) =>
       _getMap('/orphans/$id/');
@@ -159,7 +161,7 @@ class ApiService {
   Future<Map<String, dynamic>> createDonation(Map<String, dynamic> data) =>
       _postMap('/donations/', data);
   Future<List<dynamic>> getMyDonations() =>
-      _getList('/donations/my_donations/');
+      _getList('/donations/my-donations/');
   Future<Map<String, dynamic>> confirmDonationReceived(int id) =>
       _postMap('/donations/$id/confirm_received/', const {});
 
@@ -168,6 +170,11 @@ class ApiService {
       _postMap('/volunteers/apply/', data);
   Future<List<dynamic>> getVolunteerOpportunities() =>
       _getList('/volunteer-opportunities/');
+  Future<Map<String, dynamic>> applyToVolunteerOpportunity(
+          int id, Map<String, dynamic> data) =>
+      _postMap('/volunteer-opportunities/$id/apply/', data);
+  Future<List<dynamic>> getVolunteerApplications() =>
+      _getList('/volunteer-applications/');
 
   Future<List<dynamic>> getSponsors() => _getList('/sponsors/');
   Future<Map<String, dynamic>> addSponsor(Map<String, dynamic> data) =>
@@ -194,6 +201,7 @@ class ApiService {
   Future<Map<String, dynamic>> updateCareHomeProfile(
           Map<String, dynamic> data) =>
       _patchMap('/care-home/profile/me/', data);
+  Future<List<dynamic>> getCareHomes() => _getList('/care-homes/');
 
   Future<List<dynamic>> getVisitHours() => _getList('/visit-hours/');
   Future<Map<String, dynamic>> createVisitHour(Map<String, dynamic> data) =>

@@ -9,30 +9,19 @@ const String _volunteersNeededLabel = 'عدد المتطوعين المطلوب�
 
 class VolunteerOpportunityDetailsView extends StatelessWidget {
   const VolunteerOpportunityDetailsView({super.key});
-
-  // TODO: Receive the selected opportunity from AppProvider or route arguments.
   static const Map<String, dynamic> _opportunity = {
-    'title': 'دعم تعليمي في أساسيات الحاسوب',
-    'organization': 'دار الأمان لرعاية الأيتام',
-    'city': 'غريان',
-    'skill': 'تعليم وتقنية',
-    'date': 'الإثنين 1 يوليو',
-    'time': '16:00 - 18:00',
-    'duration': '4 ساعات أسبوعيًا',
-    'seats': '10 متطوعين مطلوبين',
-    'status': 'متاحة',
-    'summary':
-        'فرصة قصيرة ومنظمة لمساعدة الأطفال على فهم مبادئ الحاسوب بطريقة بسيطة وآمنة، مع متابعة من مشرف الدار.',
-    'tasks': [
-      'شرح مبادئ استخدام الحاسوب للأطفال بأسلوب مبسط.',
-      'متابعة التمارين القصيرة داخل القاعة التعليمية.',
-      'التنسيق مع مشرف الدار قبل وبعد كل جلسة.',
-    ],
-    'skillsList': [
-      'الصبر والقدرة على تبسيط المعلومة.',
-      'خبرة أساسية في الحاسوب أو التعليم.',
-      'الالتزام بالموعد واحترام خصوصية الأطفال.',
-    ],
+    'title': '',
+    'organization': '',
+    'city': '',
+    'skill': '',
+    'date': '',
+    'time': '',
+    'duration': '',
+    'seats': '',
+    'status': '',
+    'summary': '',
+    'tasks': <String>[],
+    'skillsList': <String>[],
   };
 
   Map<String, dynamic> _selectedOpportunity(BuildContext context) {
@@ -43,7 +32,7 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
       final opportunityArg = args['opportunity'];
       if (opportunityArg is Map) {
         opportunityArg.forEach((key, value) {
-          if (key is String && (value is String || value is List<String>)) {
+          if (key is String && value != null) {
             selected[key] = value;
           }
         });
@@ -68,7 +57,10 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
   List<String> _selectedList(Map<String, dynamic> opportunity, String key) {
     final value = opportunity[key];
     if (value is List<String> && value.isNotEmpty) return value;
-    return List<String>.from(_opportunity[key] as List<String>);
+    if (value is List && value.isNotEmpty) {
+      return value.map((item) => item.toString()).toList();
+    }
+    return List<String>.from((_opportunity[key] as List<String>?) ?? const []);
   }
 
   @override
@@ -129,6 +121,7 @@ class VolunteerOpportunityDetailsView extends StatelessWidget {
             child: _ApplyBar(
               onApply: () => Navigator.of(context).pushNamed(
                 '/apply_opportunity',
+                arguments: {'opportunity': opportunity},
               ),
             ),
           ),

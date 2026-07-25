@@ -1,6 +1,8 @@
 ﻿import 'package:flutter/material.dart';
 
 import '../../utils/app_colors.dart';
+import 'volunteer_mini_hamburger_button.dart';
+import 'volunteer_notifications_button.dart';
 
 export 'volunteer_bottom_nav_bar.dart';
 
@@ -9,6 +11,9 @@ const double volunteerRadius = 18;
 const double volunteerCardPadding = 16;
 const double volunteerHorizontalPadding = 20;
 const double volunteerAppBarHeight = 64;
+const double volunteerTopBarEdgePadding = 12;
+const double volunteerTopBarControlSize = 44;
+const double volunteerTopBarControlGap = 4;
 const double volunteerIconBoxSize = 44;
 const double volunteerIconSize = 22;
 
@@ -175,6 +180,8 @@ class VolunteerTopBar extends StatelessWidget {
   final VoidCallback? onBack;
   final List<Widget>? actions;
   final bool includeSafeArea;
+  final bool showVolunteerMenu;
+  final bool showNotifications;
 
   const VolunteerTopBar({
     super.key,
@@ -183,13 +190,21 @@ class VolunteerTopBar extends StatelessWidget {
     this.onBack,
     this.actions,
     this.includeSafeArea = true,
+    this.showVolunteerMenu = true,
+    this.showNotifications = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    final leadingWidgets = <Widget>[
+      if (showVolunteerMenu) const VolunteerMiniHamburgerButton(),
+    ];
+    final actionWidgets = <Widget>[
+      if (showNotifications) const VolunteerNotificationsButton(),
+      ...?actions,
+    ];
     final bar = Container(
       height: volunteerAppBarHeight,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.vertical(
@@ -208,54 +223,89 @@ class VolunteerTopBar extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           PositionedDirectional(
-            start: 0,
+            start: volunteerTopBarEdgePadding,
             top: 0,
             bottom: 0,
-            child: showBack
-                ? Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: onBack ?? () => Navigator.maybePop(context),
-                      borderRadius: BorderRadius.circular(14),
-                      child: const SizedBox(
-                        width: 46,
-                        height: 46,
-                        child: Icon(
-                          Icons.chevron_left_rounded,
-                          color: AppColors.textDarkPrimary,
-                          size: 31,
-                        ),
-                      ),
-                    ),
-                  )
-                : const SizedBox(width: 46),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 56),
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: volunteerTitleStyle,
+            child: _VolunteerToolbarGroup(
+              textDirection: TextDirection.rtl,
+              children: leadingWidgets,
             ),
           ),
-          if (actions != null && actions!.isNotEmpty)
-            PositionedDirectional(
-              end: 0,
-              top: 0,
-              bottom: 0,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: actions!,
+          Positioned.fill(
+            left: _titleSideReserve(leadingWidgets, actionWidgets),
+            right: _titleSideReserve(leadingWidgets, actionWidgets),
+            child: Center(
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: volunteerTitleStyle,
               ),
             ),
+          ),
+          PositionedDirectional(
+            end: volunteerTopBarEdgePadding,
+            top: 0,
+            bottom: 0,
+            child: _VolunteerToolbarGroup(
+              textDirection: TextDirection.ltr,
+              children: actionWidgets,
+            ),
+          ),
         ],
       ),
     );
 
     if (!includeSafeArea) return bar;
     return SafeArea(bottom: false, child: bar);
+  }
+
+  double _titleSideReserve(
+    List<Widget> leadingWidgets,
+    List<Widget> actionWidgets,
+  ) {
+    final leadingWidth = _toolbarGroupWidth(leadingWidgets.length);
+    final actionWidth = _toolbarGroupWidth(actionWidgets.length);
+    final side = leadingWidth > actionWidth ? leadingWidth : actionWidth;
+    return (side + 8).clamp(64.0, 136.0).toDouble();
+  }
+
+  double _toolbarGroupWidth(int itemCount) {
+    if (itemCount == 0) return 0;
+    return volunteerTopBarEdgePadding +
+        (itemCount * volunteerTopBarControlSize) +
+        ((itemCount - 1) * volunteerTopBarControlGap);
+  }
+}
+
+class _VolunteerToolbarGroup extends StatelessWidget {
+  const _VolunteerToolbarGroup({
+    required this.children,
+    required this.textDirection,
+  });
+
+  final List<Widget> children;
+  final TextDirection textDirection;
+
+  @override
+  Widget build(BuildContext context) {
+    if (children.isEmpty) return const SizedBox.shrink();
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      textDirection: textDirection,
+      children: [
+        for (final child in children) ...[
+          SizedBox.square(
+            dimension: volunteerTopBarControlSize,
+            child: Center(child: child),
+          ),
+          if (child != children.last)
+            const SizedBox(width: volunteerTopBarControlGap),
+        ],
+      ],
+    );
   }
 }
 

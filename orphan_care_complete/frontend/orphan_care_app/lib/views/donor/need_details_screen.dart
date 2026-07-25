@@ -36,10 +36,9 @@ class NeedDetailsScreen extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _screenBackground,
-        appBar: DonorAppBar(
+        appBar: const DonorAppBar(
           title: 'تفاصيل الاحتياج',
-          leading: donorBackButton(context),
-          actions: const [
+          actions: [
             Padding(
               padding: EdgeInsetsDirectional.only(end: DonorSpacing.md),
               child: _FavoriteIndicator(),
