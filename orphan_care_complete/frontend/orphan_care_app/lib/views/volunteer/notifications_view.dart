@@ -125,7 +125,7 @@ class _NotificationsViewState extends State<NotificationsView> {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: VolunteerBottomNavBar(selectedIndex: 1),
+                child: VolunteerBottomNavBar(selectedIndex: -1),
               ),
             ],
           ),

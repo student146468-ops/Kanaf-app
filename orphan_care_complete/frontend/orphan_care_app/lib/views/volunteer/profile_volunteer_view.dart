@@ -67,7 +67,7 @@ class _ProfileVolunteerViewState extends State<ProfileVolunteerView> {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: VolunteerBottomNavBar(selectedIndex: 3),
+                child: VolunteerBottomNavBar(selectedIndex: 2),
               ),
             ],
           ),

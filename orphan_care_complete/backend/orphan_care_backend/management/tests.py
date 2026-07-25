@@ -182,6 +182,22 @@ class AuthApiTests(APITestCase):
         self.assertEqual(len(response.json()), 1)
         self.assertEqual(response.json()[0]['title'], 'Food support')
 
+    def test_needs_endpoint_hides_verification_records(self):
+        user = get_user_model().objects.create_user(username='cleanneeduser', password='StrongPass123!')
+        Need.objects.create(
+            title='Codex verification need 20260725000301',
+            description='Local verification need created through the API.',
+            required_quantity='1000',
+            fulfilled_quantity=125,
+        )
+        Need.objects.create(title='Real winter clothes', description='Children need warm clothes')
+        self.client.force_authenticate(user=user)
+        response = self.client.get('/api/needs/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        titles = [item['title'] for item in response.json()]
+        self.assertEqual(titles, ['Real winter clothes'])
+
     def test_care_home_crud_endpoint(self):
         user = get_user_model().objects.create_user(username='carehomeuser', password='StrongPass123!')
         self.client.force_authenticate(user=user)
@@ -205,6 +221,27 @@ class AuthApiTests(APITestCase):
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json()['current_volunteers'], 0)
+
+    def test_volunteer_opportunities_endpoint_hides_verification_records(self):
+        user = get_user_model().objects.create_user(username='cleanopportunityuser', password='StrongPass123!')
+        VolunteerOpportunity.objects.create(
+            title='Codex verification opportunity 20260725000301',
+            description='Local verification opportunity created through the API.',
+            location='Codex Local Center',
+            required_volunteers=2,
+        )
+        VolunteerOpportunity.objects.create(
+            title='Real tutoring opportunity',
+            description='Help children with homework',
+            location='Kanaf Center',
+            required_volunteers=2,
+        )
+        self.client.force_authenticate(user=user)
+        response = self.client.get('/api/volunteer-opportunities/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        titles = [item['title'] for item in response.json()]
+        self.assertEqual(titles, ['Real tutoring opportunity'])
 
     def test_apply_to_volunteer_opportunity_is_duplicate_safe(self):
         user = get_user_model().objects.create_user(username='applyuser', password='StrongPass123!')

@@ -29,6 +29,16 @@ from .serializers import (
 from .models import CareHome, Notification, UserProfile, VolunteerApplication, VolunteerOpportunity
 
 User = get_user_model()
+VERIFICATION_TITLE_PREFIX = 'Codex verification'
+VERIFICATION_DESCRIPTION_PREFIX = 'Local verification'
+
+
+def _without_verification_data(queryset):
+    return queryset.exclude(
+        title__istartswith=VERIFICATION_TITLE_PREFIX,
+    ).exclude(
+        description__istartswith=VERIFICATION_DESCRIPTION_PREFIX,
+    )
 ORPHAN_WAITING_STATUSES = ['ينتظر كفالة', 'ظٹظ†طھط¸ط± ظƒظپط§ظ„ط©']
 DONATION_ACTIVE_STATUSES = ['قيد التنفيذ', 'ظ‚ظٹط¯ ط§ظ„طھظ†ظپظٹط°']
 
@@ -297,7 +307,9 @@ class InventoryViewSet(viewsets.ModelViewSet):
 
 
 class NeedViewSet(viewsets.ModelViewSet):
-    queryset = Need.objects.exclude(status=Need.STATUS_ARCHIVED)
+    queryset = _without_verification_data(
+        Need.objects.exclude(status=Need.STATUS_ARCHIVED)
+    )
     serializer_class = NeedSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = None
@@ -324,7 +336,7 @@ class NeedViewSet(viewsets.ModelViewSet):
 
 
 class VolunteerOpportunityViewSet(viewsets.ModelViewSet):
-    queryset = VolunteerOpportunity.objects.all()
+    queryset = _without_verification_data(VolunteerOpportunity.objects.all())
     serializer_class = VolunteerOpportunitySerializer
     permission_classes = [IsAuthenticated]
     pagination_class = None

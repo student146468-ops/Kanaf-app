@@ -5,13 +5,11 @@ import '../../utils/app_colors.dart';
 class VolunteerBottomNavBar extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int>? onItemSelected;
-  final bool showNotificationsDot;
 
   const VolunteerBottomNavBar({
     super.key,
     required this.selectedIndex,
     this.onItemSelected,
-    this.showNotificationsDot = true,
   });
 
   void _handleTap(BuildContext context, int index) {
@@ -26,12 +24,9 @@ class VolunteerBottomNavBar extends StatelessWidget {
         Navigator.of(context).pushNamed('/volunteer_home');
         break;
       case 1:
-        Navigator.of(context).pushNamed('/volunteer_notifications');
-        break;
-      case 2:
         Navigator.of(context).pushNamed('/volunteer_search');
         break;
-      case 3:
+      case 2:
         Navigator.of(context).pushNamed('/volunteer_profile');
         break;
     }
@@ -72,21 +67,11 @@ class VolunteerBottomNavBar extends StatelessWidget {
                   ),
                   Expanded(
                     child: _VolunteerNavItem(
-                      icon: Icons.notifications_none_rounded,
-                      activeIcon: Icons.notifications_active_rounded,
-                      label: 'الإشعارات',
-                      selected: selectedIndex == 1,
-                      showDot: showNotificationsDot,
-                      onTap: () => _handleTap(context, 1),
-                    ),
-                  ),
-                  Expanded(
-                    child: _VolunteerNavItem(
                       icon: Icons.event_note_outlined,
                       activeIcon: Icons.event_note_rounded,
                       label: 'فرص التطوع',
-                      selected: selectedIndex == 2,
-                      onTap: () => _handleTap(context, 2),
+                      selected: selectedIndex == 1,
+                      onTap: () => _handleTap(context, 1),
                     ),
                   ),
                   Expanded(
@@ -94,8 +79,8 @@ class VolunteerBottomNavBar extends StatelessWidget {
                       icon: Icons.person_outline_rounded,
                       activeIcon: Icons.person_rounded,
                       label: 'حسابي',
-                      selected: selectedIndex == 3,
-                      onTap: () => _handleTap(context, 3),
+                      selected: selectedIndex == 2,
+                      onTap: () => _handleTap(context, 2),
                     ),
                   ),
                 ],
@@ -113,7 +98,6 @@ class _VolunteerNavItem extends StatelessWidget {
   final IconData activeIcon;
   final String label;
   final bool selected;
-  final bool showDot;
   final VoidCallback onTap;
 
   const _VolunteerNavItem({
@@ -122,7 +106,6 @@ class _VolunteerNavItem extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
-    this.showDot = false,
   });
 
   @override
@@ -143,28 +126,7 @@ class _VolunteerNavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              width: 26,
-              height: 23,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
-                children: [
-                  Icon(selected ? activeIcon : icon, color: color, size: 22),
-                  if (showDot)
-                    const Positioned(
-                      top: -2,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: AppColors.brandOrange,
-                          shape: BoxShape.circle,
-                        ),
-                        child: SizedBox(width: 6, height: 6),
-                      ),
-                    ),
-                ],
-              ),
-            ),
+            Icon(selected ? activeIcon : icon, color: color, size: 22),
             const SizedBox(height: 3),
             Text(
               label,
