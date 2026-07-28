@@ -27,6 +27,7 @@ $localIp = (Get-NetIPAddress -AddressFamily IPv4 |
 
 $env:ALLOWED_HOSTS = "localhost,127.0.0.1,0.0.0.0,$localIp"
 $env:CSRF_TRUSTED_ORIGINS = "http://localhost:8000,http://127.0.0.1:8000,http://$localIp`:8000"
+$env:CORS_ALLOWED_ORIGINS = "http://localhost:8000,http://127.0.0.1:8000,http://$localIp`:8000"
 $env:CORS_ALLOWED_ORIGIN_REGEXES = '^http://localhost:\d+$,^http://127\.0\.0\.1:\d+$'
 
 Write-Host "Kanaf backend local URL: http://127.0.0.1:8000"

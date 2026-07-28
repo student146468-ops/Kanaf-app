@@ -5,6 +5,11 @@ import '../utils/app_colors.dart';
 import '../utils/auth_navigation.dart';
 import 'login_screen.dart';
 
+const String _phoneValidationMessage =
+    'رقم الهاتف يجب أن يتكون من 10 أرقام ويبدأ بـ 091 أو 092 أو 093 أو 094.';
+const String _passwordValidationMessage =
+    'كلمة المرور ضعيفة. يجب أن تتكون من 8 خانات على الأقل وتحتوي على حروف وأرقام.';
+
 class RegisterScreen extends StatefulWidget {
   final String? selectedRole;
 
@@ -63,6 +68,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return AuthNavigation.normalizeRole(widget.selectedRole ?? routeRole);
   }
 
+  bool _isValidPhoneNumber(String phoneNumber) {
+    return RegExp(r'^(091|092|093|094)[0-9]{7}$').hasMatch(phoneNumber);
+  }
+
+  bool _isValidPassword(String password) {
+    return password.length >= 8 &&
+        RegExp(r'[A-Za-z]').hasMatch(password) &&
+        RegExp(r'[0-9]').hasMatch(password);
+  }
+
+  void _showRegisterError(String message, {Color color = AppColors.errorRed}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(fontFamily: 'Cairo'),
+        ),
+        backgroundColor: color,
+      ),
+    );
+  }
+
   Future<void> _handleRegister() async {
     if (_nameController.text.isEmpty ||
         _phoneController.text.isEmpty ||
@@ -78,6 +105,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
           backgroundColor: AppColors.brandOrange,
         ),
       );
+      return;
+    }
+
+    if (!_isValidPhoneNumber(_phoneController.text)) {
+      _showRegisterError(_phoneValidationMessage);
+      return;
+    }
+
+    if (!_isValidPassword(_passwordController.text)) {
+      _showRegisterError(_passwordValidationMessage);
       return;
     }
 

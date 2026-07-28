@@ -44,7 +44,8 @@ class AuthApiTests(APITestCase):
             'username': 'newuser',
             'email': 'newuser@example.com',
             'password': 'StrongPass123!',
-            'password_confirm': 'StrongPass123!'
+            'password_confirm': 'StrongPass123!',
+            'phone_number': '0912345678',
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -57,6 +58,7 @@ class AuthApiTests(APITestCase):
             'password': 'StrongPass123!',
             'password_confirm': 'StrongPass123!',
             'role': UserProfile.ROLE_DONOR,
+            'phone_number': '0912345678',
         }, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -153,6 +155,7 @@ class AuthApiTests(APITestCase):
             'password': 'StrongPass123!',
             'password_confirm': 'StrongPass123!',
             'role': 'owner',
+            'phone_number': '0912345678',
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -163,8 +166,104 @@ class AuthApiTests(APITestCase):
             'password': 'StrongPass123!',
             'password_confirm': 'StrongPass123!',
             'role': UserProfile.ROLE_CARE_HOME,
+            'phone_number': '0912345678',
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_register_accepts_valid_phone_prefixes(self):
+        valid_phone_numbers = [
+            '0911234567',
+            '0921234567',
+            '0931234567',
+            '0941234567',
+        ]
+
+        for index, phone_number in enumerate(valid_phone_numbers):
+            with self.subTest(phone_number=phone_number):
+                response = self.client.post(reverse('register'), {
+                    'username': f'validphone{index}',
+                    'email': f'validphone{index}@example.com',
+                    'password': 'Kanaf2026',
+                    'password_confirm': 'Kanaf2026',
+                    'role': UserProfile.ROLE_DONOR,
+                    'phone_number': phone_number,
+                }, format='json')
+
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+                user = get_user_model().objects.get(username=f'validphone{index}')
+                self.assertEqual(user.profile.phone_number, phone_number)
+
+    def test_register_rejects_invalid_phone_numbers(self):
+        invalid_phone_numbers = [
+            '0951234567',
+            '0901234567',
+            '091123456',
+            '09112345678',
+            '09112ABC67',
+        ]
+
+        for index, phone_number in enumerate(invalid_phone_numbers):
+            with self.subTest(phone_number=phone_number):
+                response = self.client.post(reverse('register'), {
+                    'username': f'invalidphone{index}',
+                    'email': f'invalidphone{index}@example.com',
+                    'password': 'Kanaf2026',
+                    'password_confirm': 'Kanaf2026',
+                    'role': UserProfile.ROLE_VOLUNTEER,
+                    'phone_number': phone_number,
+                }, format='json')
+
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertEqual(
+                    response.json()['detail'],
+                    'رقم الهاتف يجب أن يتكون من 10 أرقام ويبدأ بـ 091 أو 092 أو 093 أو 094.',
+                )
+                self.assertFalse(get_user_model().objects.filter(username=f'invalidphone{index}').exists())
+
+    def test_register_accepts_valid_passwords(self):
+        valid_passwords = [
+            'Kanaf2026',
+            'Student123',
+            'abc12345',
+        ]
+
+        for index, password in enumerate(valid_passwords):
+            with self.subTest(password=password):
+                response = self.client.post(reverse('register'), {
+                    'username': f'validpassword{index}',
+                    'email': f'validpassword{index}@example.com',
+                    'password': password,
+                    'password_confirm': password,
+                    'role': UserProfile.ROLE_DONOR,
+                    'phone_number': '0911234567',
+                }, format='json')
+
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_register_rejects_invalid_passwords(self):
+        invalid_passwords = [
+            '12345678',
+            'abcdefgh',
+            'abc123',
+        ]
+
+        for index, password in enumerate(invalid_passwords):
+            with self.subTest(password=password):
+                response = self.client.post(reverse('register'), {
+                    'username': f'invalidpassword{index}',
+                    'email': f'invalidpassword{index}@example.com',
+                    'password': password,
+                    'password_confirm': password,
+                    'role': UserProfile.ROLE_VOLUNTEER,
+                    'phone_number': '0911234567',
+                }, format='json')
+
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertEqual(
+                    response.json()['detail'],
+                    'كلمة المرور ضعيفة. يجب أن تتكون من 8 خانات على الأقل وتحتوي على حروف وأرقام.',
+                )
+                self.assertFalse(get_user_model().objects.filter(username=f'invalidpassword{index}').exists())
 
     def test_needs_endpoint_returns_real_database_records(self):
         user = get_user_model().objects.create_user(username='needuser', password='StrongPass123!')

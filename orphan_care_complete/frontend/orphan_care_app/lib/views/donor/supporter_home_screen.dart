@@ -17,9 +17,9 @@ class SupporterHomeScreen extends StatefulWidget {
 class _SupporterHomeScreenState extends State<SupporterHomeScreen> {
   static const int _initialSliderPage = 3000;
   static const List<String> _sliderImages = [
-    'assets/images/a.png',
-    'assets/images/b.png',
-    'assets/images/c.png',
+    'assets/images/i1.png',
+    'assets/images/i2.png',
+    'assets/images/i3.png',
   ];
 
   late final PageController _sliderController;

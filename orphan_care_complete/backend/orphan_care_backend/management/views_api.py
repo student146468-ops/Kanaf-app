@@ -1,4 +1,6 @@
 """Active REST API views for the Kanaf backend."""
+import re
+
 from django.contrib.auth import authenticate, get_user_model
 from django.db import connection
 from django.db.models import Count, F, Sum
@@ -31,6 +33,25 @@ from .models import CareHome, Notification, UserProfile, VolunteerApplication, V
 User = get_user_model()
 VERIFICATION_TITLE_PREFIX = 'Codex verification'
 VERIFICATION_DESCRIPTION_PREFIX = 'Local verification'
+PHONE_NUMBER_PATTERN = re.compile(r'^(091|092|093|094)[0-9]{7}$')
+PHONE_VALIDATION_MESSAGE = 'رقم الهاتف يجب أن يتكون من 10 أرقام ويبدأ بـ 091 أو 092 أو 093 أو 094.'
+PASSWORD_VALIDATION_MESSAGE = 'كلمة المرور ضعيفة. يجب أن تتكون من 8 خانات على الأقل وتحتوي على حروف وأرقام.'
+
+
+def _is_valid_phone_number(phone_number):
+    if not isinstance(phone_number, str):
+        return False
+    return bool(PHONE_NUMBER_PATTERN.fullmatch(phone_number))
+
+
+def _is_valid_registration_password(password):
+    if not isinstance(password, str):
+        return False
+    return (
+        len(password) >= 8
+        and re.search(r'[A-Za-z]', password)
+        and re.search(r'[0-9]', password)
+    )
 
 
 def _without_verification_data(queryset):
@@ -110,6 +131,7 @@ class RegisterView(APIView):
         password_confirm = request.data.get('password_confirm', '')
         first_name = request.data.get('first_name', '').strip()
         last_name = request.data.get('last_name', '').strip()
+        phone_number = request.data.get('phone_number', '')
 
         if not email:
             return Response({'detail': _('email is required')}, status=status.HTTP_400_BAD_REQUEST)
@@ -125,6 +147,10 @@ class RegisterView(APIView):
         valid_roles = {UserProfile.ROLE_DONOR, UserProfile.ROLE_VOLUNTEER}
         if role not in valid_roles:
             return Response({'detail': _('invalid role')}, status=status.HTTP_400_BAD_REQUEST)
+        if not _is_valid_phone_number(phone_number):
+            return Response({'detail': PHONE_VALIDATION_MESSAGE}, status=status.HTTP_400_BAD_REQUEST)
+        if not _is_valid_registration_password(password):
+            return Response({'detail': PASSWORD_VALIDATION_MESSAGE}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
             user = User.objects.create_user(
@@ -137,7 +163,7 @@ class RegisterView(APIView):
             UserProfile.objects.create(
                 user=user,
                 role=role,
-                phone_number=request.data.get('phone_number', '').strip(),
+                phone_number=phone_number,
             )
 
         payload = _token_payload(user)
