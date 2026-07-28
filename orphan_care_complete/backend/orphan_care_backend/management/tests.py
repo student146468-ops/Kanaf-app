@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -25,6 +26,16 @@ class AuthApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()['status'], 'ok')
         self.assertEqual(response.json()['database'], 'ok')
+
+    def test_pythonanywhere_host_is_allowed(self):
+        self.assertIn('kanafapp.pythonanywhere.com', settings.ALLOWED_HOSTS)
+
+        response = self.client.get(
+            reverse('health'),
+            HTTP_HOST='kanafapp.pythonanywhere.com',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_flutter_web_dynamic_localhost_origin_is_allowed(self):
         response = self.client.get(

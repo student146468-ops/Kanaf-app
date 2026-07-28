@@ -22,8 +22,14 @@ def config_bool(name, default=False):
 DEBUG = config_bool('DEBUG', default=True)
 if not DEBUG and SECRET_KEY.startswith('django-insecure-'):
     raise ImproperlyConfigured('SECRET_KEY must be set to a strong non-default value when DEBUG is False.')
+PYTHONANYWHERE_HOST = 'kanafapp.pythonanywhere.com'
+PYTHONANYWHERE_ORIGIN = f'https://{PYTHONANYWHERE_HOST}'
 ALLOWED_HOSTS = [host.strip() for host in config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0,testserver').split(',') if host.strip()]
+if PYTHONANYWHERE_HOST not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(PYTHONANYWHERE_HOST)
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in config('CSRF_TRUSTED_ORIGINS', default='http://localhost:8000,http://127.0.0.1:8000,http://0.0.0.0:8000').split(',') if origin.strip()]
+if PYTHONANYWHERE_ORIGIN not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(PYTHONANYWHERE_ORIGIN)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if config_bool('USE_PROXY_HEADERS', default=False) else None
 
 

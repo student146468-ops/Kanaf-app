@@ -35,7 +35,7 @@ class ApiConfig {
     }
 
     if (isDebug) {
-      if (isWeb) return localWebBaseUrl;
+      if (isWeb) return _withoutTrailingSlash(productionBaseUrl);
       if (targetPlatform == TargetPlatform.android) {
         final androidOverride = androidDebugBaseUrl.trim();
         if (androidOverride.isNotEmpty) {
