@@ -2,7 +2,7 @@
 import re
 
 from django.contrib.auth import authenticate, get_user_model
-from django.db import connection
+from django.db import IntegrityError, connection
 from django.db.models import Count, F, Sum
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
@@ -34,6 +34,9 @@ User = get_user_model()
 VERIFICATION_TITLE_PREFIX = 'Codex verification'
 VERIFICATION_DESCRIPTION_PREFIX = 'Local verification'
 PHONE_NUMBER_PATTERN = re.compile(r'^(091|092|093|094)[0-9]{7}$')
+PHONE_EXISTS_MESSAGE = 'رقم الهاتف مستخدم بالفعل.'
+EMAIL_EXISTS_MESSAGE = 'هذا البريد الإلكتروني مستخدم بالفعل.'
+USERNAME_EXISTS_MESSAGE = 'اسم المستخدم مستخدم بالفعل.'
 PHONE_VALIDATION_MESSAGE = 'رقم الهاتف يجب أن يتكون من 10 أرقام ويبدأ بـ 091 أو 092 أو 093 أو 094.'
 PASSWORD_VALIDATION_MESSAGE = 'كلمة المرور ضعيفة. يجب أن تتكون من 8 خانات على الأقل وتحتوي على حروف وأرقام.'
 
@@ -141,29 +144,63 @@ class RegisterView(APIView):
             return Response({'detail': _('username, password and password_confirm are required')}, status=status.HTTP_400_BAD_REQUEST)
         if password != password_confirm:
             return Response({'detail': _('passwords do not match')}, status=status.HTTP_400_BAD_REQUEST)
-        if User.objects.filter(username__iexact=username).exists() or User.objects.filter(email__iexact=email).exists():
-            return Response({'detail': _('username or email already exists')}, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(email__iexact=email).exists():
+            return Response(
+                {'email': [EMAIL_EXISTS_MESSAGE], 'detail': EMAIL_EXISTS_MESSAGE},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if User.objects.filter(username__iexact=username).exists():
+            return Response(
+                {'username': [USERNAME_EXISTS_MESSAGE], 'detail': USERNAME_EXISTS_MESSAGE},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         role = request.data.get('role') or UserProfile.ROLE_DONOR
         valid_roles = {UserProfile.ROLE_DONOR, UserProfile.ROLE_VOLUNTEER}
         if role not in valid_roles:
             return Response({'detail': _('invalid role')}, status=status.HTTP_400_BAD_REQUEST)
         if not _is_valid_phone_number(phone_number):
             return Response({'detail': PHONE_VALIDATION_MESSAGE}, status=status.HTTP_400_BAD_REQUEST)
+        if UserProfile.objects.filter(phone_number=phone_number).exists():
+            return Response(
+                {'phone_number': [PHONE_EXISTS_MESSAGE], 'detail': PHONE_EXISTS_MESSAGE},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if not _is_valid_registration_password(password):
             return Response({'detail': PASSWORD_VALIDATION_MESSAGE}, status=status.HTTP_400_BAD_REQUEST)
 
-        with transaction.atomic():
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password,
-                first_name=first_name,
-                last_name=last_name,
-            )
-            UserProfile.objects.create(
-                user=user,
-                role=role,
-                phone_number=phone_number,
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                )
+                UserProfile.objects.create(
+                    user=user,
+                    role=role,
+                    phone_number=phone_number,
+                )
+        except IntegrityError:
+            if User.objects.filter(email__iexact=email).exists():
+                return Response(
+                    {'email': [EMAIL_EXISTS_MESSAGE], 'detail': EMAIL_EXISTS_MESSAGE},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if User.objects.filter(username__iexact=username).exists():
+                return Response(
+                    {'username': [USERNAME_EXISTS_MESSAGE], 'detail': USERNAME_EXISTS_MESSAGE},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if UserProfile.objects.filter(phone_number=phone_number).exists():
+                return Response(
+                    {'phone_number': [PHONE_EXISTS_MESSAGE], 'detail': PHONE_EXISTS_MESSAGE},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            return Response(
+                {'detail': _('could not create account')},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         payload = _token_payload(user)

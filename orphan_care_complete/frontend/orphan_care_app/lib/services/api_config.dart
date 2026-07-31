@@ -4,10 +4,6 @@ class ApiConfig {
   static const String configuredBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
   );
-  static const String localWebBaseUrl = 'http://127.0.0.1:8000/api';
-  static const String androidDebugBaseUrl = String.fromEnvironment(
-    'ANDROID_DEBUG_API_BASE_URL',
-  );
   static const String productionBaseUrl = String.fromEnvironment(
     'PRODUCTION_API_BASE_URL',
     defaultValue: 'https://kanafapp.pythonanywhere.com/api',
@@ -32,16 +28,6 @@ class ApiConfig {
     final explicitBaseUrl = configuredBaseUrl.trim();
     if (explicitBaseUrl.isNotEmpty) {
       return _withoutTrailingSlash(explicitBaseUrl);
-    }
-
-    if (isDebug) {
-      if (isWeb) return _withoutTrailingSlash(productionBaseUrl);
-      if (targetPlatform == TargetPlatform.android) {
-        final androidOverride = androidDebugBaseUrl.trim();
-        if (androidOverride.isNotEmpty) {
-          return _withoutTrailingSlash(androidOverride);
-        }
-      }
     }
 
     return _withoutTrailingSlash(productionBaseUrl);

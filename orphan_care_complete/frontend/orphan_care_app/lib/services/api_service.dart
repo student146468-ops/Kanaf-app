@@ -14,6 +14,15 @@ class ApiServiceException implements Exception {
   String toString() => message;
 }
 
+const String _registerServiceUnavailableMessage =
+    'تعذر الاتصال بخدمة إنشاء الحساب حالياً. تأكد من تشغيل الخادم وحاول مرة أخرى.';
+const String _loginServiceUnavailableMessage =
+    'تعذر الاتصال بخدمة تسجيل الدخول حالياً. تأكد من تشغيل الخادم وحاول مرة أخرى.';
+const String _duplicateEmailMessage =
+    'هذا البريد الإلكتروني مستخدم بالفعل.';
+const String _duplicatePhoneMessage = 'رقم الهاتف مستخدم بالفعل.';
+const String _duplicateAccountMessage = 'بيانات الحساب مستخدمة بالفعل.';
+
 class ApiService {
   static final ApiService _instance = ApiService._internal();
 
@@ -314,8 +323,8 @@ class ApiService {
       if (e.type == DioExceptionType.connectionError) {
         if (authEndpoint) {
           return isRegister
-              ? 'تعذر الاتصال بخدمة إنشاء الحساب حالياً. تأكد من تشغيل الخادم وحاول مرة أخرى.'
-              : 'تعذر الاتصال بخدمة تسجيل الدخول حالياً. تأكد من تشغيل الخادم وحاول مرة أخرى.';
+              ? _registerServiceUnavailableMessage
+              : _loginServiceUnavailableMessage;
         }
         return 'لا يوجد اتصال بالإنترنت. تحقق من الشبكة وحاول مرة أخرى.';
       }
@@ -323,10 +332,22 @@ class ApiService {
     }
 
     final statusCode = e.response?.statusCode;
+    if (authEndpoint && _isServerConfigurationError(e.response?.data)) {
+      return isRegister
+          ? _registerServiceUnavailableMessage
+          : _loginServiceUnavailableMessage;
+    }
+
     if (authEndpoint && statusCode == 404) {
       return isRegister
           ? 'تعذر الوصول إلى خدمة إنشاء الحساب حالياً.'
           : 'تعذر الوصول إلى خدمة تسجيل الدخول حالياً.';
+    }
+
+    if (authEndpoint && statusCode == 400 && _looksLikeHtml(e.response?.data)) {
+      return isRegister
+          ? _registerServiceUnavailableMessage
+          : _loginServiceUnavailableMessage;
     }
 
     if (statusCode == 401 || statusCode == 403) {
@@ -363,11 +384,24 @@ class ApiService {
     if (isLogin) return 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
 
     final text = _flattenErrorText(data).toLowerCase();
-    if (text.contains('already') ||
+    final hasConflictText = text.contains('already') ||
         text.contains('exists') ||
         text.contains('unique') ||
-        text.contains('مستخدم')) {
-      return 'هذا البريد الإلكتروني مستخدم بالفعل.';
+        text.contains('مستخدم');
+    if (_fieldHasConflict(data, const ['phone_number', 'phone']) ||
+        ((text.contains('phone_number') || text.contains('phone')) &&
+            hasConflictText)) {
+      return _duplicatePhoneMessage;
+    }
+    if (_fieldHasConflict(data, const ['email'])) {
+      return _duplicateEmailMessage;
+    }
+    if (text.contains('username or email already exists') ||
+        text.contains('email already exists')) {
+      return _duplicateEmailMessage;
+    }
+    if (_fieldHasConflict(data, const ['username']) || hasConflictText) {
+      return _duplicateAccountMessage;
     }
     if (text.contains('password') && text.contains('match')) {
       return 'كلمة المرور وتأكيدها غير متطابقين.';
@@ -386,6 +420,36 @@ class ApiService {
     }
     if (isRegister) return 'تحقق من بيانات الحساب وحاول مرة أخرى.';
     return null;
+  }
+
+  static bool _fieldHasConflict(dynamic data, List<String> fieldNames) {
+    if (data is! Map) return false;
+
+    for (final fieldName in fieldNames) {
+      final value = data[fieldName];
+      if (value == null) continue;
+
+      final text = _flattenErrorText(value).toLowerCase();
+      if (text.contains('already') ||
+          text.contains('exists') ||
+          text.contains('unique') ||
+          text.contains('مستخدم')) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  static bool _isServerConfigurationError(dynamic data) {
+    final text = _flattenErrorText(data).toLowerCase();
+    return text.contains('disallowedhost') ||
+        text.contains('invalid http_host header') ||
+        text.contains('allowed_hosts');
+  }
+
+  static bool _looksLikeHtml(dynamic data) {
+    return data is String && data.trimLeft().toLowerCase().startsWith('<html');
   }
 
   static String _flattenErrorText(dynamic data) {

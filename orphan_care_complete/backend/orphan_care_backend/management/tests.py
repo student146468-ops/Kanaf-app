@@ -62,6 +62,51 @@ class AuthApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(get_user_model().objects.filter(username='newuser').exists())
 
+    def test_register_rejects_duplicate_email_with_email_error(self):
+        get_user_model().objects.create_user(
+            username='duplicate-email',
+            email='duplicate@example.com',
+            password='StrongPass123!',
+        )
+
+        response = self.client.post(reverse('register'), {
+            'username': 'duplicate@example.com',
+            'email': 'duplicate@example.com',
+            'password': 'StrongPass123!',
+            'password_confirm': 'StrongPass123!',
+            'role': UserProfile.ROLE_DONOR,
+            'phone_number': '0911111111',
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('email', response.json())
+        self.assertNotIn('phone_number', response.json())
+
+    def test_register_rejects_duplicate_phone_with_phone_error(self):
+        user = get_user_model().objects.create_user(
+            username='phone-owner',
+            email='phone-owner@example.com',
+            password='StrongPass123!',
+        )
+        UserProfile.objects.create(
+            user=user,
+            role=UserProfile.ROLE_DONOR,
+            phone_number='0922222222',
+        )
+
+        response = self.client.post(reverse('register'), {
+            'username': 'fresh-phone@example.com',
+            'email': 'fresh-phone@example.com',
+            'password': 'StrongPass123!',
+            'password_confirm': 'StrongPass123!',
+            'role': UserProfile.ROLE_VOLUNTEER,
+            'phone_number': '0922222222',
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('phone_number', response.json())
+        self.assertNotIn('email', response.json())
+
     def test_flutter_register_path_is_available(self):
         response = self.client.post('/api/auth/register/', {
             'username': 'pathuser',
@@ -246,7 +291,7 @@ class AuthApiTests(APITestCase):
                     'password': password,
                     'password_confirm': password,
                     'role': UserProfile.ROLE_DONOR,
-                    'phone_number': '0911234567',
+                    'phone_number': f'091123456{index}',
                 }, format='json')
 
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED)

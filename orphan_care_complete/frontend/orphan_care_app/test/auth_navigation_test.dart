@@ -123,7 +123,10 @@ void main() {
           response: Response(
             requestOptions: RequestOptions(path: '/auth/register/'),
             statusCode: 400,
-            data: {'detail': 'username or email already exists'},
+            data: {
+              'email': ['email already exists'],
+              'detail': 'email already exists',
+            },
           ),
         ),
         isRegister: true,
@@ -131,6 +134,67 @@ void main() {
       );
 
       expect(message, 'هذا البريد الإلكتروني مستخدم بالفعل.');
+    });
+
+    test('does not map server configuration pages to duplicate email', () {
+      final message = ApiService.friendlyMessageForDioException(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/register/'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/auth/register/'),
+            statusCode: 400,
+            data:
+                '<html><title>DisallowedHost</title>Invalid HTTP_HOST header. ALLOWED_HOSTS</html>',
+          ),
+        ),
+        isRegister: true,
+        authEndpoint: true,
+      );
+
+      expect(
+        message,
+        'تعذر الاتصال بخدمة إنشاء الحساب حالياً. تأكد من تشغيل الخادم وحاول مرة أخرى.',
+      );
+      expect(message, isNot('هذا البريد الإلكتروني مستخدم بالفعل.'));
+    });
+
+    test('does not map unknown uniqueness conflicts to duplicate email', () {
+      final message = ApiService.friendlyMessageForDioException(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/register/'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/auth/register/'),
+            statusCode: 400,
+            data: {'detail': 'unique constraint failed'},
+          ),
+        ),
+        isRegister: true,
+        authEndpoint: true,
+      );
+
+      expect(message, 'بيانات الحساب مستخدمة بالفعل.');
+      expect(message, isNot('هذا البريد الإلكتروني مستخدم بالفعل.'));
+    });
+
+    test('maps duplicate register phone to a phone message', () {
+      final message = ApiService.friendlyMessageForDioException(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/register/'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/auth/register/'),
+            statusCode: 400,
+            data: {
+              'phone_number': ['phone number already exists'],
+              'detail': 'phone number already exists',
+            },
+          ),
+        ),
+        isRegister: true,
+        authEndpoint: true,
+      );
+
+      expect(message, 'رقم الهاتف مستخدم بالفعل.');
+      expect(message, isNot(contains('البريد')));
     });
 
     test('maps timeout and connection errors without DioException text', () {
