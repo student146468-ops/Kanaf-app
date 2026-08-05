@@ -1,63 +1,105 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div style="direction: rtl; padding: 20px; font-family: 'Tajawal', sans-serif;">
-    
-    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px;">
-        <h3 style="color: #10b981; margin-top: 0;">🎁 إضافة تبرع جديد</h3>
-        <form method="POST" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+<section class="page-shell">
+    <div class="panel">
+        <h3 class="panel-title">إضافة تبرع مالي <span class="panel-kicker"><i class="fas fa-wallet"></i></span></h3>
+        <form method="POST" class="form-grid">
             {% csrf_token %}
-            <div style="flex: 2; min-width: 200px;">
-                <label style="display: block; margin-bottom: 8px; color: #64748b;">اسم المتبرع:</label>
-                <input type="text" name="d_name" required placeholder="مثال: فاعل خير" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; outline: none;">
+            <div>
+                <label for="d_name">اسم المتبرع</label>
+                <input id="d_name" type="text" name="d_name" required placeholder="مثال: متبرع تجريبي">
             </div>
-            <div style="flex: 2; min-width: 200px;">
-                <label style="display: block; margin-bottom: 8px; color: #64748b;">نوع التبرع (عيني/نقدي):</label>
-                <input type="text" name="d_item" required placeholder="مثال: مواد غذائية" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; outline: none;">
+            <div>
+                <label for="d_item">نوع التبرع</label>
+                <input id="d_item" type="text" name="d_item" required placeholder="المبلغ أو وصف التبرع">
             </div>
-            <button type="submit" style="background: #10b981; color: white; padding: 12px 30px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s;">
-                إضافة التبرع
-            </button>
+            <button type="submit"><i class="fas fa-plus"></i> إضافة التبرع</button>
         </form>
     </div>
 
-    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-        <h3 style="margin-top: 0; color: #1e293b;">📋 سجل التبرعات الواردة</h3>
-        <table style="width: 100%; border-collapse: collapse; text-align: right;">
-            <thead>
-                <tr style="border-bottom: 2px solid #f1f5f9; color: #64748b;">
-                    <th style="padding: 15px;">المتبرع</th>
-                    <th style="padding: 15px;">النوع</th>
-                    <th style="padding: 15px;">الحالة</th>
-                    <th style="padding: 15px; text-align: center;">إجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for d in donations %}
-                <tr style="border-bottom: 1px solid #f1f5f9; transition: 0.2s;">
-                    <td style="padding: 15px; color: #1e293b;">{{ d.donor_name }}</td>
-                    <td style="padding: 15px; color: #64748b;">{{ d.item_type }}</td>
-                    <td style="padding: 15px;">
-                        <span style="background: #ecfdf5; color: #10b981; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem;">
-                            {{ d.status|default:"تم الاستلام" }}
-                        </span>
-                    </td>
-                    <td style="padding: 15px; text-align: center;">
-                        <a href="{% url 'delete_donation' d.id %}" 
-                           onclick="return confirm('هل أنتِ متأكدة من حذف هذا التبرع؟')" 
-                           style="color: #ef4444; text-decoration: none; font-weight: bold; padding: 8px 15px; border: 1px solid #fee2e2; border-radius: 8px; background: #fef2f2;">
-                           ❌ حذف
-                        </a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="padding: 30px; text-align: center; color: #94a3b8;">لا توجد تبرعات مسجلة حالياً.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="content-card">
+        <div class="panel" style="box-shadow: none; border: 0; background: transparent; padding-bottom: 0;">
+            <h3 class="panel-title">سجل التبرعات</h3>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>المتبرع</th>
+                        <th>النوع</th>
+                        <th>الاحتياج</th>
+                        <th>المبلغ / الكمية</th>
+                        <th>تاريخ الإنشاء</th>
+                        <th>الحالة</th>
+                        <th style="text-align: center;">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in donations %}
+                    <tr>
+                        <td class="name-cell">
+                            {% if d.donor_name %}
+                                {{ d.donor_name }}
+                            {% elif d.user %}
+                                {{ d.user.username }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if d.donation_type == "financial" %}مالي{% elif d.donation_type == "in_kind" %}عيني{% else %}{{ d.get_donation_type_display }}{% endif %}
+                            {% if d.item_type %}<br><small>{{ d.item_type }}</small>{% endif %}
+                        </td>
+                        <td>{{ d.need|default:"-" }}</td>
+                        <td>
+                            {% if d.donation_type == "financial" %}
+                                {{ d.amount|default:"-" }}
+                            {% else %}
+                                {{ d.quantity|default:d.description|default:"-" }}
+                            {% endif %}
+                        </td>
+                        <td>{{ d.donation_date|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <span class="badge badge-green">
+                                {% if d.status == "pending" %}قيد الانتظار
+                                {% elif d.status == "accepted" %}مقبول
+                                {% elif d.status == "rejected" %}مرفوض
+                                {% elif d.status == "completed" %}مكتمل
+                                {% else %}{{ d.status }}{% endif %}
+                            </span>
+                        </td>
+                        <td style="text-align: center;">
+                            <form method="POST" action="{% url 'update_donation_status' d.id %}" style="display: inline-flex; gap: 8px; align-items: center; margin-inline-end: 8px;">
+                                {% csrf_token %}
+                                <select name="status" aria-label="حالة التبرع">
+                                    {% for value, label in donation_status_choices %}
+                                    <option value="{{ value }}" {% if d.status == value %}selected{% endif %}>
+                                        {% if value == "pending" %}قيد الانتظار
+                                        {% elif value == "accepted" %}مقبول
+                                        {% elif value == "rejected" %}مرفوض
+                                        {% elif value == "completed" %}مكتمل
+                                        {% else %}{{ label }}{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit"><i class="fas fa-floppy-disk"></i> حفظ</button>
+                            </form>
+                            <form method="POST" action="{% url 'delete_donation' d.id %}" class="delete-form" data-delete-name="{{ d }}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="confirm_delete" value="">
+                                <button type="submit" class="delete-button"><i class="fas fa-trash"></i> حذف</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="empty-state">لا توجد تبرعات مسجلة حاليًا.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-
-</div>
+</section>
 {% endblock %}

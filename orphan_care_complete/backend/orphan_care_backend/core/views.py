@@ -1,12 +1,31 @@
 import json
+import logging
 
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
+from django.db import IntegrityError
+from django.db.models import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from management.models import Donation, InventoryItem, Orphan, Sponsor, Volunteer
+from management.models import Donation, InventoryItem, Orphan, Sponsor, Volunteer, VolunteerApplication
 from management.serializers import DonationSerializer, InventorySerializer, OrphanSerializer, SponsorSerializer, VolunteerSerializer
+
+logger = logging.getLogger(__name__)
+
+
+STATUS_LABELS_AR = {
+    'pending': 'قيد الانتظار',
+    'accepted': 'مقبول',
+    'rejected': 'مرفوض',
+    'completed': 'مكتمل',
+}
+
+
+def _status_label(value):
+    return STATUS_LABELS_AR.get(value, value)
 
 
 def _save_from_serializer(request, serializer_class, data, redirect_name, template_name, context):
@@ -59,8 +78,20 @@ def volunteers_view(request):
 
 
 @staff_member_required
+def volunteer_applications_view(request):
+    context = {
+        'applications': VolunteerApplication.objects.select_related('user', 'opportunity').all(),
+        'application_status_choices': VolunteerApplication.STATUS_CHOICES,
+    }
+    return render(request, 'volunteer_applications.html', context)
+
+
+@staff_member_required
 def donations_list(request):
-    context = {'donations': Donation.objects.all()}
+    context = {
+        'donations': Donation.objects.select_related('user', 'need').all(),
+        'donation_status_choices': Donation.STATUS_CHOICES,
+    }
     if request.method == 'POST':
         return _save_from_serializer(
             request,
@@ -71,6 +102,32 @@ def donations_list(request):
             context,
         )
     return render(request, 'donations.html', context)
+
+
+@staff_member_required
+@require_POST
+def update_donation_status(request, pk):
+    return _update_management_status(
+        request,
+        Donation,
+        pk,
+        Donation.STATUS_CHOICES,
+        'donations_list',
+        'التبرع',
+    )
+
+
+@staff_member_required
+@require_POST
+def update_volunteer_application_status(request, pk):
+    return _update_management_status(
+        request,
+        VolunteerApplication,
+        pk,
+        VolunteerApplication.STATUS_CHOICES,
+        'volunteer_applications_list',
+        'طلب التطوع',
+    )
 
 
 @staff_member_required
@@ -122,32 +179,75 @@ def settings_view(request):
 
 @staff_member_required
 def delete_orphan(request, pk):
-    get_object_or_404(Orphan, id=pk).delete()
-    return redirect('orphans_list')
+    return _delete_management_record(request, Orphan, pk, 'orphans_list', 'orphan')
 
 
 @staff_member_required
 def delete_volunteer(request, pk):
-    get_object_or_404(Volunteer, id=pk).delete()
-    return redirect('volunteers_list')
+    return _delete_management_record(request, Volunteer, pk, 'volunteers_list', 'volunteer')
 
 
 @staff_member_required
 def delete_donation(request, pk):
-    get_object_or_404(Donation, id=pk).delete()
-    return redirect('donations_list')
+    return _delete_management_record(request, Donation, pk, 'donations_list', 'donation')
 
 
 @staff_member_required
 def delete_sponsor(request, pk):
-    get_object_or_404(Sponsor, id=pk).delete()
-    return redirect('sponsors_list')
+    return _delete_management_record(request, Sponsor, pk, 'sponsors_list', 'sponsor')
 
 
 @staff_member_required
 def delete_inventory(request, pk):
-    get_object_or_404(InventoryItem, id=pk).delete()
-    return redirect('inventory_view')
+    return _delete_management_record(request, InventoryItem, pk, 'inventory_view', 'inventory item')
+
+
+def _delete_management_record(request, model_class, pk, redirect_name, label):
+    if request.method != 'POST':
+        messages.error(request, 'لم تكتمل عملية الحذف. يرجى استخدام زر التأكيد.')
+        return redirect(redirect_name)
+
+    record = get_object_or_404(model_class, pk=pk)
+    record_name = str(record)
+
+    if request.POST.get('confirm_delete') != 'yes':
+        messages.error(request, f'لم تكتمل عملية حذف {record_name}؛ التأكيد مطلوب.')
+        return redirect(redirect_name)
+
+    try:
+        record.delete()
+    except ProtectedError as exc:
+        logger.warning('Protected delete blocked for %s id=%s: %s', label, pk, exc, exc_info=True)
+        messages.error(request, f'لا يمكن حذف {record_name} لأنه مرتبط بسجلات محفوظة أخرى.')
+    except IntegrityError as exc:
+        logger.warning('Database delete blocked for %s id=%s: %s', label, pk, exc, exc_info=True)
+        messages.error(request, f'لم تكتمل عملية حذف {record_name} بسبب سجلات مرتبطة في قاعدة البيانات.')
+    except Exception as exc:
+        logger.exception('Unexpected delete failure for %s id=%s: %s', label, pk, exc)
+        messages.error(request, f'لم تكتمل عملية حذف {record_name}.')
+    else:
+        messages.success(request, f'تم حذف {record_name} بنجاح.')
+
+    return redirect(redirect_name)
+
+
+def _update_management_status(request, model_class, pk, allowed_choices, redirect_name, label):
+    record = get_object_or_404(model_class, pk=pk)
+    new_status = request.POST.get('status', '').strip()
+    allowed_values = {value for value, _ in allowed_choices}
+
+    if new_status not in allowed_values:
+        messages.error(request, f'لم يتم تحديث حالة {label}؛ الحالة غير صالحة.')
+        return redirect(redirect_name)
+
+    if record.status == new_status:
+        messages.success(request, f'حالة {label} هي بالفعل {_status_label(new_status)}.')
+        return redirect(redirect_name)
+
+    record.status = new_status
+    record.save(update_fields=['status', 'updated_at'])
+    messages.success(request, f'تم تحديث حالة {label} إلى {_status_label(new_status)}.')
+    return redirect(redirect_name)
 
 
 @api_view(['GET'])

@@ -1,15 +1,17 @@
 """Active REST API views for the Kanaf backend."""
+import logging
 import re
 
 from django.contrib.auth import authenticate, get_user_model
 from django.db import IntegrityError, connection
 from django.db.models import Count, F, Sum
+from django.db.models.deletion import ProtectedError
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import filters, serializers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -31,6 +33,7 @@ from .serializers import (
 from .models import CareHome, Notification, UserProfile, VolunteerApplication, VolunteerOpportunity
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 VERIFICATION_TITLE_PREFIX = 'Codex verification'
 VERIFICATION_DESCRIPTION_PREFIX = 'Local verification'
 PHONE_NUMBER_PATTERN = re.compile(r'^(091|092|093|094)[0-9]{7}$')
@@ -63,8 +66,120 @@ def _without_verification_data(queryset):
     ).exclude(
         description__istartswith=VERIFICATION_DESCRIPTION_PREFIX,
     )
+
+
+class StaffDeletePermission(BasePermission):
+    message = 'Only staff users can delete this record.'
+
+    def has_permission(self, request, view):
+        if request.method == 'DELETE':
+            return bool(request.user and request.user.is_authenticated and request.user.is_staff)
+        return bool(request.user and request.user.is_authenticated)
+
+
+class StaffWriteAuthenticatedReadPermission(BasePermission):
+    message = 'Only staff users can update this record.'
+
+    def has_permission(self, request, view):
+        if not (request.user and request.user.is_authenticated):
+            return False
+        if request.method in ('GET', 'HEAD', 'OPTIONS', 'POST'):
+            return True
+        return request.user.is_staff
+
+
+class SafeDestroyMixin:
+    protected_delete_detail = 'Cannot delete this record because it is linked to other saved records.'
+    protect_related_on_delete = False
+    protected_related_names = ()
+
+    def _related_counts(self, instance):
+        related_counts = {}
+        for relation in instance._meta.related_objects:
+            accessor = relation.get_accessor_name()
+            if self.protected_related_names and accessor not in self.protected_related_names:
+                continue
+            manager = getattr(instance, accessor, None)
+            if manager is None:
+                continue
+            try:
+                count = manager.count()
+            except Exception:
+                continue
+            if count:
+                related_counts[accessor] = count
+        return related_counts
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        related_counts = self._related_counts(instance) if self.protect_related_on_delete else {}
+        if related_counts:
+            logger.info(
+                'Delete blocked for %s id=%s because of related records: %s',
+                instance.__class__.__name__,
+                instance.pk,
+                related_counts,
+            )
+            return Response(
+                {'detail': self.protected_delete_detail, 'related': related_counts},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        try:
+            self.perform_destroy(instance)
+        except ProtectedError as exc:
+            logger.warning(
+                'Protected delete blocked for %s id=%s: %s',
+                instance.__class__.__name__,
+                instance.pk,
+                exc,
+                exc_info=True,
+            )
+            return Response({'detail': self.protected_delete_detail}, status=status.HTTP_409_CONFLICT)
+        except IntegrityError as exc:
+            logger.warning(
+                'Database delete blocked for %s id=%s: %s',
+                instance.__class__.__name__,
+                instance.pk,
+                exc,
+                exc_info=True,
+            )
+            return Response(
+                {'detail': 'Delete was not completed because of related database records.'},
+                status=status.HTTP_409_CONFLICT,
+            )
+        except Exception as exc:
+            logger.exception(
+                'Unexpected delete failure for %s id=%s: %s',
+                instance.__class__.__name__,
+                instance.pk,
+                exc,
+            )
+            return Response({'detail': 'Delete was not completed.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def _create_notification(user, notification_type, title, message):
+    if not user:
+        return
+    Notification.objects.create(
+        user=user,
+        notification_type=notification_type,
+        title=title,
+        message=message,
+    )
 ORPHAN_WAITING_STATUSES = ['ينتظر كفالة', 'ظٹظ†طھط¸ط± ظƒظپط§ظ„ط©']
 DONATION_ACTIVE_STATUSES = ['قيد التنفيذ', 'ظ‚ظٹط¯ ط§ظ„طھظ†ظپظٹط°']
+
+
+def _profile_role(user):
+    profile = getattr(user, 'profile', None)
+    return getattr(profile, 'role', '')
+
+
+def _is_accepted_status(value):
+    return value in (VolunteerApplication.STATUS_ACCEPTED, 'approved')
 
 
 AUTH_RESPONSE_SCHEMA = inline_serializer(
@@ -273,10 +388,10 @@ class MeView(APIView):
         return Response(_user_payload(request.user))
 
 
-class OrphanViewSet(viewsets.ModelViewSet):
+class OrphanViewSet(SafeDestroyMixin, viewsets.ModelViewSet):
     queryset = Orphan.objects.all()
     serializer_class = OrphanSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [StaffDeletePermission]
     pagination_class = None
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'status']
@@ -290,33 +405,68 @@ class OrphanViewSet(viewsets.ModelViewSet):
         return Response({'total': total, 'by_status': list(by_status)})
 
 
-class DonationViewSet(viewsets.ModelViewSet):
+class DonationViewSet(SafeDestroyMixin, viewsets.ModelViewSet):
     queryset = Donation.objects.all()
     serializer_class = DonationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [StaffWriteAuthenticatedReadPermission]
     pagination_class = None
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['donor_name', 'item_type', 'status']
-    ordering_fields = ['id', 'status']
-    ordering = ['-id']
+    search_fields = ['donor_name', 'item_type', 'status', 'description', 'need__title']
+    ordering_fields = ['id', 'status', 'donation_date']
+    ordering = ['-donation_date', '-id']
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Donation.objects.none()
+        queryset = Donation.objects.select_related('user', 'need')
+        if self.request.user.is_staff:
+            return queryset
+        return queryset.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        if _profile_role(self.request.user) != UserProfile.ROLE_DONOR:
+            raise serializers.ValidationError({'detail': 'Only donor users can create donations.'})
+        donor_name = (
+            self.request.user.get_full_name()
+            or self.request.user.username
+            or self.request.user.email
+        )
+        serializer.save(
+            user=self.request.user,
+            donor_name=donor_name,
+            status=Donation.STATUS_PENDING,
+        )
+
+    def perform_update(self, serializer):
+        previous_status = serializer.instance.status
+        donation = serializer.save()
+        if donation.user_id and previous_status != donation.status:
+            _create_notification(
+                donation.user,
+                Notification.TYPE_DONATION,
+                'Donation status updated',
+                f'Your donation request is now {donation.status}.',
+            )
 
     @action(detail=False, methods=['get'], url_path='my-donations')
     def my_donations(self, request):
-        donations = Donation.objects.filter(donor_name__iexact=request.user.username)
+        donations = self.get_queryset()
         serializer = self.get_serializer(donations, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def statistics(self, request):
-        total = Donation.objects.count()
-        by_status = Donation.objects.values('status').annotate(count=Count('id'))
-        return Response({'total': total, 'total_amount': 0, 'by_status': list(by_status)})
+        queryset = self.get_queryset()
+        total = queryset.count()
+        by_status = queryset.values('status').annotate(count=Count('id'))
+        total_amount = queryset.aggregate(Sum('amount'))['amount__sum'] or 0
+        return Response({'total': total, 'total_amount': total_amount, 'by_status': list(by_status)})
 
 
-class VolunteerViewSet(viewsets.ModelViewSet):
+class VolunteerViewSet(SafeDestroyMixin, viewsets.ModelViewSet):
     queryset = Volunteer.objects.all()
     serializer_class = VolunteerSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [StaffDeletePermission]
     pagination_class = None
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'specialty']
@@ -341,10 +491,10 @@ class VolunteerViewSet(viewsets.ModelViewSet):
         })
 
 
-class SponsorViewSet(viewsets.ModelViewSet):
+class SponsorViewSet(SafeDestroyMixin, viewsets.ModelViewSet):
     queryset = Sponsor.objects.all()
     serializer_class = SponsorSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [StaffDeletePermission]
     pagination_class = None
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'phone']
@@ -352,10 +502,10 @@ class SponsorViewSet(viewsets.ModelViewSet):
     ordering = ['-id']
 
 
-class InventoryViewSet(viewsets.ModelViewSet):
+class InventoryViewSet(SafeDestroyMixin, viewsets.ModelViewSet):
     queryset = InventoryItem.objects.all()
     serializer_class = InventorySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [StaffDeletePermission]
     pagination_class = None
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['item_name']
@@ -369,12 +519,12 @@ class InventoryViewSet(viewsets.ModelViewSet):
         return Response({'total_items': total_items, 'total_quantity': total_quantity})
 
 
-class NeedViewSet(viewsets.ModelViewSet):
+class NeedViewSet(SafeDestroyMixin, viewsets.ModelViewSet):
     queryset = _without_verification_data(
         Need.objects.exclude(status=Need.STATUS_ARCHIVED)
     )
     serializer_class = NeedSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [StaffDeletePermission]
     pagination_class = None
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'description', 'category', 'priority', 'status']
@@ -383,6 +533,13 @@ class NeedViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        need = self.get_object()
+        need.status = Need.STATUS_ARCHIVED
+        need.save(update_fields=['status', 'updated_at'])
+        logger.info('Need id=%s was archived through DELETE by user id=%s', need.pk, request.user.pk)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'])
     def archive(self, request, pk=None):
@@ -398,10 +555,13 @@ class NeedViewSet(viewsets.ModelViewSet):
         return Response({'total': total, 'by_status': list(by_status)})
 
 
-class VolunteerOpportunityViewSet(viewsets.ModelViewSet):
+class VolunteerOpportunityViewSet(SafeDestroyMixin, viewsets.ModelViewSet):
     queryset = _without_verification_data(VolunteerOpportunity.objects.all())
     serializer_class = VolunteerOpportunitySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [StaffDeletePermission]
+    protect_related_on_delete = True
+    protected_related_names = ('applications',)
+    protected_delete_detail = 'Cannot delete this volunteer opportunity because it has saved applications.'
     pagination_class = None
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'description', 'location', 'status']
@@ -410,6 +570,8 @@ class VolunteerOpportunityViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def apply(self, request, pk=None):
+        if _profile_role(request.user) != UserProfile.ROLE_VOLUNTEER:
+            return Response({'detail': 'Only volunteer users can apply to opportunities.'}, status=status.HTTP_403_FORBIDDEN)
         opportunity = self.get_object()
         application, created = VolunteerApplication.objects.get_or_create(
             opportunity=opportunity,
@@ -420,9 +582,9 @@ class VolunteerOpportunityViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
-class VolunteerApplicationViewSet(viewsets.ModelViewSet):
+class VolunteerApplicationViewSet(SafeDestroyMixin, viewsets.ModelViewSet):
     serializer_class = VolunteerApplicationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [StaffWriteAuthenticatedReadPermission]
     pagination_class = None
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['opportunity__title', 'message', 'status']
@@ -440,6 +602,26 @@ class VolunteerApplicationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def perform_update(self, serializer):
+        previous_status = serializer.instance.status
+        application = serializer.save()
+        if previous_status != application.status:
+            _create_notification(
+                application.user,
+                Notification.TYPE_VOLUNTEER,
+                'Volunteer application status updated',
+                f'Your application for {application.opportunity.title} is now {application.status}.',
+            )
+
+    def perform_destroy(self, instance):
+        with transaction.atomic():
+            if _is_accepted_status(instance.status):
+                VolunteerOpportunity.objects.filter(
+                    pk=instance.opportunity_id,
+                    current_volunteers__gt=0,
+                ).update(current_volunteers=F('current_volunteers') - 1)
+            instance.delete()
+
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         application = self.get_object()
@@ -447,14 +629,26 @@ class VolunteerApplicationViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Only staff can approve applications.'}, status=status.HTTP_403_FORBIDDEN)
         with transaction.atomic():
             opportunity = VolunteerOpportunity.objects.select_for_update().get(pk=application.opportunity_id)
-            if application.status != VolunteerApplication.STATUS_APPROVED:
+            if not _is_accepted_status(application.status):
                 if opportunity.current_volunteers >= opportunity.required_volunteers:
                     return Response({'detail': 'Opportunity is already full.'}, status=status.HTTP_400_BAD_REQUEST)
-                application.status = VolunteerApplication.STATUS_APPROVED
+                application.status = VolunteerApplication.STATUS_ACCEPTED
                 application.save(update_fields=['status', 'updated_at'])
                 VolunteerOpportunity.objects.filter(pk=opportunity.pk).update(current_volunteers=F('current_volunteers') + 1)
         application.refresh_from_db()
+        _create_notification(
+            application.user,
+            Notification.TYPE_VOLUNTEER,
+            'Volunteer application approved',
+            f'Your application for {application.opportunity.title} was approved.',
+        )
         return Response(self.get_serializer(application).data)
+
+    @action(detail=False, methods=['get'], url_path='my-applications')
+    def my_applications(self, request):
+        applications = self.get_queryset()
+        serializer = self.get_serializer(applications, many=True)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
@@ -463,13 +657,34 @@ class VolunteerApplicationViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Only staff can reject applications.'}, status=status.HTTP_403_FORBIDDEN)
         application.status = VolunteerApplication.STATUS_REJECTED
         application.save(update_fields=['status', 'updated_at'])
+        _create_notification(
+            application.user,
+            Notification.TYPE_VOLUNTEER,
+            'Volunteer application rejected',
+            f'Your application for {application.opportunity.title} was rejected.',
+        )
+        return Response(self.get_serializer(application).data)
+
+    @action(detail=True, methods=['post'])
+    def complete(self, request, pk=None):
+        application = self.get_object()
+        if not request.user.is_staff:
+            return Response({'detail': 'Only staff can complete applications.'}, status=status.HTTP_403_FORBIDDEN)
+        application.status = VolunteerApplication.STATUS_COMPLETED
+        application.save(update_fields=['status', 'updated_at'])
+        _create_notification(
+            application.user,
+            Notification.TYPE_VOLUNTEER,
+            'Volunteer application completed',
+            f'Your application for {application.opportunity.title} was completed.',
+        )
         return Response(self.get_serializer(application).data)
 
 
-class CareHomeViewSet(viewsets.ModelViewSet):
+class CareHomeViewSet(SafeDestroyMixin, viewsets.ModelViewSet):
     queryset = CareHome.objects.all()
     serializer_class = CareHomeSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [StaffDeletePermission]
     pagination_class = None
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'address', 'phone', 'email']
@@ -477,7 +692,7 @@ class CareHomeViewSet(viewsets.ModelViewSet):
     ordering = ['name']
 
 
-class NotificationViewSet(viewsets.ModelViewSet):
+class NotificationViewSet(SafeDestroyMixin, viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = None

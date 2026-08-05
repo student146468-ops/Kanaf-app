@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../../models/donation_model.dart';
 import '../../providers/app_provider_scope.dart';
@@ -148,12 +148,14 @@ class _DonationHistoryScreenState extends State<DonationHistoryScreen> {
   }
 
   Widget _buildProviderDonation(DonationModel donation, int index) {
-    final isFinancial = donation.amount != null && donation.amount! > 0;
+    final isFinancial = donation.donationType == 'financial' ||
+        (donation.amount != null && donation.amount! > 0);
     final amountOrQuantity = isFinancial
         ? '${donation.amount!.toStringAsFixed(donation.amount! % 1 == 0 ? 0 : 2)} د.ل'
-        : _safeText(donation.itemType, 'تبرع عيني');
-    final target =
-        _safeText(donation.description, donation.category ?? 'مساهمة إنسانية');
+        : _safeText(
+            donation.quantity, _safeText(donation.itemType, 'تبرع عيني'));
+    final target = _safeText(donation.needTitle,
+        _safeText(donation.description, donation.category ?? 'مساهمة إنسانية'));
     final date = _formatDate(donation.donationDate ?? donation.createdAt);
     final status = _normalizeStatus(donation.status);
     final type = isFinancial ? 'تبرع مالي' : 'تبرع عيني';
@@ -201,13 +203,16 @@ class _DonationHistoryScreenState extends State<DonationHistoryScreen> {
         lower.contains('completed')) {
       return 'مكتمل';
     }
+    if (lower.contains('accepted') || lower.contains('approved')) {
+      return 'مقبول';
+    }
     if (status.contains('رفض') ||
         status.contains('فشل') ||
         status.contains('ملغي') ||
         lower.contains('rejected')) {
       return 'مرفوض';
     }
-    return 'قيد التنفيذ';
+    return 'قيد المراجعة';
   }
 
   void _showDonationDetails({

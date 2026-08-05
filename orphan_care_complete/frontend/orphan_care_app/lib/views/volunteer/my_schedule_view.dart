@@ -35,7 +35,8 @@ class _MyScheduleViewState extends State<MyScheduleView> {
   Widget build(BuildContext context) {
     final provider = AppProviderScope.of(context);
     final items = provider.volunteerApplications
-        .where((item) => item['status'] == 'approved')
+        .where((item) =>
+            item['status'] == 'accepted' || item['status'] == 'approved')
         .map(_applicationToScheduleItem)
         .toList();
 

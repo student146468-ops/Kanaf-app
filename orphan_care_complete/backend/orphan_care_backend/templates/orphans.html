@@ -43,11 +43,11 @@
                         </span>
                     </td>
                     <td style="padding: 15px; text-align: center;">
-                        <a href="{% url 'delete_orphan' orphan.id %}" 
-                           onclick="return confirm('هل أنتِ متأكدة من حذف هذا السجل؟')" 
-                           style="color: #ef4444; text-decoration: none; font-weight: bold; padding: 8px 15px; border: 1px solid #fee2e2; border-radius: 8px; background: #fef2f2;">
-                           ❌ حذف
-                        </a>
+                        <form method="POST" action="{% url 'delete_orphan' orphan.id %}" class="delete-form" data-delete-name="{{ orphan.name }}" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="confirm_delete" value="">
+                            <button type="submit" class="delete-button">❌ حذف</button>
+                        </form>
                     </td>
                 </tr>
                 {% empty %}

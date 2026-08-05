@@ -184,7 +184,7 @@ class ApiService {
           int id, Map<String, dynamic> data) =>
       _postMap('/volunteer-opportunities/$id/apply/', data);
   Future<List<dynamic>> getVolunteerApplications() =>
-      _getList('/volunteer-applications/');
+      _getList('/volunteer-applications/my-applications/');
 
   Future<List<dynamic>> getSponsors() => _getList('/sponsors/');
   Future<Map<String, dynamic>> addSponsor(Map<String, dynamic> data) =>

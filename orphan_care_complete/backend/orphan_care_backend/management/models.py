@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 
 class UserProfile(models.Model):
@@ -69,18 +70,52 @@ class Orphan(models.Model):
 
 
 class Donation(models.Model):
-    donor_name = models.CharField(max_length=100, db_index=True)
-    item_type = models.CharField(max_length=100, db_index=True)
-    status = models.CharField(max_length=50, default='قيد التنفيذ', db_index=True)
+    TYPE_FINANCIAL = 'financial'
+    TYPE_IN_KIND = 'in_kind'
+    TYPE_CHOICES = [
+        (TYPE_FINANCIAL, 'Financial'),
+        (TYPE_IN_KIND, 'In-kind'),
+    ]
+
+    STATUS_PENDING = 'pending'
+    STATUS_ACCEPTED = 'accepted'
+    STATUS_APPROVED = STATUS_ACCEPTED
+    STATUS_REJECTED = 'rejected'
+    STATUS_COMPLETED = 'completed'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending review'),
+        (STATUS_ACCEPTED, 'Accepted'),
+        (STATUS_REJECTED, 'Rejected'),
+        (STATUS_COMPLETED, 'Completed'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='donations')
+    need = models.ForeignKey('Need', on_delete=models.SET_NULL, null=True, blank=True, related_name='donations')
+    donation_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default=TYPE_IN_KIND, db_index=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0)])
+    description = models.TextField(blank=True)
+    quantity = models.CharField(max_length=100, blank=True)
+    payment_method = models.CharField(max_length=100, blank=True)
+    donation_mode = models.CharField(max_length=100, blank=True)
+    contact = models.CharField(max_length=100, blank=True)
+    notes = models.TextField(blank=True)
+    donation_date = models.DateTimeField(default=timezone.now, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    donor_name = models.CharField(max_length=100, blank=True, db_index=True)
+    item_type = models.CharField(max_length=100, blank=True, db_index=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default=STATUS_PENDING, db_index=True)
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['-donation_date', '-id']
         indexes = [
             models.Index(fields=['status', 'donor_name'], name='donation_status_donor_idx'),
+            models.Index(fields=['user', 'status'], name='donation_user_status_idx'),
+            models.Index(fields=['need', 'status'], name='donation_need_status_idx'),
         ]
 
     def __str__(self):
-        return f'{self.donor_name} - {self.item_type}'
+        label = self.amount if self.donation_type == self.TYPE_FINANCIAL else self.item_type
+        return f'{self.donor_name} - {label}'
 
 
 class Sponsor(models.Model):
@@ -202,12 +237,15 @@ class VolunteerOpportunity(models.Model):
 
 class VolunteerApplication(models.Model):
     STATUS_PENDING = 'pending'
-    STATUS_APPROVED = 'approved'
+    STATUS_ACCEPTED = 'accepted'
+    STATUS_APPROVED = STATUS_ACCEPTED
     STATUS_REJECTED = 'rejected'
+    STATUS_COMPLETED = 'completed'
     STATUS_CHOICES = [
         (STATUS_PENDING, 'Pending'),
-        (STATUS_APPROVED, 'Approved'),
+        (STATUS_ACCEPTED, 'Accepted'),
         (STATUS_REJECTED, 'Rejected'),
+        (STATUS_COMPLETED, 'Completed'),
     ]
 
     opportunity = models.ForeignKey(VolunteerOpportunity, on_delete=models.CASCADE, related_name='applications')

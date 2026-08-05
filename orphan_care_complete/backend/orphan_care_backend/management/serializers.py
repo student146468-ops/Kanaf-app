@@ -1,3 +1,5 @@
+from decimal import Decimal, InvalidOperation
+
 from rest_framework import serializers
 
 from .models import (
@@ -36,15 +38,88 @@ class OrphanSerializer(serializers.ModelSerializer):
 
 
 class DonationSerializer(serializers.ModelSerializer):
+    need_id = serializers.PrimaryKeyRelatedField(
+        queryset=Need.objects.all(),
+        source='need',
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
+    need_title = serializers.CharField(source='need.title', read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+
     class Meta:
         model = Donation
-        fields = '__all__'
+        fields = [
+            'id',
+            'user',
+            'username',
+            'donor_name',
+            'donation_type',
+            'item_type',
+            'need',
+            'need_id',
+            'need_title',
+            'amount',
+            'description',
+            'quantity',
+            'payment_method',
+            'donation_mode',
+            'contact',
+            'notes',
+            'status',
+            'donation_date',
+            'updated_at',
+        ]
+        read_only_fields = ['user', 'need', 'donation_date', 'updated_at']
 
     def validate_donor_name(self, value):
-        return _validate_required_text(value, 'donor_name')
+        return str(value).strip()
 
     def validate_item_type(self, value):
-        return _validate_required_text(value, 'item_type')
+        return str(value).strip()
+
+    def validate_status(self, value):
+        if value == 'approved':
+            value = Donation.STATUS_ACCEPTED
+        allowed = {
+            Donation.STATUS_PENDING,
+            Donation.STATUS_ACCEPTED,
+            Donation.STATUS_REJECTED,
+            Donation.STATUS_COMPLETED,
+        }
+        if value not in allowed:
+            raise serializers.ValidationError('status must be pending, accepted, rejected or completed.')
+        return value
+
+    def validate(self, attrs):
+        donation_type = attrs.get('donation_type', getattr(self.instance, 'donation_type', Donation.TYPE_IN_KIND))
+        amount = attrs.get('amount', getattr(self.instance, 'amount', None))
+        quantity = attrs.get('quantity', getattr(self.instance, 'quantity', ''))
+        description = attrs.get('description', getattr(self.instance, 'description', ''))
+        item_type = attrs.get('item_type', getattr(self.instance, 'item_type', ''))
+        need = attrs.get('need', getattr(self.instance, 'need', None))
+
+        if need and getattr(need, 'status', None) != Need.STATUS_OPEN:
+            raise serializers.ValidationError({'need_id': 'need must exist and be open.'})
+
+        if donation_type == Donation.TYPE_FINANCIAL:
+            if amount is None:
+                raise serializers.ValidationError({'amount': 'amount is required for financial donations.'})
+            try:
+                if Decimal(str(amount)) <= 0:
+                    raise serializers.ValidationError({'amount': 'amount must be greater than zero.'})
+            except InvalidOperation:
+                raise serializers.ValidationError({'amount': 'amount must be a valid number.'})
+        if donation_type == Donation.TYPE_IN_KIND and not (str(quantity).strip() or str(description).strip() or str(item_type).strip()):
+            raise serializers.ValidationError({'quantity': 'quantity or description is required for in-kind donations.'})
+        return attrs
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if data.get('status') == 'approved':
+            data['status'] = Donation.STATUS_ACCEPTED
+        return data
 
 
 class VolunteerSerializer(serializers.ModelSerializer):
@@ -153,6 +228,17 @@ class VolunteerApplicationSerializer(serializers.ModelSerializer):
         model = VolunteerApplication
         fields = '__all__'
         read_only_fields = ['user', 'created_at', 'updated_at']
+
+    def validate_status(self, value):
+        if value == 'approved':
+            return VolunteerApplication.STATUS_ACCEPTED
+        return value
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if data.get('status') == 'approved':
+            data['status'] = VolunteerApplication.STATUS_ACCEPTED
+        return data
 
 
 class CareHomeSerializer(serializers.ModelSerializer):

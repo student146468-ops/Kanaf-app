@@ -34,7 +34,8 @@ class _MyCertificatesViewState extends State<MyCertificatesView> {
     final provider = AppProviderScope.of(context);
     final userName = provider.currentUser['username']?.toString() ?? '';
     final certificates = provider.volunteerApplications
-        .where((item) => item['status'] == 'approved')
+        .where((item) =>
+            item['status'] == 'accepted' || item['status'] == 'approved')
         .toList();
     final certificate = certificates.isEmpty ? null : certificates.first;
     return Directionality(

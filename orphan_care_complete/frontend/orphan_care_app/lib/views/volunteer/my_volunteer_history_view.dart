@@ -57,7 +57,7 @@ class _MyVolunteerHistoryViewState extends State<MyVolunteerHistoryView> {
   }
 
   String _statusLabel(String value) {
-    if (value == 'approved') return 'قيد التنفيذ';
+    if (value == 'accepted' || value == 'approved') return 'قيد التنفيذ';
     if (value == 'rejected') return 'مرفوض';
     return 'قيد المراجعة';
   }
